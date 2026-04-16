@@ -49,3 +49,9 @@ Actuellement, **une première version du backend a été développée avec Djang
 
 ## 💡 Conclusion
 **EduConnect** est conçu pour simplifier la gestion scolaire, garantir la fiabilité 
+
+
+
+
+
+
