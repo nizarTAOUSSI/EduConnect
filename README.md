@@ -42,10 +42,12 @@ Une note dans **EduConnect** n'est pas statique, elle suit un cycle de vie préc
 *   **ReportLab** : Génération des bulletins scolaires en documents PDF [3].
 
 ## 🚀 État d'avancement
-Actuellement, **une première version du backend a été développée avec Django** [10]. 
-- ✅ Création des modèles de base de données (Utilisateurs, Notes, Matières...) [10].
-- ✅ Configuration de l'interface d'administration Django (Admin panel) [10].
-- ✅ Développement des premières routes d'API REST [10].
+Actuellement, **la structure du backend a été développée avec Django REST Framework**. 
+- ✅ Initialisation du projet et configuration de la base de données MySQL.
+- ✅ Création des modèles pour les 5 domaines clés : `accounts` (utilisateurs), `academics` (classes, matières), `grades` (notes, évaluations), `reports` (bulletins) et `communication` (réclamations, notifications).
+- ✅ Configuration de l'interface d'administration Django (Admin panel).
+- ✅ Développement de l'ensemble des routes API REST et intégration des ViewSets et Routers.
+- ✅ Mise en place de la documentation interactive OpenAPI / Swagger UI via `drf-spectacular`.
 
 ## 💡 Conclusion
 **EduConnect** est conçu pour simplifier la gestion scolaire, garantir la fiabilité 
