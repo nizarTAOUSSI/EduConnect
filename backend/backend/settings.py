@@ -7,6 +7,18 @@ from pathlib import Path
 
 import dj_database_url
 
+
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_list(name, default=''):
+    value = os.getenv(name, default)
+    return [item.strip() for item in value.split(',') if item.strip()]
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
@@ -15,9 +27,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------------------------------------------------------------------
 # Security
 # ---------------------------------------------------------------------------
-SECRET_KEY = 'django-insecure-a3)cj)_j(@(ue&zq*$8h=_jf09#uky!b8fw2f4l+gmz5h^6m6b'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    'django-insecure-a3)cj)_j(@(ue&zq*$8h=_jf09#uky!b8fw2f4l+gmz5h^6m6b',
+)
+DEBUG = env_bool('DEBUG', default=True)
+ALLOWED_HOSTS = env_list(
+    'ALLOWED_HOSTS',
+    default='127.0.0.1,localhost,.railway.app',
+)
+CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS')
 
 # ---------------------------------------------------------------------------
 # Applications
@@ -80,7 +99,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # ---------------------------------------------------------------------------
 # Database – Railway MySQL / local fallback
 # ---------------------------------------------------------------------------
-database_url = os.getenv('DATABASE_URL') or os.getenv('MYSQL_URL')
+database_url = os.getenv('MYSQL_URL') or os.getenv('DATABASE_URL')
 
 if database_url:
     DATABASES = {
@@ -119,6 +138,12 @@ else:
             'CONN_MAX_AGE': 600,
         }
     }
+
+DATABASES['default'].setdefault('OPTIONS', {})
+DATABASES['default']['OPTIONS'].setdefault(
+    'init_command',
+    "SET sql_mode='STRICT_TRANS_TABLES'",
+)
 
 # ---------------------------------------------------------------------------
 # Password validation
