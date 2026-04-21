@@ -2,7 +2,10 @@
 Django settings for backend project (EduConnect).
 """
 
+import os
 from pathlib import Path
+
+import dj_database_url
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -75,22 +78,47 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 # ---------------------------------------------------------------------------
-# Database – MySQL
-# Replace the placeholder values with your actual credentials.
+# Database – Railway MySQL / local fallback
 # ---------------------------------------------------------------------------
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'educonnect',
-        'USER': 'nizar',
-        'PASSWORD': 'nizar2003',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+database_url = os.getenv('DATABASE_URL') or os.getenv('MYSQL_URL')
+
+if database_url:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            database_url,
+            conn_max_age=600,
+        )
     }
-}
+elif os.getenv('MYSQLHOST') and os.getenv('MYSQLDATABASE'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('MYSQLDATABASE'),
+            'USER': os.getenv('MYSQLUSER', ''),
+            'PASSWORD': os.getenv('MYSQLPASSWORD', ''),
+            'HOST': os.getenv('MYSQLHOST'),
+            'PORT': os.getenv('MYSQLPORT', '3306'),
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+            'CONN_MAX_AGE': 600,
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('DB_NAME', 'educonnect'),
+            'USER': os.getenv('DB_USER', 'nizar'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'nizar2003'),
+            'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+            'PORT': os.getenv('DB_PORT', '3306'),
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+            'CONN_MAX_AGE': 600,
+        }
+    }
 
 # ---------------------------------------------------------------------------
 # Password validation
