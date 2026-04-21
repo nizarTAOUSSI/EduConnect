@@ -36,7 +36,10 @@ ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
     default='127.0.0.1,localhost,.railway.app',
 )
-CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS')
+CSRF_TRUSTED_ORIGINS = env_list(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://*.railway.app',
+)
 
 # ---------------------------------------------------------------------------
 # Applications
@@ -175,8 +178,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ---------------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -200,4 +203,14 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'CONTACT': {'name': 'Équipe EduConnect'},
     'LICENSE': {'name': 'MIT'},
+    'SECURITY': [{'jwtAuth': []}],
+    'COMPONENTS': {
+        'securitySchemes': {
+            'jwtAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+            }
+        }
+    },
 }
