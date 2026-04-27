@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronRight, LogOut } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import logo from '../assets/Logo.png';
 import { LoginModal, SignupModal } from './AuthModals';
 import { useAuth } from '../hooks/useAuth';
@@ -35,14 +36,14 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`flex justify-between items-center transition-all duration-500 rounded-full px-6 py-3 ${isScrolled ? 'glass' : 'bg-transparent'}`}>
-            <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <div className="w-12">
                 <img src={logo} alt="Logo" className="w-full h-full" />
               </div>
               <span className="text-xl font-extrabold tracking-tight text-slate-900">
                 EduConnect
               </span>
-            </div>
+            </Link>
 
             <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-500">
               <a href="#fonctionnalites" className="hover:text-primary transition-colors">Fonctionnalités</a>

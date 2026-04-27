@@ -30,7 +30,7 @@ class UtilisateurCreateSerializer(serializers.ModelSerializer):
         return user
 
     def validate_role(self, value):
-        # Prevent self-signup from creating admin accounts.
+        
         if value == Utilisateur.Role.ADMIN:
             raise serializers.ValidationError("Le rôle 'admin' ne peut pas être choisi lors de l'inscription.")
         return value
