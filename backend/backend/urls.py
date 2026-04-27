@@ -3,11 +3,21 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
+
+schema_view = SpectacularAPIView.as_view()
+swagger_view = SpectacularSwaggerView.as_view(url_name='schema')
+redoc_view = SpectacularRedocView.as_view(url_name='schema')
+
+if not settings.DEBUG:
+    schema_view = staff_member_required(schema_view)
+    swagger_view = staff_member_required(swagger_view)
+    redoc_view = staff_member_required(redoc_view)
 
 urlpatterns = [
     # Root → Swagger UI (staff login required)
@@ -16,14 +26,14 @@ urlpatterns = [
     # Admin Django
     path('admin/', admin.site.urls),
 
-    # OpenAPI schema — protected: only staff can download the raw JSON
-    path('api/schema/', staff_member_required(SpectacularAPIView.as_view()), name='schema'),
+    # OpenAPI schema
+    path('api/schema/', schema_view, name='schema'),
 
-    # Swagger UI  →  /api/docs/  (staff login required)
-    path('api/docs/', staff_member_required(SpectacularSwaggerView.as_view(url_name='schema')), name='swagger-ui'),
+    # Swagger UI  →  /api/docs/
+    path('api/docs/', swagger_view, name='swagger-ui'),
 
-    # ReDoc       →  /api/redoc/  (staff login required)
-    path('api/redoc/', staff_member_required(SpectacularRedocView.as_view(url_name='schema')), name='redoc'),
+    # ReDoc       →  /api/redoc/
+    path('api/redoc/', redoc_view, name='redoc'),
 
     # App routers
     path('api/accounts/',       include('accounts.urls')),
