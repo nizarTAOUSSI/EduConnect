@@ -48,10 +48,20 @@ _csrf_trusted_origins_default = [
 CSRF_TRUSTED_ORIGINS = sorted(
     set(_csrf_trusted_origins_default + env_list('CSRF_TRUSTED_ORIGINS', default=''))
 )
-CORS_ALLOWED_ORIGINS = env_list(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173',
+# CORS (frontend -> backend)
+# Keep strict by default, but allow local dev + Railway preview domains.
+_cors_allowed_origins_default = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+CORS_ALLOWED_ORIGINS = sorted(
+    set(_cors_allowed_origins_default + env_list('CORS_ALLOWED_ORIGINS', default=''))
 )
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://.*\.up\.railway\.app$',
+    r'^https://.*\.railway\.app$',
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # ---------------------------------------------------------------------------
 # Applications
