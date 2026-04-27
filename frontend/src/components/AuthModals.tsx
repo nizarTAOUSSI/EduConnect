@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import type { SignupData } from '../context/AuthContext';
 
@@ -17,12 +18,28 @@ export function LoginModal({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error, clearError } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password);
+      const user = await login(email, password);
       onClose();
+      switch (user.role) {
+        case 'admin':
+          navigate('/dashboard/admin');
+          break;
+        case 'enseignant':
+          navigate('/dashboard/enseignant');
+          break;
+        case 'parent':
+          navigate('/dashboard/parent');
+          break;
+        case 'etudiant':
+        default:
+          navigate('/dashboard/etudiant');
+          break;
+      }
     } catch {
       // Error is handled by context
     }
@@ -173,6 +190,7 @@ export function SignupModal({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signup, isLoading, error, clearError } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -189,8 +207,23 @@ export function SignupModal({
     }
 
     try {
-      await signup(formData);
+      const user = await signup(formData);
       onClose();
+      switch (user.role) {
+        case 'admin':
+          navigate('/dashboard/admin');
+          break;
+        case 'enseignant':
+          navigate('/dashboard/enseignant');
+          break;
+        case 'parent':
+          navigate('/dashboard/parent');
+          break;
+        case 'etudiant':
+        default:
+          navigate('/dashboard/etudiant');
+          break;
+      }
     } catch {
       // Error is handled by context
     }

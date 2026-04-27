@@ -14,8 +14,8 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (data: SignupData) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  signup: (data: SignupData) => Promise<User>;
   logout: () => void;
   clearError: () => void;
 }
@@ -97,7 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (userResponse.ok) {
         const userData = await userResponse.json();
         setUser(userData);
+        return userData as User;
       }
+      throw new Error('Impossible de charger le profil utilisateur');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       throw err;
@@ -130,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(responseData.detail || JSON.stringify(responseData));
       }
 
-      await login(data.email, data.password);
+      return await login(data.email, data.password);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       throw err;
