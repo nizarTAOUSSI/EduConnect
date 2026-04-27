@@ -41,7 +41,8 @@ ALLOWED_HOSTS = env_list(
 )
 CSRF_TRUSTED_ORIGINS = env_list(
     'CSRF_TRUSTED_ORIGINS',
-    default='https://*.railway.app',
+  
+    default='https://*.up.railway.app,https://*.railway.app',
 )
 CORS_ALLOWED_ORIGINS = env_list(
     'CORS_ALLOWED_ORIGINS',
