@@ -11,6 +11,14 @@ from .serializers import (
     ParentSerializer,
 )
 
+@extend_schema_view(
+   
+    create=extend_schema(
+        request=UtilisateurCreateSerializer,
+        responses=UtilisateurSerializer,
+        auth=[],
+    ),
+)
 class UtilisateurViewSet(viewsets.ModelViewSet):
     queryset = Utilisateur.objects.all()
     serializer_class = UtilisateurSerializer
