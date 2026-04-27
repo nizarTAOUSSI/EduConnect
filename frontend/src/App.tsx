@@ -5,8 +5,16 @@ import Features from './components/Features';
 import Ecosystem from './components/Ecosystem';
 import Guarantees from './components/Guarantees';
 import Footer from './components/Footer';
+import { useAuth } from './hooks/useAuth';
+import RoleDashboard from './dashboards/RoleDashboard';
 
 function App() {
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <RoleDashboard />;
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />

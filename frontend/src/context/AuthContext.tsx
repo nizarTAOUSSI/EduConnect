@@ -1,4 +1,4 @@
-﻿import { createContext, useState, useCallback, type ReactNode } from 'react';
+﻿import { createContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 
 export interface User {
   id: number;
@@ -41,6 +41,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const clearError = useCallback(() => setError(null), []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const userResponse = await fetch(`${API_BASE_URL}/accounts/auth/me/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (!userResponse.ok) return;
+        const userData = await userResponse.json();
+        if (!cancelled) setUser(userData);
+      } catch {
+        // ignore bootstrap errors (offline/CORS/etc.)
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
