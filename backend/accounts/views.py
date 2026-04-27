@@ -12,12 +12,7 @@ from .serializers import (
 )
 
 @extend_schema_view(
-   
-    create=extend_schema(
-        request=UtilisateurCreateSerializer,
-        responses=UtilisateurSerializer,
-        auth=[],
-    ),
+    create=extend_schema(request=UtilisateurCreateSerializer, responses=UtilisateurSerializer),
 )
 class UtilisateurViewSet(viewsets.ModelViewSet):
     queryset = Utilisateur.objects.all()
