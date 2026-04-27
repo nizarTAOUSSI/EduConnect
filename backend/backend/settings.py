@@ -39,10 +39,14 @@ ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
     default='127.0.0.1,localhost,.railway.app',
 )
-CSRF_TRUSTED_ORIGINS = env_list(
-    'CSRF_TRUSTED_ORIGINS',
-  
-    default='https://*.up.railway.app,https://*.railway.app',
+# Always include safe defaults for Railway, even if an env var is set.
+# (Railway env vars override defaults; merging prevents “Origin checking failed”.)
+_csrf_trusted_origins_default = [
+    'https://*.up.railway.app',
+    'https://*.railway.app',
+]
+CSRF_TRUSTED_ORIGINS = sorted(
+    set(_csrf_trusted_origins_default + env_list('CSRF_TRUSTED_ORIGINS', default=''))
 )
 CORS_ALLOWED_ORIGINS = env_list(
     'CORS_ALLOWED_ORIGINS',
@@ -189,7 +193,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -199,6 +202,12 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
 }
+
+# Enable SessionAuthentication only for local dev (avoids CSRF issues for API clients in prod).
+if DEBUG:
+    REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(
+        'rest_framework.authentication.SessionAuthentication'
+    )
 
 # ---------------------------------------------------------------------------
 # drf-spectacular (Swagger / OpenAPI)
