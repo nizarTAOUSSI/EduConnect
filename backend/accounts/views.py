@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from .models import Utilisateur, Enseignant, Etudiant, Parent
 from .serializers import (
     UtilisateurCreateSerializer,
