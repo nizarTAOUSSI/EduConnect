@@ -6,6 +6,9 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / '.env')
 
 
 def env_bool(name, default=False):
@@ -40,6 +43,10 @@ CSRF_TRUSTED_ORIGINS = env_list(
     'CSRF_TRUSTED_ORIGINS',
     default='https://*.railway.app',
 )
+CORS_ALLOWED_ORIGINS = env_list(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:5173',
+)
 
 # ---------------------------------------------------------------------------
 # Applications
@@ -53,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Third-party
+    'corsheaders',
     'rest_framework',
     'drf_spectacular',
 
@@ -72,6 +80,7 @@ AUTH_USER_MODEL = 'accounts.Utilisateur'
 # ---------------------------------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
