@@ -13,6 +13,15 @@ export default function Navbar() {
   const [showSignup, setShowSignup] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
 
+  const dashboardPath =
+    user?.role === 'admin'
+      ? '/dashboard/admin'
+      : user?.role === 'enseignant'
+        ? '/dashboard/enseignant'
+        : user?.role === 'parent'
+          ? '/dashboard/parent'
+          : '/dashboard/etudiant';
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -54,6 +63,12 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-5">
               {isAuthenticated ? (
                 <div className="flex items-center gap-4">
+                  <Link
+                    to={dashboardPath}
+                    className="text-sm font-semibold text-slate-700 hover:text-slate-900 px-4 py-2 rounded-full hover:bg-slate-100 transition-colors"
+                  >
+                    Mon tableau de bord
+                  </Link>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-semibold text-slate-900">
                       {user?.first_name} {user?.last_name}
@@ -112,6 +127,13 @@ export default function Navbar() {
                   <div className="text-slate-700 font-semibold text-lg py-2">
                     {user?.first_name} {user?.last_name}
                   </div>
+                  <Link
+                    to={dashboardPath}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white px-4 py-3 rounded-xl text-center font-semibold transition-colors"
+                  >
+                    Mon tableau de bord
+                  </Link>
                   <button 
                     onClick={handleLogout}
                     className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl text-center font-semibold transition-colors"
