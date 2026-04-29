@@ -8,23 +8,50 @@ class Bulletin(models.Model):
     Bulletin de notes généré pour un étudiant sur une période donnée.
     La moyenne_generale et le rang sont calculés à la génération.
     """
-    etudiant          = models.ForeignKey(
+
+    class Mention(models.TextChoices):
+        TRES_BIEN  = 'TB', 'Très Bien'
+        BIEN       = 'B',  'Bien'
+        ASSEZ_BIEN = 'AB', 'Assez Bien'
+        PASSABLE   = 'P',  'Passable'
+        INSUFFISANT = 'I', 'Insuffisant'
+
+    etudiant         = models.ForeignKey(
         Etudiant,
         on_delete=models.CASCADE,
         related_name='bulletins',
         verbose_name='Étudiant',
     )
-    periode           = models.ForeignKey(
+    periode          = models.ForeignKey(
         Periode,
         on_delete=models.CASCADE,
         related_name='bulletins',
         verbose_name='Période',
     )
-    moyenne_generale  = models.FloatField(verbose_name='Moyenne générale')
-    rang              = models.PositiveIntegerField(verbose_name='Rang dans la classe')
-    date_generation   = models.DateTimeField(
+    moyenne_generale = models.FloatField(verbose_name='Moyenne générale')
+    rang             = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Rang dans la classe',
+    )
+    date_generation  = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Date de génération',
+    )
+    mention          = models.CharField(
+        max_length=2,
+        choices=Mention.choices,
+        null=True,
+        blank=True,
+        verbose_name='Mention',
+    )
+    valide_St        = models.BooleanField(
+        default=False,
+        verbose_name='Validé par l\'étudiant',
+    )
+    validation_jury  = models.BooleanField(
+        default=False,
+        verbose_name='Validé par le jury',
     )
 
     class Meta:
@@ -38,3 +65,29 @@ class Bulletin(models.Model):
             f'Bulletin – {self.etudiant} | {self.periode} | '
             f'Moy. {self.moyenne_generale:.2f} | Rang {self.rang}'
         )
+
+    def get_mention_display_label(self):
+        """Retourne le libellé complet de la mention."""
+        return self.get_mention_display()
+
+    def is_validated(self):
+        """Retourne True si le bulletin est validé à la fois par l'étudiant et le jury."""
+        return self.valide_St and self.validation_jury
+
+    def calculate_mention(self):
+        """
+        Calcule et assigne automatiquement la mention selon la moyenne générale.
+        Doit être appelé avant la sauvegarde si la mention n'est pas saisie manuellement.
+        """
+        avg = self.moyenne_generale
+        if avg >= 16:
+            self.mention = self.Mention.TRES_BIEN
+        elif avg >= 14:
+            self.mention = self.Mention.BIEN
+        elif avg >= 12:
+            self.mention = self.Mention.ASSEZ_BIEN
+        elif avg >= 10:
+            self.mention = self.Mention.PASSABLE
+        else:
+            self.mention = self.Mention.INSUFFISANT
+        return self.mention

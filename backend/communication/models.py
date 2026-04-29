@@ -8,12 +8,21 @@ class Reclamation(models.Model):
     class Statut(models.TextChoices):
         EN_ATTENTE = 'en_attente', 'En attente'
         TRAITEE    = 'traitee',    'Traitée'
+        REJETEE    = 'rejetee',    'Rejetée'
 
     expediteur    = models.ForeignKey(
         Utilisateur,
         on_delete=models.CASCADE,
-        related_name='reclamations',
+        related_name='reclamations_envoyees',
         verbose_name='Expéditeur',
+    )
+    destinataire  = models.ForeignKey(
+        Utilisateur,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reclamations_recues',
+        verbose_name='Destinataire',
     )
     message       = models.TextField(verbose_name='Message')
     statut        = models.CharField(
@@ -26,6 +35,11 @@ class Reclamation(models.Model):
         auto_now_add=True,
         verbose_name='Date de création',
     )
+    reponse       = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='Réponse',
+    )
 
     class Meta:
         verbose_name        = 'Réclamation'
@@ -35,6 +49,16 @@ class Reclamation(models.Model):
     def __str__(self):
         return f'Réclamation #{self.pk} – {self.expediteur} [{self.get_statut_display()}]'
 
+    def is_pending(self):
+        """Retourne True si la réclamation est en attente de traitement."""
+        return self.statut == self.Statut.EN_ATTENTE
+
+    def mark_as_treated(self, reponse: str):
+        """Marque la réclamation comme traitée avec une réponse."""
+        self.reponse = reponse
+        self.statut  = self.Statut.TRAITEE
+        self.save()
+
 
 class Notification(models.Model):
     """Notification envoyée à un utilisateur."""
@@ -43,6 +67,14 @@ class Notification(models.Model):
         on_delete=models.CASCADE,
         related_name='notifications',
         verbose_name='Destinataire',
+    )
+    from_user    = models.ForeignKey(
+        Utilisateur,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notifications_envoyees',
+        verbose_name='Expéditeur',
     )
     message    = models.TextField(verbose_name='Message')
     date_envoi = models.DateTimeField(
@@ -62,3 +94,12 @@ class Notification(models.Model):
     def __str__(self):
         lu = '✓' if self.est_lu else '✗'
         return f'Notification [{lu}] → {self.destinataire} ({self.date_envoi:%Y-%m-%d})'
+
+    def mark_as_read(self):
+        """Marque la notification comme lue."""
+        self.est_lu = True
+        self.save()
+
+    def is_unread(self):
+        """Retourne True si la notification n'a pas encore été lue."""
+        return not self.est_lu

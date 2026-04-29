@@ -25,8 +25,6 @@ class UtilisateurViewSet(viewsets.ModelViewSet):
         return UtilisateurSerializer
 
     def get_permissions(self):
-        # Allow anyone to create an account (signup).
-        # Everything else stays protected by default.
         if self.action == 'create':
             return [AllowAny()]
         return [IsAuthenticated()]

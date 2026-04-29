@@ -18,7 +18,6 @@ class UtilisateurCreateSerializer(serializers.ModelSerializer):
             'date_joined',
         ]
         extra_kwargs = {
-            # username is only required because AbstractUser keeps it; we don’t use it to login
             'username': {'required': False, 'allow_blank': True},
         }
 
@@ -37,7 +36,6 @@ class UtilisateurCreateSerializer(serializers.ModelSerializer):
 
 
 class UtilisateurSerializer(serializers.ModelSerializer):
-    # Optional: allows password change via PUT/PATCH if you include it
     password = serializers.CharField(write_only=True, required=False, min_length=8)
 
     class Meta:

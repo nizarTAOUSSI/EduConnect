@@ -39,8 +39,6 @@ ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
     default='127.0.0.1,localhost,.railway.app',
 )
-# Always include safe defaults for Railway, even if an env var is set.
-# (Railway env vars override defaults; merging prevents “Origin checking failed”.)
 _csrf_trusted_origins_default = [
     'https://*.up.railway.app',
     'https://*.railway.app',
@@ -48,8 +46,6 @@ _csrf_trusted_origins_default = [
 CSRF_TRUSTED_ORIGINS = sorted(
     set(_csrf_trusted_origins_default + env_list('CSRF_TRUSTED_ORIGINS', default=''))
 )
-# CORS (frontend -> backend)
-# Keep strict by default, but allow local dev + Railway preview domains.
 _cors_allowed_origins_default = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
@@ -87,7 +83,6 @@ INSTALLED_APPS = [
     'communication',
 ]
 
-# Use our custom user model
 AUTH_USER_MODEL = 'accounts.Utilisateur'
 
 # ---------------------------------------------------------------------------
