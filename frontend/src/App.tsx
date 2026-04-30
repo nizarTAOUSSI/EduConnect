@@ -13,10 +13,17 @@ import EtudiantDashboard from './dashboards/EtudiantDashboard';
 import ParentDashboard from './dashboards/ParentDashboard';
 import RequireAuth from './routes/RequireAuth';
 import RequireRole from './routes/RequireRole';
+import { Toaster } from 'react-hot-toast';
+import AdminLayout from './dashboards/admin/AdminLayout';
+import UsersManager from './dashboards/admin/UsersManager';
+import ClassesManager from './dashboards/admin/ClassesManager';
+import MatieresManager from './dashboards/admin/MatieresManager';
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Toaster position="top-right" />
+      <Routes>
       <Route
         path="/"
         element={
@@ -45,10 +52,15 @@ function App() {
         path="/dashboard/admin"
         element={
           <RequireRole role="admin">
-            <AdminDashboard />
+            <AdminLayout />
           </RequireRole>
         }
-      />
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="users" element={<UsersManager />} />
+        <Route path="classes" element={<ClassesManager />} />
+        <Route path="matieres" element={<MatieresManager />} />
+      </Route>
       <Route
         path="/dashboard/enseignant"
         element={
@@ -76,6 +88,7 @@ function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }
 
