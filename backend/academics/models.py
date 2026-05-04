@@ -102,6 +102,76 @@ class EnseignantMatiere(models.Model):
         from grades.models import Evaluation
         return Evaluation.objects.filter(matiere=self.matiere, classe=self.classe)
 
+class Seance(models.Model):
+    DAYS_OF_WEEK = [
+        ('lundi', 'Lundi'),
+        ('mardi', 'Mardi'),
+        ('mercredi', 'Mercredi'),
+        ('jeudi', 'Jeudi'),
+        ('vendredi', 'Vendredi'),
+        ('samedi', 'Samedi'),
+        ('dimanche', 'Dimanche'),
+    ]
+    classe = models.ForeignKey(
+        Classe,
+        on_delete=models.CASCADE,
+        related_name='seances',
+        verbose_name='Classe'
+    )
+    matiere = models.ForeignKey(
+        Matiere,
+        on_delete=models.CASCADE,
+        related_name='seances',
+        verbose_name='Matière'
+    )
+    enseignant_matiere = models.ForeignKey(
+        EnseignantMatiere,
+        on_delete=models.CASCADE,
+        related_name='seances',
+        verbose_name='Enseignant-Matière'
+    )
+    jour = models.CharField(max_length=10, choices=DAYS_OF_WEEK, verbose_name='Jour')
+    heure_debut = models.TimeField(verbose_name='Heure de début')
+    heure_fin = models.TimeField(verbose_name='Heure de fin')
+
+    class Meta:
+        verbose_name = 'Séance'
+        verbose_name_plural = 'Séances'
+        ordering = ['jour', 'heure_debut']
+
+    def __str__(self):
+        return f'{self.matiere.nom} - {self.classe.nom} ({self.get_jour_display()} {self.heure_debut}-{self.heure_fin})'
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        
+        # Coherence check
+        if self.enseignant_matiere.classe != self.classe:
+            raise ValidationError("L'affectation Enseignant-Matière ne correspond pas à la classe sélectionnée.")
+        if self.enseignant_matiere.matiere != self.matiere:
+            raise ValidationError("L'affectation Enseignant-Matière ne correspond pas à la matière sélectionnée.")
+        
+        # Time validation
+        if self.heure_debut >= self.heure_fin:
+            raise ValidationError("L'heure de début doit être antérieure à l'heure de fin.")
+            
+        # Overlap check for the same class
+        overlaps = Seance.objects.filter(
+            classe=self.classe,
+            jour=self.jour,
+            heure_debut__lt=self.heure_fin,
+            heure_fin__gt=self.heure_debut
+        )
+        if self.pk:
+            overlaps = overlaps.exclude(pk=self.pk)
+            
+        if overlaps.exists():
+            raise ValidationError("Cette séance chevauche une autre séance déjà programmée pour cette classe.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
 class Absence(models.Model):
 
     enseignant_matiere = models.ForeignKey(
@@ -109,6 +179,14 @@ class Absence(models.Model):
         on_delete=models.CASCADE,
         related_name='absences',
         verbose_name='Cours (Enseignant-Matière)',
+    )
+    seance = models.ForeignKey(
+        Seance,
+        on_delete=models.CASCADE,
+        related_name='absences',
+        verbose_name='Séance',
+        null=True,
+        blank=True
     )
     etudiant = models.ForeignKey(
         'accounts.Etudiant',

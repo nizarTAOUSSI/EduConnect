@@ -1,13 +1,16 @@
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence
+from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance
 from .serializers import (
     PeriodeSerializer,
     MatiereSerializer,
     ClasseSerializer,
     EnseignantMatiereSerializer,
     AbsenceSerializer,
+    SeanceSerializer,
 )
 
 class PeriodeViewSet(viewsets.ModelViewSet):
@@ -25,6 +28,28 @@ class ClasseViewSet(viewsets.ModelViewSet):
     serializer_class = ClasseSerializer
     permission_classes = [IsAuthenticated]
 
+    @action(detail=True, methods=['get'], url_path='emploi')
+    def emploi(self, request, pk=None):
+        classe = self.get_object()
+        seances = Seance.objects.filter(classe=classe).select_related('matiere', 'enseignant_matiere__enseignant__utilisateur')
+        
+        days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+        timetable = {day: [] for day in days}
+        
+        for seance in seances:
+            timetable[seance.jour].append({
+                'id': seance.id,
+                'matiere': seance.matiere.nom,
+                'enseignant': seance.enseignant_matiere.enseignant.utilisateur.get_full_name() or seance.enseignant_matiere.enseignant.utilisateur.email,
+                'heure_debut': seance.heure_debut.strftime('%H:%M'),
+                'heure_fin': seance.heure_fin.strftime('%H:%M'),
+            })
+            
+        for day in days:
+            timetable[day].sort(key=lambda x: x['heure_debut'])
+            
+        return Response(timetable)
+
 class EnseignantMatiereViewSet(viewsets.ModelViewSet):
     queryset = EnseignantMatiere.objects.select_related('enseignant', 'matiere', 'classe').all()
     serializer_class = EnseignantMatiereSerializer
@@ -38,6 +63,33 @@ class EnseignantMatiereViewSet(viewsets.ModelViewSet):
             # Teachers only see their own assignments
             return EnseignantMatiere.objects.filter(enseignant__utilisateur=user)
         return EnseignantMatiere.objects.all()
+
+class SeanceViewSet(viewsets.ModelViewSet):
+    queryset = Seance.objects.select_related('classe', 'matiere', 'enseignant_matiere__enseignant__utilisateur').all()
+    serializer_class = SeanceSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['classe', 'jour']
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_enseignant():
+            return Seance.objects.filter(enseignant_matiere__enseignant__utilisateur=user)
+        elif user.is_etudiant():
+            return Seance.objects.filter(classe=user.profil_etudiant.classe)
+        elif user.is_parent():
+            enfants_classes = user.profil_parent.enfants.values_list('classe_id', flat=True)
+            return Seance.objects.filter(classe_id__in=enfants_classes)
+        return Seance.objects.all()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.is_enseignant():
+            enseignant_matiere = serializer.validated_data.get('enseignant_matiere')
+            if enseignant_matiere.enseignant.utilisateur != user:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Vous ne pouvez créer des séances que pour vos propres affectations.")
+        serializer.save()
 
 class AbsenceViewSet(viewsets.ModelViewSet):
     queryset = Absence.objects.select_related(
