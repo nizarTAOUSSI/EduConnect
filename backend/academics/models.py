@@ -204,10 +204,22 @@ class Absence(models.Model):
     justifiee     = models.BooleanField(default=False, verbose_name='Justifiée')
     duree_heures  = models.FloatField(verbose_name='Durée (heures)', default=1.0)
 
+    def save(self, *args, **kwargs):
+        if not self.duree_heures and self.seance:
+            # Calculer la durée basée sur la séance
+            from datetime import datetime, combine, date
+            d1 = combine(date.today(), self.seance.heure_fin)
+            d2 = combine(date.today(), self.seance.heure_debut)
+            diff = d1 - d2
+            self.duree_heures = diff.total_seconds() / 3600.0
+            
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name        = 'Absence'
         verbose_name_plural = 'Absences'
         ordering            = ['-date']
+        unique_together     = [('etudiant', 'seance', 'date')]
 
     def __str__(self):
         status = 'justifiée' if self.justifiee else 'non justifiée'
