@@ -145,6 +145,9 @@ class Seance(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
         
+        if not self.enseignant_matiere or not self.classe or not self.matiere:
+            return
+
         # Coherence check
         if self.enseignant_matiere.classe != self.classe:
             raise ValidationError("L'affectation Enseignant-Matière ne correspond pas à la classe sélectionnée.")
@@ -205,11 +208,11 @@ class Absence(models.Model):
     duree_heures  = models.FloatField(verbose_name='Durée (heures)', default=1.0)
 
     def save(self, *args, **kwargs):
-        if not self.duree_heures and self.seance:
+        if self.seance:
             # Calculer la durée basée sur la séance
-            from datetime import datetime, combine, date
-            d1 = combine(date.today(), self.seance.heure_fin)
-            d2 = combine(date.today(), self.seance.heure_debut)
+            from datetime import datetime, date
+            d1 = datetime.combine(date.today(), self.seance.heure_fin)
+            d2 = datetime.combine(date.today(), self.seance.heure_debut)
             diff = d1 - d2
             self.duree_heures = diff.total_seconds() / 3600.0
             
