@@ -2,12 +2,7 @@ from django.db import models
 from accounts.models import Etudiant
 from academics.models import Periode
 
-
 class Bulletin(models.Model):
-    """
-    Bulletin de notes généré pour un étudiant sur une période donnée.
-    La moyenne_generale et le rang sont calculés à la génération.
-    """
 
     class Mention(models.TextChoices):
         TRES_BIEN  = 'TB', 'Très Bien'
@@ -67,18 +62,15 @@ class Bulletin(models.Model):
         )
 
     def get_mention_display_label(self):
-        """Retourne le libellé complet de la mention."""
+
         return self.get_mention_display()
 
     def is_validated(self):
-        """Retourne True si le bulletin est validé à la fois par l'étudiant et le jury."""
+
         return self.valide_St and self.validation_jury
 
     def calculate_mention(self):
-        """
-        Calcule et assigne automatiquement la mention selon la moyenne générale.
-        Doit être appelé avant la sauvegarde si la mention n'est pas saisie manuellement.
-        """
+
         avg = self.moyenne_generale
         if avg >= 16:
             self.mention = self.Mention.TRES_BIEN

@@ -20,22 +20,17 @@ if not settings.DEBUG:
     redoc_view = staff_member_required(redoc_view)
 
 urlpatterns = [
-    # Root → Swagger UI (staff login required)
+
     path('', RedirectView.as_view(url='/api/docs/', permanent=False)),
 
-    # Admin Django
     path('admin/', admin.site.urls),
 
-    # OpenAPI schema
     path('api/schema/', schema_view, name='schema'),
 
-    # Swagger UI  →  /api/docs/
     path('api/docs/', swagger_view, name='swagger-ui'),
 
-    # ReDoc       →  /api/redoc/
     path('api/redoc/', redoc_view, name='redoc'),
 
-    # App routers
     path('api/accounts/',       include('accounts.urls')),
     path('api/academics/',      include('academics.urls')),
     path('api/grades/',         include('grades.urls')),

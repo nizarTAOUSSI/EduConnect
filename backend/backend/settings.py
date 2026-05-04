@@ -1,6 +1,4 @@
-"""
-Django settings for backend project (EduConnect).
-"""
+
 
 import os
 from pathlib import Path
@@ -10,26 +8,18 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parent.parent / '.env')
 
-
 def env_bool(name, default=False):
     value = os.getenv(name)
     if value is None:
         return default
     return value.strip().lower() in {'1', 'true', 'yes', 'on'}
 
-
 def env_list(name, default=''):
     value = os.getenv(name, default)
     return [item.strip() for item in value.split(',') if item.strip()]
 
-# ---------------------------------------------------------------------------
-# Paths
-# ---------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---------------------------------------------------------------------------
-# Security
-# ---------------------------------------------------------------------------
 SECRET_KEY = os.getenv(
     'SECRET_KEY',
     'django-insecure-a3)cj)_j(@(ue&zq*$8h=_jf09#uky!b8fw2f4l+gmz5h^6m6b',
@@ -59,9 +49,6 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-# ---------------------------------------------------------------------------
-# Applications
-# ---------------------------------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -70,12 +57,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party
     'corsheaders',
     'rest_framework',
+    'django_filters',
     'drf_spectacular',
 
-    # Local apps
     'accounts',
     'academics',
     'grades',
@@ -85,9 +71,6 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'accounts.Utilisateur'
 
-# ---------------------------------------------------------------------------
-# Middleware
-# ---------------------------------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -118,9 +101,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# ---------------------------------------------------------------------------
-# Database – Railway MySQL / local fallback
-# ---------------------------------------------------------------------------
 database_url = os.getenv('MYSQL_URL') or os.getenv('DATABASE_URL')
 
 if database_url:
@@ -167,9 +147,6 @@ DATABASES['default']['OPTIONS'].setdefault(
     "SET sql_mode='STRICT_TRANS_TABLES'",
 )
 
-# ---------------------------------------------------------------------------
-# Password validation
-# ---------------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -177,24 +154,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ---------------------------------------------------------------------------
-# Internationalisation
-# ---------------------------------------------------------------------------
 LANGUAGE_CODE = 'fr-fr'
 TIME_ZONE = 'Africa/Casablanca'
 USE_I18N = True
 USE_TZ = True
 
-# ---------------------------------------------------------------------------
-# Static files
-# ---------------------------------------------------------------------------
 STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ---------------------------------------------------------------------------
-# Django REST Framework
-# ---------------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -208,15 +176,11 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Enable SessionAuthentication only for local dev (avoids CSRF issues for API clients in prod).
 if DEBUG:
     REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(
         'rest_framework.authentication.SessionAuthentication'
     )
 
-# ---------------------------------------------------------------------------
-# drf-spectacular (Swagger / OpenAPI)
-# ---------------------------------------------------------------------------
 SPECTACULAR_SETTINGS = {
     'TITLE': 'EduConnect API',
     'DESCRIPTION': (

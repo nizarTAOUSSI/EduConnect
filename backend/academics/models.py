@@ -1,9 +1,8 @@
 from django.db import models
 from accounts.models import Enseignant
 
-
 class Periode(models.Model):
-    """Période scolaire (semestre, trimestre, année…)."""
+
     nom        = models.CharField(max_length=100, verbose_name='Nom')
     date_debut = models.DateField(verbose_name='Date de début')
     date_fin   = models.DateField(verbose_name='Date de fin')
@@ -18,13 +17,12 @@ class Periode(models.Model):
         return f'{self.nom} ({"active" if self.est_active else "inactive"})'
 
     def get_matieres(self):
-        """Retourne toutes les matières couvertes durant cette période (via EnseignantMatiere)."""
+
         from .models import EnseignantMatiere
         return EnseignantMatiere.objects.filter(periode=self).select_related('matiere')
 
-
 class Matiere(models.Model):
-    """Matière enseignée avec son coefficient."""
+
     nom         = models.CharField(max_length=150, verbose_name='Nom de la matière')
     coefficient = models.PositiveSmallIntegerField(default=1, verbose_name='Coefficient')
 
@@ -36,9 +34,8 @@ class Matiere(models.Model):
     def __str__(self):
         return f'{self.nom} (coeff. {self.coefficient})'
 
-
 class Classe(models.Model):
-    """Classe regroupant des étudiants."""
+
     nom    = models.CharField(max_length=100, verbose_name='Nom')
     niveau = models.CharField(max_length=100, verbose_name='Niveau')
 
@@ -51,28 +48,24 @@ class Classe(models.Model):
         return f'{self.nom} – {self.niveau}'
 
     def get_enseignants(self):
-        """Retourne tous les enseignants affectés à cette classe."""
+
         return Enseignant.objects.filter(
             enseignant_matieres__classe=self
         ).distinct()
 
     def get_matieres(self):
-        """Retourne toutes les matières enseignées dans cette classe."""
+
         return Matiere.objects.filter(
             enseignant_matieres__classe=self
         ).distinct()
 
     def get_etudiants(self):
-        """Retourne tous les étudiants inscrits dans cette classe."""
+
         from accounts.models import Etudiant
         return Etudiant.objects.filter(classe=self)
 
-
 class EnseignantMatiere(models.Model):
-    """
-    Modèle intermédiaire reliant un enseignant, une matière et une classe.
-    Représente une affectation d'enseignement concrète.
-    """
+
     enseignant = models.ForeignKey(
         Enseignant,
         on_delete=models.CASCADE,
@@ -101,17 +94,16 @@ class EnseignantMatiere(models.Model):
         return f'{self.enseignant} → {self.matiere} ({self.classe})'
 
     def get_absences(self):
-        """Retourne toutes les absences liées à cette affectation."""
+
         return self.absences.all()
 
     def get_evaluations(self):
-        """Retourne les évaluations liées à la matière et classe de cette affectation."""
+
         from grades.models import Evaluation
         return Evaluation.objects.filter(matiere=self.matiere, classe=self.classe)
 
-
 class Absence(models.Model):
-    """Absence d'un étudiant lors d'un cours donné."""
+
     enseignant_matiere = models.ForeignKey(
         EnseignantMatiere,
         on_delete=models.CASCADE,
@@ -144,5 +136,5 @@ class Absence(models.Model):
         return f'{self.etudiant} – {self.enseignant_matiere.matiere} – {self.date} [{status}]'
 
     def is_justified(self):
-        """Retourne True si l'absence est justifiée."""
+
         return self.justifiee

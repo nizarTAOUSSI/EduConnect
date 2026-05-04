@@ -3,12 +3,8 @@ from django.db import models
 from academics.models import Matiere, Classe
 from accounts.models import Etudiant
 
-
 class Evaluation(models.Model):
-    """
-    Évaluation associée à une matière et une classe.
-    Exemple de types : CC (Contrôle Continu), Examen, TP.
-    """
+
     class TypeEvaluation(models.TextChoices):
         CC     = 'CC',     'Contrôle Continu'
         EXAMEN = 'Examen', 'Examen Final'
@@ -42,15 +38,8 @@ class Evaluation(models.Model):
     def __str__(self):
         return f'{self.get_type_display()} – {self.matiere} – {self.classe} ({self.date})'
 
-
 class Note(models.Model):
-    """
-    Note d'un étudiant pour une évaluation donnée.
 
-    Règle métier : si est_absent == True, valeur_note doit être None.
-    La validation métier est appliquée dans clean() et full_clean() est
-    appelé automatiquement dans save() pour garantir l'intégrité.
-    """
     evaluation  = models.ForeignKey(
         Evaluation,
         on_delete=models.CASCADE,
@@ -78,17 +67,11 @@ class Note(models.Model):
     class Meta:
         verbose_name        = 'Note'
         verbose_name_plural = 'Notes'
-        # Un étudiant ne peut avoir qu'une seule note par évaluation
+
         unique_together = [('evaluation', 'etudiant')]
 
-    # ------------------------------------------------------------------
-    # Règle métier : absence et note incompatibles
-    # ------------------------------------------------------------------
     def clean(self):
-        """
-        Empêche la saisie d'une valeur_note quand l'étudiant est absent.
-        Cette méthode est appelée par full_clean() et les formulaires Django.
-        """
+
         if self.est_absent and self.valeur_note is not None:
             raise ValidationError({
                 'valeur_note': (
@@ -98,26 +81,15 @@ class Note(models.Model):
             })
 
     def save(self, *args, **kwargs):
-        """
-        Override de save() pour appliquer full_clean() avant chaque
-        enregistrement, garantissant la règle métier même hors formulaire.
-        """
+
         self.full_clean()
         super().save(*args, **kwargs)
 
-    # ------------------------------------------------------------------
-    # Propriété utilitaire
-    # ------------------------------------------------------------------
     @property
     def note_effective(self):
-        """
-        Retourne la note prise en compte dans la moyenne :
-        - None si absent (exclu du calcul)
-        - 0.0  si la configuration choisit de pénaliser l'absence
-        - valeur_note sinon
-        """
+
         if self.est_absent:
-            return None          # Exclure du calcul de moyenne
+            return None
         return self.valeur_note
 
     def __str__(self):

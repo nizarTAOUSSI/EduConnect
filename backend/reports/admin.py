@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import Bulletin
 
-
 @admin.register(Bulletin)
 class BulletinAdmin(admin.ModelAdmin):
     list_display  = ('etudiant', 'periode', 'moyenne_generale', 'rang', 'mention', 'valide_St', 'validation_jury', 'date_generation')

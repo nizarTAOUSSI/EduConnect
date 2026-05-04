@@ -1,12 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
 class Utilisateur(AbstractUser):
-    """
-    Modèle utilisateur personnalisé.
-    L'authentification se fait par email au lieu du username.
-    """
+
     class Role(models.TextChoices):
         ADMIN      = 'admin',      'Administrateur'
         ENSEIGNANT = 'enseignant', 'Enseignant'
@@ -32,7 +28,7 @@ class Utilisateur(AbstractUser):
         return f'{self.get_full_name() or self.email} ({self.get_role_display()})'
 
     def get_full_name_display(self):
-        """Retourne le nom complet ou l'email si le nom est vide."""
+
         return self.get_full_name() or self.email
 
     def is_admin(self):
@@ -47,11 +43,6 @@ class Utilisateur(AbstractUser):
     def is_parent(self):
         return self.role == self.Role.PARENT
 
-
-# ---------------------------------------------------------------------------
-# Profils étendus
-# ---------------------------------------------------------------------------
-
 class Enseignant(models.Model):
     utilisateur = models.OneToOneField(
         Utilisateur,
@@ -59,7 +50,7 @@ class Enseignant(models.Model):
         related_name='profil_enseignant',
         limit_choices_to={'role': Utilisateur.Role.ENSEIGNANT},
     )
-    specialite = models.CharField(max_length=150, verbose_name='Spécialité')
+    specialite = models.CharField(max_length=150, blank=True, verbose_name='Spécialité')
 
     class Meta:
         verbose_name        = 'Enseignant'
@@ -69,19 +60,18 @@ class Enseignant(models.Model):
         return f'Enseignant : {self.utilisateur}'
 
     def get_classes(self):
-        """Retourne toutes les classes où cet enseignant est affecté."""
+
         from academics.models import Classe
         return Classe.objects.filter(
             enseignant_matieres__enseignant=self
         ).distinct()
 
     def get_matieres(self):
-        """Retourne toutes les matières enseignées par cet enseignant."""
+
         from academics.models import Matiere
         return Matiere.objects.filter(
             enseignant_matieres__enseignant=self
         ).distinct()
-
 
 class Etudiant(models.Model):
     utilisateur = models.OneToOneField(
@@ -93,6 +83,7 @@ class Etudiant(models.Model):
     code_apogee = models.CharField(
         max_length=20,
         unique=True,
+        blank=True,
         verbose_name='Code Apogée',
     )
     classe = models.ForeignKey(
@@ -112,17 +103,16 @@ class Etudiant(models.Model):
         return f'Étudiant : {self.utilisateur} | {self.code_apogee}'
 
     def get_notes(self):
-        """Retourne toutes les notes de cet étudiant."""
+
         return self.notes.all()
 
     def get_absences(self):
-        """Retourne toutes les absences de cet étudiant."""
+
         return self.absences.all()
 
     def get_bulletins(self):
-        """Retourne tous les bulletins de cet étudiant."""
-        return self.bulletins.all()
 
+        return self.bulletins.all()
 
 class Parent(models.Model):
     utilisateur = models.OneToOneField(
@@ -146,5 +136,5 @@ class Parent(models.Model):
         return f'Parent : {self.utilisateur}'
 
     def get_enfants(self):
-        """Retourne tous les enfants liés à ce parent."""
+
         return self.enfants.all()

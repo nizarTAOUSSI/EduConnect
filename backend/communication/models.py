@@ -1,9 +1,7 @@
 from django.db import models
 from accounts.models import Utilisateur
 
-
 class Reclamation(models.Model):
-    """Réclamation soumise par un utilisateur."""
 
     class Statut(models.TextChoices):
         EN_ATTENTE = 'en_attente', 'En attente'
@@ -50,18 +48,17 @@ class Reclamation(models.Model):
         return f'Réclamation #{self.pk} – {self.expediteur} [{self.get_statut_display()}]'
 
     def is_pending(self):
-        """Retourne True si la réclamation est en attente de traitement."""
+
         return self.statut == self.Statut.EN_ATTENTE
 
     def mark_as_treated(self, reponse: str):
-        """Marque la réclamation comme traitée avec une réponse."""
+
         self.reponse = reponse
         self.statut  = self.Statut.TRAITEE
         self.save()
 
-
 class Notification(models.Model):
-    """Notification envoyée à un utilisateur."""
+
     destinataire = models.ForeignKey(
         Utilisateur,
         on_delete=models.CASCADE,
@@ -96,10 +93,10 @@ class Notification(models.Model):
         return f'Notification [{lu}] → {self.destinataire} ({self.date_envoi:%Y-%m-%d})'
 
     def mark_as_read(self):
-        """Marque la notification comme lue."""
+
         self.est_lu = True
         self.save()
 
     def is_unread(self):
-        """Retourne True si la notification n'a pas encore été lue."""
+
         return not self.est_lu
