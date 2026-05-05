@@ -22,6 +22,14 @@ class Reclamation(models.Model):
         related_name='reclamations_recues',
         verbose_name='Destinataire',
     )
+    note = models.ForeignKey(
+        'grades.Note',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reclamations',
+        verbose_name='Note concernée',
+    )
     message       = models.TextField(verbose_name='Message')
     statut        = models.CharField(
         max_length=20,
