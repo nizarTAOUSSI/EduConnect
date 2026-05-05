@@ -30,6 +30,7 @@ class EnseignantMatiereSerializer(serializers.ModelSerializer):
 class SeanceSerializer(serializers.ModelSerializer):
     matiere_name = serializers.ReadOnlyField(source='matiere.nom')
     enseignant_name = serializers.ReadOnlyField(source='enseignant_matiere.enseignant.utilisateur.get_full_name')
+    enseignant_id = serializers.ReadOnlyField(source='enseignant_matiere.enseignant.id')
     classe_name = serializers.ReadOnlyField(source='classe.nom')
     jour_display = serializers.CharField(source='get_jour_display', read_only=True)
 

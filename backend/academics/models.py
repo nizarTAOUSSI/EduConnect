@@ -171,6 +171,22 @@ class Seance(models.Model):
         if overlaps.exists():
             raise ValidationError("Cette séance chevauche une autre séance déjà programmée pour cette classe.")
 
+        # Overlap check for the same teacher
+        teacher_overlaps = Seance.objects.filter(
+            enseignant_matiere__enseignant=self.enseignant_matiere.enseignant,
+            jour=self.jour,
+            heure_debut__lt=self.heure_fin,
+            heure_fin__gt=self.heure_debut
+        )
+        if self.pk:
+            teacher_overlaps = teacher_overlaps.exclude(pk=self.pk)
+
+        if teacher_overlaps.exists():
+            overlap = teacher_overlaps.first()
+            raise ValidationError(
+                f"L'enseignant a déjà un cours ({overlap.matiere.nom} - {overlap.classe.nom}) sur ce créneau."
+            )
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)

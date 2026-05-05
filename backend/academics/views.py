@@ -41,6 +41,7 @@ class ClasseViewSet(viewsets.ModelViewSet):
                 'id': seance.id,
                 'matiere': seance.matiere.nom,
                 'enseignant': seance.enseignant_matiere.enseignant.utilisateur.get_full_name() or seance.enseignant_matiere.enseignant.utilisateur.email,
+                'enseignant_id': seance.enseignant_matiere.enseignant.id,
                 'heure_debut': seance.heure_debut.strftime('%H:%M'),
                 'heure_fin': seance.heure_fin.strftime('%H:%M'),
             })
@@ -81,6 +82,33 @@ class SeanceViewSet(viewsets.ModelViewSet):
             enfants_classes = user.profil_parent.enfants.values_list('classe_id', flat=True)
             return Seance.objects.filter(classe_id__in=enfants_classes)
         return Seance.objects.all()
+
+    @action(detail=False, methods=['get'], url_path='mon-emploi')
+    def mon_emploi(self, request):
+        user = request.user
+        if not user.is_enseignant():
+            return Response({"detail": "Seuls les enseignants peuvent accéder à leur emploi du temps global."}, status=403)
+        
+        seances = Seance.objects.filter(
+            enseignant_matiere__enseignant__utilisateur=user
+        ).select_related('matiere', 'classe')
+        
+        days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+        timetable = {day: [] for day in days}
+        
+        for seance in seances:
+            timetable[seance.jour].append({
+                'id': seance.id,
+                'matiere': seance.matiere.nom,
+                'classe': seance.classe.nom,
+                'heure_debut': seance.heure_debut.strftime('%H:%M'),
+                'heure_fin': seance.heure_fin.strftime('%H:%M'),
+            })
+            
+        for day in days:
+            timetable[day].sort(key=lambda x: x['heure_debut'])
+            
+        return Response(timetable)
 
     def perform_create(self, serializer):
         user = self.request.user
