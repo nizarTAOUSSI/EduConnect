@@ -207,7 +207,33 @@ class Absence(models.Model):
     justifiee     = models.BooleanField(default=False, verbose_name='Justifiée')
     duree_heures  = models.FloatField(verbose_name='Durée (heures)', default=1.0)
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from datetime import date
+
+        if self.seance and self.date:
+           
+            # Dictionnaire de traduction des jours (weekday() : 0=Lundi, ..., 6=Dimanche)
+            days_map = {
+                0: 'lundi',
+                1: 'mardi',
+                2: 'mercredi',
+                3: 'jeudi',
+                4: 'vendredi',
+                5: 'samedi',
+                6: 'dimanche'
+            }
+            # Le jour de la date choisie
+            day_of_date = days_map[self.date.weekday()]
+            
+            if day_of_date != self.seance.jour:
+                raise ValidationError(
+                    f"La date choisie ({self.date}) est un {day_of_date}, "
+                    f"mais la séance sélectionnée est programmée le {self.seance.jour}."
+                )
+
     def save(self, *args, **kwargs):
+        self.full_clean()
         if self.seance:
             # Calculer la durée basée sur la séance
             from datetime import datetime, date

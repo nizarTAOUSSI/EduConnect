@@ -29,6 +29,14 @@ class Evaluation(models.Model):
         related_name='evaluations',
         verbose_name='Classe',
     )
+    enseignant = models.ForeignKey(
+        'accounts.Enseignant',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='evaluations',
+        verbose_name='Enseignant',
+    )
 
     class Meta:
         verbose_name        = 'Évaluation'

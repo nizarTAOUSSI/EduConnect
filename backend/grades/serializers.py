@@ -4,6 +4,7 @@ from .models import Evaluation, Note
 class EvaluationSerializer(serializers.ModelSerializer):
     matiere_name = serializers.ReadOnlyField(source='matiere.nom')
     type_display = serializers.CharField(source='get_type_display', read_only=True)
+    enseignant_user = serializers.ReadOnlyField(source='enseignant.utilisateur.id')
 
     class Meta:
         model = Evaluation
