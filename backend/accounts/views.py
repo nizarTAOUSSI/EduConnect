@@ -53,8 +53,17 @@ class EtudiantViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
 class ParentViewSet(viewsets.ModelViewSet):
-    queryset = Parent.objects.prefetch_related('enfants__utilisateur', 'enfants__classe').all()
     serializer_class = ParentSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['utilisateur']
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            if user.role == 'admin':
+                return Parent.objects.prefetch_related('enfants__utilisateur', 'enfants__classe').all()
+            return Parent.objects.filter(utilisateur=user).prefetch_related('enfants__utilisateur', 'enfants__classe')
+        return Parent.objects.none()
 
     def get_permissions(self):
         return [IsAuthenticated()]

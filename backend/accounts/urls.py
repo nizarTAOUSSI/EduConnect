@@ -11,7 +11,7 @@ router = DefaultRouter()
 router.register(r'utilisateurs', UtilisateurViewSet)
 router.register(r'enseignants', EnseignantViewSet)
 router.register(r'etudiants', EtudiantViewSet)
-router.register(r'parents', ParentViewSet)
+router.register(r'parents', ParentViewSet, basename='parent')
 
 urlpatterns = [
     path('', include(router.urls)),

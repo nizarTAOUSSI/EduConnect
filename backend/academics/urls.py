@@ -7,9 +7,11 @@ from .views import (
     EnseignantMatiereViewSet,
     AbsenceViewSet,
     SeanceViewSet,
+    SalleViewSet,
 )
 
 router = DefaultRouter()
+router.register(r'salles', SalleViewSet)
 router.register(r'periodes', PeriodeViewSet)
 router.register(r'matieres', MatiereViewSet)
 router.register(r'classes', ClasseViewSet)

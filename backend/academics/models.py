@@ -64,6 +64,19 @@ class Classe(models.Model):
         from accounts.models import Etudiant
         return Etudiant.objects.filter(classe=self)
 
+class Salle(models.Model):
+    nom = models.CharField(max_length=100, verbose_name='Nom de la salle')
+    capacite = models.PositiveIntegerField(verbose_name='Capacité', null=True, blank=True)
+    description = models.TextField(verbose_name='Description', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Salle'
+        verbose_name_plural = 'Salles'
+        ordering = ['nom']
+
+    def __str__(self):
+        return self.nom
+
 class EnseignantMatiere(models.Model):
 
     enseignant = models.ForeignKey(
@@ -130,6 +143,14 @@ class Seance(models.Model):
         related_name='seances',
         verbose_name='Enseignant-Matière'
     )
+    salle = models.ForeignKey(
+        Salle,
+        on_delete=models.SET_NULL,
+        related_name='seances',
+        verbose_name='Salle',
+        null=True,
+        blank=True
+    )
     jour = models.CharField(max_length=10, choices=DAYS_OF_WEEK, verbose_name='Jour')
     heure_debut = models.TimeField(verbose_name='Heure de début')
     heure_fin = models.TimeField(verbose_name='Heure de fin')
@@ -186,6 +207,23 @@ class Seance(models.Model):
             raise ValidationError(
                 f"L'enseignant a déjà un cours ({overlap.matiere.nom} - {overlap.classe.nom}) sur ce créneau."
             )
+
+        # Overlap check for the same salle
+        if self.salle:
+            salle_overlaps = Seance.objects.filter(
+                salle=self.salle,
+                jour=self.jour,
+                heure_debut__lt=self.heure_fin,
+                heure_fin__gt=self.heure_debut
+            )
+            if self.pk:
+                salle_overlaps = salle_overlaps.exclude(pk=self.pk)
+            
+            if salle_overlaps.exists():
+                overlap = salle_overlaps.first()
+                raise ValidationError(
+                    f"La salle {self.salle.nom} est déjà occupée par le cours {overlap.matiere.nom} - {overlap.classe.nom} sur ce créneau."
+                )
 
     def save(self, *args, **kwargs):
         self.full_clean()

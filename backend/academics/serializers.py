@@ -1,6 +1,11 @@
 from rest_framework import serializers
-from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance
+from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance, Salle
 from accounts.serializers import EtudiantSerializer
+
+class SalleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Salle
+        fields = '__all__'
 
 class PeriodeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +18,8 @@ class MatiereSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ClasseSerializer(serializers.ModelSerializer):
+    nb_etudiants = serializers.IntegerField(source='etudiants.count', read_only=True)
+
     class Meta:
         model = Classe
         fields = '__all__'
@@ -32,6 +39,7 @@ class SeanceSerializer(serializers.ModelSerializer):
     enseignant_name = serializers.ReadOnlyField(source='enseignant_matiere.enseignant.utilisateur.get_full_name')
     enseignant_id = serializers.ReadOnlyField(source='enseignant_matiere.enseignant.id')
     classe_name = serializers.ReadOnlyField(source='classe.nom')
+    salle_name = serializers.ReadOnlyField(source='salle.nom')
     jour_display = serializers.CharField(source='get_jour_display', read_only=True)
 
     class Meta:

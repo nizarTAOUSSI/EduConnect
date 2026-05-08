@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance
+from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance, Salle
 from .serializers import (
     PeriodeSerializer,
     MatiereSerializer,
@@ -11,7 +11,13 @@ from .serializers import (
     EnseignantMatiereSerializer,
     AbsenceSerializer,
     SeanceSerializer,
+    SalleSerializer,
 )
+
+class SalleViewSet(viewsets.ModelViewSet):
+    queryset = Salle.objects.all()
+    serializer_class = SalleSerializer
+    permission_classes = [IsAuthenticated]
 
 class PeriodeViewSet(viewsets.ModelViewSet):
     queryset = Periode.objects.all()
@@ -31,7 +37,7 @@ class ClasseViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='emploi')
     def emploi(self, request, pk=None):
         classe = self.get_object()
-        seances = Seance.objects.filter(classe=classe).select_related('matiere', 'enseignant_matiere__enseignant__utilisateur')
+        seances = Seance.objects.filter(classe=classe).select_related('matiere', 'enseignant_matiere__enseignant__utilisateur', 'salle')
         
         days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         timetable = {day: [] for day in days}
@@ -42,6 +48,8 @@ class ClasseViewSet(viewsets.ModelViewSet):
                 'matiere': seance.matiere.nom,
                 'enseignant': seance.enseignant_matiere.enseignant.utilisateur.get_full_name() or seance.enseignant_matiere.enseignant.utilisateur.email,
                 'enseignant_id': seance.enseignant_matiere.enseignant.id,
+                'salle': seance.salle.nom if seance.salle else None,
+                'salle_id': seance.salle.id if seance.salle else None,
                 'heure_debut': seance.heure_debut.strftime('%H:%M'),
                 'heure_fin': seance.heure_fin.strftime('%H:%M'),
             })
@@ -91,7 +99,7 @@ class SeanceViewSet(viewsets.ModelViewSet):
         
         seances = Seance.objects.filter(
             enseignant_matiere__enseignant__utilisateur=user
-        ).select_related('matiere', 'classe')
+        ).select_related('matiere', 'classe', 'salle')
         
         days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         timetable = {day: [] for day in days}
@@ -101,6 +109,8 @@ class SeanceViewSet(viewsets.ModelViewSet):
                 'id': seance.id,
                 'matiere': seance.matiere.nom,
                 'classe': seance.classe.nom,
+                'salle': seance.salle.nom if seance.salle else None,
+                'salle_id': seance.salle.id if seance.salle else None,
                 'heure_debut': seance.heure_debut.strftime('%H:%M'),
                 'heure_fin': seance.heure_fin.strftime('%H:%M'),
             })
