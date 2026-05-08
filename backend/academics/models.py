@@ -225,6 +225,15 @@ class Seance(models.Model):
                     f"La salle {self.salle.nom} est déjà occupée par le cours {overlap.matiere.nom} - {overlap.classe.nom} sur ce créneau."
                 )
 
+            
+            if self.salle.capacite is not None:
+                etudiants_count = self.classe.get_etudiants().count()
+                if etudiants_count > self.salle.capacite:
+                    raise ValidationError(
+                        f"La capacité de la salle {self.salle.nom} ({self.salle.capacite} places) est insuffisante "
+                        f"pour le nombre d'étudiants de la classe {self.classe.nom} ({etudiants_count} étudiants)."
+                    )
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
