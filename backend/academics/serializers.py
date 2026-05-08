@@ -47,9 +47,16 @@ class SeanceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, attrs):
-        # Create a temporary instance to call model clean()
-        # This ensures model-level validation (overlaps, etc.) is checked
-        instance = Seance(**attrs)
+      
+        
+        if self.instance:
+           
+            instance = self.instance
+            for field, value in attrs.items():
+                setattr(instance, field, value)
+        else:
+            instance = Seance(**attrs)
+            
         try:
             instance.clean()
         except Exception as e:
