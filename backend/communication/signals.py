@@ -37,16 +37,14 @@ def notify_on_absence(sender, instance, created, **kwargs):
 
         # Notify parents
         try:
-            parents = student_user.profil_etudiant.classe.etudiants.filter(
-                utilisateur__role='parent'
-            ).values_list('utilisateur', flat=True)
-            for parent_id in parents:
+            parents = instance.etudiant.parents.all()
+            for parent in parents:
                 Notification.objects.create(
-                    destinataire_id=parent_id,
+                    destinataire=parent.utilisateur,
                     message=f"Absence de {student_user.get_full_name()} pour {instance.enseignant_matiere.matiere.nom} le {instance.date}",
                 )
-        except:
-            pass  # Skip if no parents found
+        except Exception as e:
+            print(f"Error notifying parents: {e}")
 
 @receiver(post_save, sender=Note)
 def notify_on_note(sender, instance, created, **kwargs):
@@ -62,13 +60,11 @@ def notify_on_note(sender, instance, created, **kwargs):
 
         # Notify parents
         try:
-            parents = student_user.profil_etudiant.classe.etudiants.filter(
-                utilisateur__role='parent'
-            ).values_list('utilisateur', flat=True)
-            for parent_id in parents:
+            parents = instance.etudiant.parents.all()
+            for parent in parents:
                 Notification.objects.create(
-                    destinataire_id=parent_id,
+                    destinataire=parent.utilisateur,
                     message=f"Note de {student_user.get_full_name()} pour {instance.evaluation.matiere.nom}: {grade_text}",
                 )
-        except:
-            pass  # Skip if no parents found
+        except Exception as e:
+            print(f"Error notifying parents: {e}")
