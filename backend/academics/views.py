@@ -43,7 +43,7 @@ class ClasseViewSet(viewsets.ModelViewSet):
         seances = Seance.objects.filter(classe=classe).select_related('matiere', 'enseignant_matiere__enseignant__utilisateur', 'salle')
         
         # Fetch evaluations
-        evaluations = Evaluation.objects.filter(classe=classe).select_related('matiere', 'enseignant__utilisateur')
+        evaluations = Evaluation.objects.filter(classe=classe).select_related('matiere', 'enseignant__utilisateur', 'salle')
         
         days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         day_names_fr = {
@@ -77,7 +77,10 @@ class ClasseViewSet(viewsets.ModelViewSet):
                     'type': 'evaluation',
                     'evaluation_type': eval_item.get_type_display(),
                     'matiere': eval_item.matiere.nom,
+                    'classe': eval_item.classe.nom,
                     'enseignant': eval_item.enseignant.utilisateur.get_full_name() if eval_item.enseignant else "N/A",
+                    'salle': eval_item.salle.nom if eval_item.salle else None,
+                    'salle_id': eval_item.salle.id if eval_item.salle else None,
                     'heure_debut': eval_item.heure_debut.strftime('%H:%M'),
                     'heure_fin': eval_item.heure_fin.strftime('%H:%M'),
                     'date': eval_item.date.strftime('%Y-%m-%d'),
@@ -135,7 +138,7 @@ class SeanceViewSet(viewsets.ModelViewSet):
         # Fetch evaluations
         evaluations = Evaluation.objects.filter(
             enseignant__utilisateur=user
-        ).select_related('matiere', 'classe')
+        ).select_related('matiere', 'classe', 'salle')
         
         days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         day_names_fr = {
@@ -168,6 +171,8 @@ class SeanceViewSet(viewsets.ModelViewSet):
                     'evaluation_type': eval_item.get_type_display(),
                     'matiere': eval_item.matiere.nom,
                     'classe': eval_item.classe.nom,
+                    'salle': eval_item.salle.nom if eval_item.salle else None,
+                    'salle_id': eval_item.salle.id if eval_item.salle else None,
                     'heure_debut': eval_item.heure_debut.strftime('%H:%M'),
                     'heure_fin': eval_item.heure_fin.strftime('%H:%M'),
                     'date': eval_item.date.strftime('%Y-%m-%d'),

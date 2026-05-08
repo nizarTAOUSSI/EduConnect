@@ -14,13 +14,20 @@ class EvaluationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_enseignant():
-            # Teachers see evaluations for their assigned subjects/classes
+            # Teachers see evaluations for their assigned subjects/classes OR where they are the explicit teacher
             from academics.models import EnseignantMatiere
-            teacher_assignments = EnseignantMatiere.objects.filter(enseignant__utilisateur=user)
+            from django.db.models import Q
+            
+            assignments = EnseignantMatiere.objects.filter(enseignant__utilisateur=user)
+            # Create a list of (matiere_id, classe_id) tuples for assignments
+            assignment_queries = Q()
+            for a in assignments:
+                assignment_queries |= Q(matiere_id=a.matiere_id, classe_id=a.classe_id)
+            
+            # Combine with explicit teacher field
             return Evaluation.objects.filter(
-                matiere__in=teacher_assignments.values('matiere'),
-                classe__in=teacher_assignments.values('classe')
-            )
+                assignment_queries | Q(enseignant__utilisateur=user)
+            ).distinct()
         return Evaluation.objects.all()
 
 class NoteViewSet(viewsets.ModelViewSet):
@@ -33,12 +40,17 @@ class NoteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_enseignant():
-            # Teachers see notes for evaluations in their classes
+            # Teachers see notes for evaluations in their classes/subjects
             from academics.models import EnseignantMatiere
-            teacher_assignments = EnseignantMatiere.objects.filter(enseignant__utilisateur=user)
+            from django.db.models import Q
+            
+            assignments = EnseignantMatiere.objects.filter(enseignant__utilisateur=user)
+            assignment_queries = Q()
+            for a in assignments:
+                assignment_queries |= Q(matiere_id=a.matiere_id, classe_id=a.classe_id)
+            
             evaluations = Evaluation.objects.filter(
-                matiere__in=teacher_assignments.values('matiere'),
-                classe__in=teacher_assignments.values('classe')
+                assignment_queries | Q(enseignant__utilisateur=user)
             )
             return Note.objects.filter(evaluation__in=evaluations)
         elif user.is_etudiant():

@@ -39,11 +39,133 @@ class Evaluation(models.Model):
         related_name='evaluations',
         verbose_name='Enseignant',
     )
+    salle = models.ForeignKey(
+        'academics.Salle',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='evaluations',
+        verbose_name='Salle',
+    )
 
     class Meta:
         verbose_name        = 'Évaluation'
         verbose_name_plural = 'Évaluations'
         ordering            = ['-date']
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from academics.models import Seance
+        import datetime
+
+        if not self.date or not self.heure_debut or not self.heure_fin:
+            return
+
+        if self.heure_debut >= self.heure_fin:
+            raise ValidationError({'heure_debut': "L'heure de début doit être antérieure à l'heure de fin."})
+
+        # Get day of week for the evaluation date
+        days_map = {
+            0: 'lundi', 1: 'mardi', 2: 'mercredi', 3: 'jeudi',
+            4: 'vendredi', 5: 'samedi', 6: 'dimanche'
+        }
+        day_of_week = days_map[self.date.weekday()]
+
+        # 1. Overlap check for the same class
+        # Check against other Evaluations
+        eval_overlaps = Evaluation.objects.filter(
+            classe=self.classe,
+            date=self.date,
+            heure_debut__lt=self.heure_fin,
+            heure_fin__gt=self.heure_debut
+        )
+        if self.pk:
+            eval_overlaps = eval_overlaps.exclude(pk=self.pk)
+        
+        if eval_overlaps.exists():
+            raise ValidationError("Cette classe a déjà une évaluation prévue sur ce créneau.")
+
+        # Check against Seances (weekly schedule)
+        seance_overlaps = Seance.objects.filter(
+            classe=self.classe,
+            jour=day_of_week,
+            heure_debut__lt=self.heure_fin,
+            heure_fin__gt=self.heure_debut
+        )
+        if seance_overlaps.exists():
+            overlap = seance_overlaps.first()
+            raise ValidationError(
+                f"La classe a déjà un cours de {overlap.matiere.nom} programmé à cette heure (chaque {day_of_week})."
+            )
+
+        # 2. Overlap check for the same teacher
+        if self.enseignant:
+            # Teacher vs other Evaluations
+            teacher_eval_overlaps = Evaluation.objects.filter(
+                enseignant=self.enseignant,
+                date=self.date,
+                heure_debut__lt=self.heure_fin,
+                heure_fin__gt=self.heure_debut
+            )
+            if self.pk:
+                teacher_eval_overlaps = teacher_eval_overlaps.exclude(pk=self.pk)
+            
+            if teacher_eval_overlaps.exists():
+                raise ValidationError(f"L'enseignant a déjà une autre évaluation prévue sur ce créneau.")
+
+            # Teacher vs Seances
+            teacher_seance_overlaps = Seance.objects.filter(
+                enseignant_matiere__enseignant=self.enseignant,
+                jour=day_of_week,
+                heure_debut__lt=self.heure_fin,
+                heure_fin__gt=self.heure_debut
+            )
+            if teacher_seance_overlaps.exists():
+                overlap = teacher_seance_overlaps.first()
+                raise ValidationError(
+                    f"L'enseignant a déjà un cours de {overlap.matiere.nom} avec la classe {overlap.classe.nom} à cette heure."
+                )
+
+        # 3. Overlap check for the same salle
+        if self.salle:
+            # Salle vs other Evaluations
+            salle_eval_overlaps = Evaluation.objects.filter(
+                salle=self.salle,
+                date=self.date,
+                heure_debut__lt=self.heure_fin,
+                heure_fin__gt=self.heure_debut
+            )
+            if self.pk:
+                salle_eval_overlaps = salle_eval_overlaps.exclude(pk=self.pk)
+            
+            if salle_eval_overlaps.exists():
+                raise ValidationError(f"La salle {self.salle.nom} est déjà occupée par une autre évaluation.")
+
+            # Salle vs Seances
+            salle_seance_overlaps = Seance.objects.filter(
+                salle=self.salle,
+                jour=day_of_week,
+                heure_debut__lt=self.heure_fin,
+                heure_fin__gt=self.heure_debut
+            )
+            if salle_seance_overlaps.exists():
+                overlap = salle_seance_overlaps.first()
+                raise ValidationError(
+                    f"La salle {self.salle.nom} est déjà occupée par le cours de {overlap.matiere.nom} ({overlap.classe.nom})."
+                )
+
+            # Capacity check
+            if self.salle.capacite is not None:
+                etudiants_count = self.classe.get_etudiants().count()
+                if etudiants_count > self.salle.capacite:
+                    raise ValidationError(
+                        f"La salle {self.salle.nom} est trop petite ({self.salle.capacite} places) "
+                        f"pour cette classe ({etudiants_count} étudiants)."
+                    )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.get_type_display()} – {self.matiere} – {self.classe} ({self.date})'
