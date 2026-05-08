@@ -10,7 +10,7 @@ class EvaluationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evaluation
-        fields = '__all__'
+        fields = ['id', 'type', 'type_display', 'date', 'heure_debut', 'heure_fin', 'note_max', 'matiere', 'matiere_name', 'matiere_coefficient', 'classe', 'enseignant', 'enseignant_user', 'enseignant_name']
 
 class NoteSerializer(serializers.ModelSerializer):
     evaluation_details = EvaluationSerializer(source='evaluation', read_only=True)

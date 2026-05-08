@@ -36,15 +36,27 @@ class ClasseViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='emploi')
     def emploi(self, request, pk=None):
+        from grades.models import Evaluation
         classe = self.get_object()
+        
+        # Fetch seances
         seances = Seance.objects.filter(classe=classe).select_related('matiere', 'enseignant_matiere__enseignant__utilisateur', 'salle')
         
+        # Fetch evaluations
+        evaluations = Evaluation.objects.filter(classe=classe).select_related('matiere', 'enseignant__utilisateur')
+        
         days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+        day_names_fr = {
+            'Monday': 'lundi', 'Tuesday': 'mardi', 'Wednesday': 'mercredi', 
+            'Thursday': 'jeudi', 'Friday': 'vendredi', 'Saturday': 'samedi', 'Sunday': 'dimanche'
+        }
+        
         timetable = {day: [] for day in days}
         
         for seance in seances:
             timetable[seance.jour].append({
                 'id': seance.id,
+                'type': 'seance',
                 'matiere': seance.matiere.nom,
                 'enseignant': seance.enseignant_matiere.enseignant.utilisateur.get_full_name() or seance.enseignant_matiere.enseignant.utilisateur.email,
                 'enseignant_id': seance.enseignant_matiere.enseignant.id,
@@ -53,6 +65,23 @@ class ClasseViewSet(viewsets.ModelViewSet):
                 'heure_debut': seance.heure_debut.strftime('%H:%M'),
                 'heure_fin': seance.heure_fin.strftime('%H:%M'),
             })
+            
+        for eval_item in evaluations:
+            if eval_item.heure_debut and eval_item.heure_fin:
+                # Map evaluation date to day of week
+                day_name = eval_item.date.strftime('%A')
+                day_key = day_names_fr.get(day_name, 'lundi').lower()
+                
+                timetable[day_key].append({
+                    'id': eval_item.id,
+                    'type': 'evaluation',
+                    'evaluation_type': eval_item.get_type_display(),
+                    'matiere': eval_item.matiere.nom,
+                    'enseignant': eval_item.enseignant.utilisateur.get_full_name() if eval_item.enseignant else "N/A",
+                    'heure_debut': eval_item.heure_debut.strftime('%H:%M'),
+                    'heure_fin': eval_item.heure_fin.strftime('%H:%M'),
+                    'date': eval_item.date.strftime('%Y-%m-%d'),
+                })
             
         for day in days:
             timetable[day].sort(key=lambda x: x['heure_debut'])
@@ -93,20 +122,33 @@ class SeanceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='mon-emploi')
     def mon_emploi(self, request):
+        from grades.models import Evaluation
         user = request.user
         if not user.is_enseignant():
             return Response({"detail": "Seuls les enseignants peuvent accéder à leur emploi du temps global."}, status=403)
         
+        # Fetch seances
         seances = Seance.objects.filter(
             enseignant_matiere__enseignant__utilisateur=user
         ).select_related('matiere', 'classe', 'salle')
         
+        # Fetch evaluations
+        evaluations = Evaluation.objects.filter(
+            enseignant__utilisateur=user
+        ).select_related('matiere', 'classe')
+        
         days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+        day_names_fr = {
+            'Monday': 'lundi', 'Tuesday': 'mardi', 'Wednesday': 'mercredi', 
+            'Thursday': 'jeudi', 'Friday': 'vendredi', 'Saturday': 'samedi', 'Sunday': 'dimanche'
+        }
+        
         timetable = {day: [] for day in days}
         
         for seance in seances:
             timetable[seance.jour].append({
                 'id': seance.id,
+                'type': 'seance',
                 'matiere': seance.matiere.nom,
                 'classe': seance.classe.nom,
                 'salle': seance.salle.nom if seance.salle else None,
@@ -114,6 +156,22 @@ class SeanceViewSet(viewsets.ModelViewSet):
                 'heure_debut': seance.heure_debut.strftime('%H:%M'),
                 'heure_fin': seance.heure_fin.strftime('%H:%M'),
             })
+            
+        for eval_item in evaluations:
+            if eval_item.heure_debut and eval_item.heure_fin:
+                day_name = eval_item.date.strftime('%A')
+                day_key = day_names_fr.get(day_name, 'lundi').lower()
+                
+                timetable[day_key].append({
+                    'id': eval_item.id,
+                    'type': 'evaluation',
+                    'evaluation_type': eval_item.get_type_display(),
+                    'matiere': eval_item.matiere.nom,
+                    'classe': eval_item.classe.nom,
+                    'heure_debut': eval_item.heure_debut.strftime('%H:%M'),
+                    'heure_fin': eval_item.heure_fin.strftime('%H:%M'),
+                    'date': eval_item.date.strftime('%Y-%m-%d'),
+                })
             
         for day in days:
             timetable[day].sort(key=lambda x: x['heure_debut'])
