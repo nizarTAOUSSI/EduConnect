@@ -7,11 +7,12 @@ class EvaluationSerializer(serializers.ModelSerializer):
     type_display = serializers.CharField(source='get_type_display', read_only=True)
     enseignant_user = serializers.ReadOnlyField(source='enseignant.utilisateur.id')
     enseignant_name = serializers.ReadOnlyField(source='enseignant.utilisateur.get_full_name')
+    classe_name = serializers.ReadOnlyField(source='classe.nom')
     salle_name = serializers.ReadOnlyField(source='salle.nom')
 
     class Meta:
         model = Evaluation
-        fields = ['id', 'type', 'type_display', 'date', 'heure_debut', 'heure_fin', 'note_max', 'matiere', 'matiere_name', 'matiere_coefficient', 'classe', 'enseignant', 'enseignant_user', 'enseignant_name', 'salle', 'salle_name']
+        fields = ['id', 'type', 'type_display', 'date', 'heure_debut', 'heure_fin', 'note_max', 'matiere', 'matiere_name', 'matiere_coefficient', 'classe', 'classe_name', 'enseignant', 'enseignant_user', 'enseignant_name', 'salle', 'salle_name']
 
     def validate(self, attrs):
         # Create a temporary instance to call clean()
