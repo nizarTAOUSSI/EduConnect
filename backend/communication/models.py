@@ -2,14 +2,11 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from accounts.models import Utilisateur
-
 class Reclamation(models.Model):
-
     class Statut(models.TextChoices):
         EN_ATTENTE = 'en_attente', 'En attente'
         TRAITEE    = 'traitee',    'Traitée'
         REJETEE    = 'rejetee',    'Rejetée'
-
     expediteur    = models.ForeignKey(
         Utilisateur,
         on_delete=models.CASCADE,
@@ -48,33 +45,24 @@ class Reclamation(models.Model):
         blank=True,
         verbose_name='Réponse',
     )
-
     class Meta:
         verbose_name        = 'Réclamation'
         verbose_name_plural = 'Réclamations'
         ordering            = ['-date_creation']
-
     def __str__(self):
-        return f'Réclamation #{self.pk} – {self.expediteur} [{self.get_statut_display()}]'
-
+        return f'Réclamation 
     def is_pending(self):
-
         return self.statut == self.Statut.EN_ATTENTE
-
     def mark_as_treated(self, reponse: str):
-
         self.reponse = reponse
         self.statut  = self.Statut.TRAITEE
         self.save()
-
 class Notification(models.Model):
-
     class TypeNotification(models.TextChoices):
         ABSENCE    = 'absence', 'Absence'
         NOTE       = 'note', 'Note'
         RECLAMATION = 'reclamation', 'Réclamation'
         SYSTEM     = 'system', 'Système'
-
     destinataire = models.ForeignKey(
         Utilisateur,
         on_delete=models.CASCADE,
@@ -105,26 +93,18 @@ class Notification(models.Model):
         default=False,
         verbose_name='Lu',
     )
-
-    # Generic relation to any object
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
-
     class Meta:
         verbose_name        = 'Notification'
         verbose_name_plural = 'Notifications'
         ordering            = ['-created_at']
-
     def __str__(self):
         lu = '✓' if self.is_read else '✗'
         return f'Notification [{lu}] → {self.destinataire} ({self.created_at:%Y-%m-%d})'
-
     def mark_as_read(self):
-
         self.is_read = True
         self.save()
-
     def is_unread(self):
-
         return not self.is_read

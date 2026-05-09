@@ -1,18 +1,52 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, LogOut, ChevronRight, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, LogOut, ChevronRight, GraduationCap, UserCheck, Contact, School, Calendar, FileText, Bell } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import api from '../../api/axios';
 import logo from '../../assets/Logo.png';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', path: '/dashboard/admin', icon: LayoutDashboard },
   { name: 'Utilisateurs', path: '/dashboard/admin/users', icon: Users },
-  { name: 'Classes', path: '/dashboard/admin/classes', icon: GraduationCap },
+  { name: 'Enseignants', path: '/dashboard/admin/teachers', icon: UserCheck },
+  { name: 'Étudiants', path: '/dashboard/admin/students', icon: GraduationCap },
+  { name: 'Parents', path: '/dashboard/admin/parents', icon: Contact },
+  { name: 'Classes', path: '/dashboard/admin/classes', icon: School },
+  { name: 'Salles', path: '/dashboard/admin/salles', icon: School },
   { name: 'Matières', path: '/dashboard/admin/matieres', icon: BookOpen },
+  { name: 'Évaluations', path: '/dashboard/admin/evaluations', icon: FileText },
+  { name: 'Emploi du temps', path: '/dashboard/admin/timetable', icon: Calendar },
+  { name: 'Notifications', path: '/dashboard/admin/notifications', icon: Bell, isNotification: true },
 ];
 
 export default function Sidebar() {
   const { pathname } = useLocation();
   const { logout, user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await api.get('/communication/notifications/');
+        const notifs = res.data.results || res.data;
+        const unread = notifs.filter((n: any) => !n.is_read).length;
+        setUnreadCount(unread);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    
+    // Listen for notification updates from other components
+    window.addEventListener('notification-updated', fetchUnreadCount);
+    
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('notification-updated', fetchUnreadCount);
+    };
+  }, []);
 
   return (
     <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-full shrink-0">
@@ -37,7 +71,14 @@ export default function Sidebar() {
               }`}
             >
               <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-slate-400'}`} />
+                <div className="relative">
+                  <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-slate-400'}`} />
+                  {item.isNotification && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-white animate-bounce">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </div>
                 <span>{item.name}</span>
               </div>
               {isActive && <ChevronRight className="w-4 h-4 text-primary" />}

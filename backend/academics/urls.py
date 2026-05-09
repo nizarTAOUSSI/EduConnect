@@ -9,5 +9,4 @@ from .views import (
     SeanceViewSet,
     SalleViewSet,
 )
-
 urlpatterns = []

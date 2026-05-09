@@ -4,8 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Reclamation, Notification
 from academics.models import Absence
 from grades.models import Note, Evaluation
-from accounts.models import Utilisateur
-
 @receiver(post_save, sender=Reclamation)
 def notify_teacher_on_reclamation(sender, instance, created, **kwargs):
     """Notify teacher when a student submits a reclamation."""
@@ -18,23 +16,6 @@ def notify_teacher_on_reclamation(sender, instance, created, **kwargs):
             title="Nouvelle réclamation",
             message=f"Nouvelle réclamation de {instance.expediteur.get_full_name()}: {instance.message[:50]}...",
         )
-        
-        
-        try:
-            admins = Utilisateur.objects.filter(role=Utilisateur.Role.ADMIN)
-            for admin in admins:
-                if admin != instance.destinataire: 
-                    Notification.objects.create(
-                        destinataire=admin,
-                        from_user=instance.expediteur,
-                        type=Notification.TypeNotification.RECLAMATION,
-                        content_object=instance,
-                        title="Nouvelle réclamation (Admin)",
-                        message=f"Réclamation de {instance.expediteur.get_full_name()} pour {instance.destinataire.get_full_name()}: {instance.message[:50]}...",
-                    )
-        except Exception as e:
-            print(f"Error notifying admins of reclamation: {e}")
-
 @receiver(post_save, sender=Reclamation)
 def notify_student_on_reclamation_response(sender, instance, created, **kwargs):
     """Notify student when teacher responds to reclamation."""
@@ -47,17 +28,14 @@ def notify_student_on_reclamation_response(sender, instance, created, **kwargs):
             title="Réponse à votre réclamation",
             message=f"Réponse à votre réclamation: {instance.reponse[:50]}...",
         )
-
 @receiver(post_save, sender=Absence)
 def notify_on_absence(sender, instance, created, **kwargs):
     """Notify student and parents when absence is recorded or modified."""
     content_type = ContentType.objects.get_for_model(instance)
     message = f"Absence enregistrée pour {instance.enseignant_matiere.matiere.nom} le {instance.date}"
     title = "Nouvelle absence" if created else "Absence modifiée"
-
     if created:
         student_user = instance.etudiant.utilisateur
-        # Notify student
         Notification.objects.create(
             destinataire=student_user,
             type=Notification.TypeNotification.ABSENCE,
@@ -65,8 +43,6 @@ def notify_on_absence(sender, instance, created, **kwargs):
             title=title,
             message=message,
         )
-
-        # Notify parents
         try:
             parents = instance.etudiant.parents.all()
             for parent in parents:
@@ -79,31 +55,15 @@ def notify_on_absence(sender, instance, created, **kwargs):
                 )
         except Exception as e:
             print(f"Error notifying parents: {e}")
-
-        # Notify Admins
-        try:
-            admins = Utilisateur.objects.filter(role=Utilisateur.Role.ADMIN)
-            for admin in admins:
-                Notification.objects.create(
-                    destinataire=admin,
-                    type=Notification.TypeNotification.ABSENCE,
-                    content_object=instance,
-                    title=f"Nouvelle absence signalée",
-                    message=f"Absence de {student_user.get_full_name()} ({instance.etudiant.classe.nom}) signalée par {instance.enseignant_matiere.enseignant.utilisateur.get_full_name()}.",
-                )
-        except Exception as e:
-            print(f"Error notifying admins: {e}")
     else:
-        # Update existing notifications
         Notification.objects.filter(
             content_type=content_type, 
             object_id=instance.id
         ).update(
             message=message,
             title=title,
-            is_read=False  # Reset to unread so they see the change
+            is_read=False  
         )
-
 @receiver(post_save, sender=Note)
 def notify_on_note(sender, instance, created, **kwargs):
     """Notify student and parents when grade is added or modified."""
@@ -111,10 +71,8 @@ def notify_on_note(sender, instance, created, **kwargs):
     grade_text = f"Note: {instance.valeur_note}/20" if instance.valeur_note is not None else "Absent"
     message = f"Nouvelle note pour {instance.evaluation.matiere.nom}: {grade_text}"
     title = "Nouvelle note disponible" if created else "Note modifiée"
-
     if created:
         student_user = instance.etudiant.utilisateur
-        # Notify student
         Notification.objects.create(
             destinataire=student_user,
             type=Notification.TypeNotification.NOTE,
@@ -122,8 +80,6 @@ def notify_on_note(sender, instance, created, **kwargs):
             title=title,
             message=message,
         )
-
-        # Notify parents
         try:
             parents = instance.etudiant.parents.all()
             for parent in parents:
@@ -136,48 +92,15 @@ def notify_on_note(sender, instance, created, **kwargs):
                 )
         except Exception as e:
             print(f"Error notifying parents: {e}")
-
-        # Notify Admins
-        try:
-            admins = Utilisateur.objects.filter(role=Utilisateur.Role.ADMIN)
-            for admin in admins:
-                Notification.objects.create(
-                    destinataire=admin,
-                    type=Notification.TypeNotification.NOTE,
-                    content_object=instance,
-                    title=f"Nouvelle note (Admin)",
-                    message=f"Note de {instance.valeur_note}/20 pour {student_user.get_full_name()} ({instance.evaluation.matiere.nom}) ajoutée.",
-                )
-        except Exception as e:
-            print(f"Error notifying admins of note: {e}")
     else:
-        # Update existing notifications
         Notification.objects.filter(
             content_type=content_type, 
             object_id=instance.id
         ).update(
             message=message,
             title=title,
-            is_read=False  # Reset to unread so they see the change
+            is_read=False  
         )
-
-@receiver(post_save, sender=Evaluation)
-def notify_on_evaluation(sender, instance, created, **kwargs):
-    """Notify admins when a new evaluation is created."""
-    if created:
-        try:
-            admins = Utilisateur.objects.filter(role=Utilisateur.Role.ADMIN)
-            for admin in admins:
-                Notification.objects.create(
-                    destinataire=admin,
-                    type=Notification.TypeNotification.SYSTEM,
-                    content_object=instance,
-                    title="Nouvelle évaluation planifiée",
-                    message=f"Une nouvelle évaluation de {instance.matiere.nom} pour la classe {instance.classe.nom} a été planifiée pour le {instance.date}.",
-                )
-        except Exception as e:
-            print(f"Error notifying admins of evaluation: {e}")
-
 @receiver(post_delete, sender=Note)
 @receiver(post_delete, sender=Reclamation)
 @receiver(post_delete, sender=Absence)
@@ -186,8 +109,3 @@ def delete_related_notifications(sender, instance, **kwargs):
     """Delete notifications when the related object is deleted."""
     content_type = ContentType.objects.get_for_model(instance)
     Notification.objects.filter(content_type=content_type, object_id=instance.id).delete()
-    
-    # If an evaluation is deleted, notes are deleted via CASCADE, 
-    # and the signal for Note will handle those notifications.
-    # We added @receiver(post_delete, sender=Evaluation) just in case 
-    # some notifications were directly linked to it in the future.

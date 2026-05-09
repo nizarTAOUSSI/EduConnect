@@ -1,28 +1,20 @@
-
-
 import os
 from pathlib import Path
-
 import dj_database_url
 from dotenv import load_dotenv
-
 load_dotenv(Path(__file__).resolve().parent.parent / '.env')
-
 def env_bool(name, default=False):
     value = os.getenv(name)
     if value is None:
         return default
     return value.strip().lower() in {'1', 'true', 'yes', 'on'}
-
 def env_list(name, default=''):
     value = os.getenv(name, default)
     return [item.strip() for item in value.split(',') if item.strip()]
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 SECRET_KEY = os.getenv(
     'SECRET_KEY',
-    'django-insecure-a3)cj)_j(@(ue&zq*$8h=_jf09#uky!b8fw2f4l+gmz5h^6m6b',
+    'django-insecure-a3)cj)_j(@(ue&zq*$8h=_jf09
 )
 DEBUG = env_bool('DEBUG', default=True)
 ALLOWED_HOSTS = env_list(
@@ -48,7 +40,6 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r'^https://.*\.railway\.app$',
 ]
 CORS_ALLOW_CREDENTIALS = True
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -56,21 +47,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'corsheaders',
     'rest_framework',
     'django_filters',
     'drf_spectacular',
-
     'accounts',
     'academics',
     'grades',
     'reports',
     'communication',
 ]
-
 AUTH_USER_MODEL = 'accounts.Utilisateur'
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -81,9 +68,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'backend.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -98,11 +83,8 @@ TEMPLATES = [
         },
     },
 ]
-
 WSGI_APPLICATION = 'backend.wsgi.application'
-
 database_url = os.getenv('MYSQL_URL') or os.getenv('DATABASE_URL')
-
 if database_url:
     DATABASES = {
         'default': dj_database_url.parse(
@@ -140,29 +122,23 @@ else:
             'CONN_MAX_AGE': 600,
         }
     }
-
 DATABASES['default'].setdefault('OPTIONS', {})
 DATABASES['default']['OPTIONS'].setdefault(
     'init_command',
     "SET sql_mode='STRICT_TRANS_TABLES'",
 )
-
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
 LANGUAGE_CODE = 'fr-fr'
 TIME_ZONE = 'Africa/Casablanca'
 USE_I18N = True
 USE_TZ = True
-
 STATIC_URL = 'static/'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -175,12 +151,10 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
 }
-
 if DEBUG:
     REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(
         'rest_framework.authentication.SessionAuthentication'
     )
-
 SPECTACULAR_SETTINGS = {
     'TITLE': 'EduConnect API',
     'DESCRIPTION': (

@@ -12,7 +12,6 @@ from .serializers import (
     EtudiantSerializer,
     ParentSerializer,
 )
-
 @extend_schema_view(
     create=extend_schema(request=UtilisateurCreateSerializer, responses=UtilisateurSerializer),
 )
@@ -23,40 +22,32 @@ class UtilisateurViewSet(viewsets.ModelViewSet):
         'profil_parent__enfants__utilisateur'
     ).all()
     serializer_class = UtilisateurSerializer
-
     def get_serializer_class(self):
         if self.action == 'create':
             return UtilisateurCreateSerializer
         return UtilisateurSerializer
-
     def get_permissions(self):
         if self.action == 'create':
             return [AllowAny()]
         return [IsAuthenticated()]
-
 class EnseignantViewSet(viewsets.ModelViewSet):
     queryset = Enseignant.objects.select_related('utilisateur').all()
     serializer_class = EnseignantSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['utilisateur']
-
     def get_permissions(self):
         return [IsAuthenticated()]
-
 class EtudiantViewSet(viewsets.ModelViewSet):
     queryset = Etudiant.objects.select_related('utilisateur', 'classe').all()
     serializer_class = EtudiantSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['utilisateur', 'classe']
-
     def get_permissions(self):
         return [IsAuthenticated()]
-
 class ParentViewSet(viewsets.ModelViewSet):
     serializer_class = ParentSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['utilisateur']
-
     def get_queryset(self):
         user = self.request.user
         if user.is_authenticated:
@@ -64,14 +55,10 @@ class ParentViewSet(viewsets.ModelViewSet):
                 return Parent.objects.prefetch_related('enfants__utilisateur', 'enfants__classe').all()
             return Parent.objects.filter(utilisateur=user).prefetch_related('enfants__utilisateur', 'enfants__classe')
         return Parent.objects.none()
-
     def get_permissions(self):
         return [IsAuthenticated()]
-
 class MeView(APIView):
-
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
         serializer = UtilisateurSerializer(request.user)
         return Response(serializer.data)
