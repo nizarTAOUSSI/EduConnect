@@ -75,6 +75,23 @@ class AbsenceSerializer(serializers.ModelSerializer):
         model = Absence
         fields = '__all__'
 
+    def validate(self, attrs):
+        if self.instance:
+            instance = self.instance
+            for field, value in attrs.items():
+                setattr(instance, field, value)
+        else:
+            instance = Absence(**attrs)
+            
+        try:
+            instance.clean()
+        except Exception as e:
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            if isinstance(e, DjangoValidationError):
+                raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else e.messages)
+            raise e
+        return attrs
+
     def get_enseignant_matiere_details(self, obj):
         return {
             'id': obj.enseignant_matiere.id,
