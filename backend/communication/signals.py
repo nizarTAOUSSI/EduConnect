@@ -33,7 +33,11 @@ def notify_student_on_reclamation_response(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Absence)
 def notify_on_absence(sender, instance, created, **kwargs):
-    """Notify student and parents when absence is recorded."""
+    """Notify student and parents when absence is recorded or modified."""
+    content_type = ContentType.objects.get_for_model(instance)
+    message = f"Absence enregistrée pour {instance.enseignant_matiere.matiere.nom} le {instance.date}"
+    title = "Nouvelle absence" if created else "Absence modifiée"
+
     if created:
         student_user = instance.etudiant.utilisateur
         # Notify student
@@ -41,8 +45,8 @@ def notify_on_absence(sender, instance, created, **kwargs):
             destinataire=student_user,
             type=Notification.TypeNotification.ABSENCE,
             content_object=instance,
-            title="Nouvelle absence",
-            message=f"Nouvelle absence enregistrée pour {instance.enseignant_matiere.matiere.nom} le {instance.date}",
+            title=title,
+            message=message,
         )
 
         # Notify parents
@@ -53,25 +57,39 @@ def notify_on_absence(sender, instance, created, **kwargs):
                     destinataire=parent.utilisateur,
                     type=Notification.TypeNotification.ABSENCE,
                     content_object=instance,
-                    title="Absence de votre enfant",
+                    title=f"{title} de votre enfant",
                     message=f"Absence de {student_user.get_full_name()} pour {instance.enseignant_matiere.matiere.nom} le {instance.date}",
                 )
         except Exception as e:
             print(f"Error notifying parents: {e}")
+    else:
+        # Update existing notifications
+        Notification.objects.filter(
+            content_type=content_type, 
+            object_id=instance.id
+        ).update(
+            message=message,
+            title=title,
+            is_read=False  # Reset to unread so they see the change
+        )
 
 @receiver(post_save, sender=Note)
 def notify_on_note(sender, instance, created, **kwargs):
-    """Notify student and parents when grade is added."""
+    """Notify student and parents when grade is added or modified."""
+    content_type = ContentType.objects.get_for_model(instance)
+    grade_text = f"Note: {instance.valeur_note}/20" if instance.valeur_note is not None else "Absent"
+    message = f"Nouvelle note pour {instance.evaluation.matiere.nom}: {grade_text}"
+    title = "Nouvelle note disponible" if created else "Note modifiée"
+
     if created:
         student_user = instance.etudiant.utilisateur
-        grade_text = f"Note: {instance.valeur_note}/20" if instance.valeur_note else "Absent"
         # Notify student
         Notification.objects.create(
             destinataire=student_user,
             type=Notification.TypeNotification.NOTE,
             content_object=instance,
-            title="Nouvelle note disponible",
-            message=f"Nouvelle note pour {instance.evaluation.matiere.nom}: {grade_text}",
+            title=title,
+            message=message,
         )
 
         # Notify parents
@@ -82,11 +100,21 @@ def notify_on_note(sender, instance, created, **kwargs):
                     destinataire=parent.utilisateur,
                     type=Notification.TypeNotification.NOTE,
                     content_object=instance,
-                    title="Nouvelle note de votre enfant",
+                    title=f"Nouvelle note de votre enfant",
                     message=f"Note de {student_user.get_full_name()} pour {instance.evaluation.matiere.nom}: {grade_text}",
                 )
         except Exception as e:
             print(f"Error notifying parents: {e}")
+    else:
+        # Update existing notifications
+        Notification.objects.filter(
+            content_type=content_type, 
+            object_id=instance.id
+        ).update(
+            message=message,
+            title=title,
+            is_read=False  # Reset to unread so they see the change
+        )
 
 @receiver(post_delete, sender=Note)
 @receiver(post_delete, sender=Reclamation)
