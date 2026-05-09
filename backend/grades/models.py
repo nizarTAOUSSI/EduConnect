@@ -59,8 +59,21 @@ class Evaluation(models.Model):
         if not self.date or not self.heure_debut or not self.heure_fin:
             return
 
+        
+        if self.date.weekday() == 6: 
+            raise ValidationError("Les évaluations ne peuvent pas être programmées le dimanche.")
+
         if self.heure_debut >= self.heure_fin:
             raise ValidationError("L'heure de début doit être antérieure à l'heure de fin.")
+
+        # Check room capacity
+        if self.salle and self.salle.capacite is not None:
+            etudiants_count = self.classe.get_etudiants().count()
+            if etudiants_count > self.salle.capacite:
+                raise ValidationError(
+                    f"La capacité de la salle {self.salle.nom} ({self.salle.capacite} places) est insuffisante "
+                    f"pour le nombre d'étudiants de la classe {self.classe.nom} ({etudiants_count} étudiants)."
+                )
 
         # Check overlaps with other evaluations
         eval_overlaps = Evaluation.objects.filter(

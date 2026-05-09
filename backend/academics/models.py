@@ -169,6 +169,10 @@ class Seance(models.Model):
         if not self.enseignant_matiere or not self.classe or not self.matiere:
             return
 
+        # No work on Sunday
+        if self.jour == 'dimanche':
+            raise ValidationError("Les séances ne peuvent pas être programmées le dimanche.")
+
         # Coherence check
         if self.enseignant_matiere.classe != self.classe:
             raise ValidationError("L'affectation Enseignant-Matière ne correspond pas à la classe sélectionnée.")
