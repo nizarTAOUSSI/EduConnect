@@ -15,7 +15,7 @@ class Evaluation(models.Model):
         choices=TypeEvaluation.choices,
         verbose_name='Type d\'évaluation',
     )
-    date     = models.DateField(verbose_name='Date de l\'évaluation')
+    date     = models.DateField(verbose_name='Date de l\'évaluation', null=True, blank=True)
     heure_debut = models.TimeField(verbose_name='Heure de début', null=True, blank=True)
     heure_fin   = models.TimeField(verbose_name='Heure de fin', null=True, blank=True)
     note_max = models.FloatField(default=20.0, verbose_name='Note maximale')
