@@ -1,8 +1,9 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.contrib.contenttypes.models import ContentType
 from .models import Reclamation, Notification
 from academics.models import Absence
-from grades.models import Note
+from grades.models import Note, Evaluation
 
 @receiver(post_save, sender=Reclamation)
 def notify_teacher_on_reclamation(sender, instance, created, **kwargs):
@@ -11,6 +12,9 @@ def notify_teacher_on_reclamation(sender, instance, created, **kwargs):
         Notification.objects.create(
             destinataire=instance.destinataire,
             from_user=instance.expediteur,
+            type=Notification.TypeNotification.RECLAMATION,
+            content_object=instance,
+            title="Nouvelle réclamation",
             message=f"Nouvelle réclamation de {instance.expediteur.get_full_name()}: {instance.message[:50]}...",
         )
 
@@ -21,6 +25,9 @@ def notify_student_on_reclamation_response(sender, instance, created, **kwargs):
         Notification.objects.create(
             destinataire=instance.expediteur,
             from_user=instance.destinataire,
+            type=Notification.TypeNotification.RECLAMATION,
+            content_object=instance,
+            title="Réponse à votre réclamation",
             message=f"Réponse à votre réclamation: {instance.reponse[:50]}...",
         )
 
@@ -32,6 +39,9 @@ def notify_on_absence(sender, instance, created, **kwargs):
         # Notify student
         Notification.objects.create(
             destinataire=student_user,
+            type=Notification.TypeNotification.ABSENCE,
+            content_object=instance,
+            title="Nouvelle absence",
             message=f"Nouvelle absence enregistrée pour {instance.enseignant_matiere.matiere.nom} le {instance.date}",
         )
 
@@ -41,6 +51,9 @@ def notify_on_absence(sender, instance, created, **kwargs):
             for parent in parents:
                 Notification.objects.create(
                     destinataire=parent.utilisateur,
+                    type=Notification.TypeNotification.ABSENCE,
+                    content_object=instance,
+                    title="Absence de votre enfant",
                     message=f"Absence de {student_user.get_full_name()} pour {instance.enseignant_matiere.matiere.nom} le {instance.date}",
                 )
         except Exception as e:
@@ -55,6 +68,9 @@ def notify_on_note(sender, instance, created, **kwargs):
         # Notify student
         Notification.objects.create(
             destinataire=student_user,
+            type=Notification.TypeNotification.NOTE,
+            content_object=instance,
+            title="Nouvelle note disponible",
             message=f"Nouvelle note pour {instance.evaluation.matiere.nom}: {grade_text}",
         )
 
@@ -64,7 +80,24 @@ def notify_on_note(sender, instance, created, **kwargs):
             for parent in parents:
                 Notification.objects.create(
                     destinataire=parent.utilisateur,
+                    type=Notification.TypeNotification.NOTE,
+                    content_object=instance,
+                    title="Nouvelle note de votre enfant",
                     message=f"Note de {student_user.get_full_name()} pour {instance.evaluation.matiere.nom}: {grade_text}",
                 )
         except Exception as e:
             print(f"Error notifying parents: {e}")
+
+@receiver(post_delete, sender=Note)
+@receiver(post_delete, sender=Reclamation)
+@receiver(post_delete, sender=Absence)
+@receiver(post_delete, sender=Evaluation)
+def delete_related_notifications(sender, instance, **kwargs):
+    """Delete notifications when the related object is deleted."""
+    content_type = ContentType.objects.get_for_model(instance)
+    Notification.objects.filter(content_type=content_type, object_id=instance.id).delete()
+    
+    # If an evaluation is deleted, notes are deleted via CASCADE, 
+    # and the signal for Note will handle those notifications.
+    # We added @receiver(post_delete, sender=Evaluation) just in case 
+    # some notifications were directly linked to it in the future.

@@ -9,6 +9,6 @@ class ReclamationAdmin(admin.ModelAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display  = ('destinataire', 'from_user', 'est_lu', 'date_envoi')
-    list_filter   = ('est_lu', 'date_envoi')
-    search_fields = ('destinataire__email', 'message')
+    list_display  = ('destinataire', 'from_user', 'type', 'is_read', 'created_at')
+    list_filter   = ('type', 'is_read', 'created_at')
+    search_fields = ('destinataire__email', 'message', 'title')

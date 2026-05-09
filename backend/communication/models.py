@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from accounts.models import Utilisateur
 
 class Reclamation(models.Model):
@@ -67,6 +69,12 @@ class Reclamation(models.Model):
 
 class Notification(models.Model):
 
+    class TypeNotification(models.TextChoices):
+        ABSENCE    = 'absence', 'Absence'
+        NOTE       = 'note', 'Note'
+        RECLAMATION = 'reclamation', 'Réclamation'
+        SYSTEM     = 'system', 'Système'
+
     destinataire = models.ForeignKey(
         Utilisateur,
         on_delete=models.CASCADE,
@@ -81,30 +89,42 @@ class Notification(models.Model):
         related_name='notifications_envoyees',
         verbose_name='Expéditeur',
     )
+    type = models.CharField(
+        max_length=20,
+        choices=TypeNotification.choices,
+        default=TypeNotification.SYSTEM,
+        verbose_name='Type de notification'
+    )
+    title = models.CharField(max_length=255, verbose_name='Titre', default='')
     message    = models.TextField(verbose_name='Message')
-    date_envoi = models.DateTimeField(
+    created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Date d\'envoi',
     )
-    est_lu = models.BooleanField(
+    is_read = models.BooleanField(
         default=False,
         verbose_name='Lu',
     )
 
+    # Generic relation to any object
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     class Meta:
         verbose_name        = 'Notification'
         verbose_name_plural = 'Notifications'
-        ordering            = ['-date_envoi']
+        ordering            = ['-created_at']
 
     def __str__(self):
-        lu = '✓' if self.est_lu else '✗'
-        return f'Notification [{lu}] → {self.destinataire} ({self.date_envoi:%Y-%m-%d})'
+        lu = '✓' if self.is_read else '✗'
+        return f'Notification [{lu}] → {self.destinataire} ({self.created_at:%Y-%m-%d})'
 
     def mark_as_read(self):
 
-        self.est_lu = True
+        self.is_read = True
         self.save()
 
     def is_unread(self):
 
-        return not self.est_lu
+        return not self.is_read
