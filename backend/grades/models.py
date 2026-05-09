@@ -54,8 +54,20 @@ class Evaluation(models.Model):
         ordering            = ['-date']
 
     def clean(self):
-        from academics.models import Seance
+        from academics.models import Seance, EnseignantMatiere
         
+        # 0. Check teacher assignment (Matiere + Classe)
+        if self.enseignant and self.matiere and self.classe:
+            if not EnseignantMatiere.objects.filter(
+                enseignant=self.enseignant,
+                matiere=self.matiere,
+                classe=self.classe
+            ).exists():
+                raise ValidationError(
+                    f"L'enseignant {self.enseignant.utilisateur.get_full_name()} n'est pas affecté à la matière "
+                    f"'{self.matiere.nom}' pour la classe '{self.classe.nom}'."
+                )
+
         if not self.date or not self.heure_debut or not self.heure_fin:
             return
 
