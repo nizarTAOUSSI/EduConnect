@@ -68,6 +68,7 @@ class SeanceSerializer(serializers.ModelSerializer):
 
 class AbsenceSerializer(serializers.ModelSerializer):
     etudiant_details = EtudiantSerializer(source='etudiant', read_only=True)
+    etudiant_user = serializers.ReadOnlyField(source='etudiant.utilisateur.id')
     enseignant_matiere_details = serializers.SerializerMethodField()
     seance_details = SeanceSerializer(source='seance', read_only=True)
 

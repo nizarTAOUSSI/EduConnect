@@ -174,6 +174,7 @@ class Note(models.Model):
         verbose_name='Absent',
         help_text='Si coché, la note ne sera pas comptabilisée dans la moyenne.',
     )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:
         verbose_name        = 'Note'

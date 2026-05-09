@@ -273,6 +273,19 @@ class Absence(models.Model):
     )
     justifiee     = models.BooleanField(default=False, verbose_name='Justifiée')
     duree_heures  = models.FloatField(verbose_name='Durée (heures)', default=1.0)
+    justificatif  = models.FileField(
+        upload_to='absences/justificatifs/',
+        null=True,
+        blank=True,
+        verbose_name='Justificatif',
+    )
+    created_at    = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name        = 'Absence'
+        verbose_name_plural = 'Absences'
+        ordering            = ['-date']
+        unique_together     = [('etudiant', 'seance', 'date')]
 
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -310,12 +323,6 @@ class Absence(models.Model):
             self.duree_heures = diff.total_seconds() / 3600.0
             
         super().save(*args, **kwargs)
-
-    class Meta:
-        verbose_name        = 'Absence'
-        verbose_name_plural = 'Absences'
-        ordering            = ['-date']
-        unique_together     = [('etudiant', 'seance', 'date')]
 
     def __str__(self):
         status = 'justifiée' if self.justifiee else 'non justifiée'
