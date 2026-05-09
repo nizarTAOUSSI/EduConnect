@@ -176,6 +176,15 @@ class Note(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
+    @property
+    def student_name(self):
+        user = self.etudiant.utilisateur
+        return user.get_full_name() or user.email or user.username
+
+    @property
+    def student_email(self):
+        return self.etudiant.utilisateur.email
+
     class Meta:
         verbose_name        = 'Note'
         verbose_name_plural = 'Notes'

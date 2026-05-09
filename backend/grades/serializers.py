@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Evaluation, Note
+from accounts.serializers import EtudiantSerializer
 
 class EvaluationSerializer(serializers.ModelSerializer):
     matiere_name = serializers.ReadOnlyField(source='matiere.nom')
@@ -35,8 +36,15 @@ class EvaluationSerializer(serializers.ModelSerializer):
 
 class NoteSerializer(serializers.ModelSerializer):
     evaluation_details = EvaluationSerializer(source='evaluation', read_only=True)
+    etudiant_details = EtudiantSerializer(source='etudiant', read_only=True)
     etudiant_user = serializers.ReadOnlyField(source='etudiant.utilisateur.id')
+    etudiant_name = serializers.ReadOnlyField(source='student_name')
+    etudiant_email = serializers.ReadOnlyField(source='student_email')
 
     class Meta:
         model = Note
-        fields = '__all__'
+        fields = [
+            'id', 'evaluation', 'evaluation_details', 'etudiant', 'etudiant_details', 
+            'etudiant_user', 'etudiant_name', 'etudiant_email', 
+            'valeur_note', 'commentaire', 'est_absent', 'created_at'
+        ]
