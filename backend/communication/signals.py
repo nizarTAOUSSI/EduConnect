@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Reclamation, Notification
 from academics.models import Absence
 from grades.models import Note, Evaluation
+from accounts.models import Utilisateur
 
 @receiver(post_save, sender=Reclamation)
 def notify_teacher_on_reclamation(sender, instance, created, **kwargs):
@@ -62,6 +63,20 @@ def notify_on_absence(sender, instance, created, **kwargs):
                 )
         except Exception as e:
             print(f"Error notifying parents: {e}")
+
+        # Notify Admins
+        try:
+            admins = Utilisateur.objects.filter(role=Utilisateur.Role.ADMIN)
+            for admin in admins:
+                Notification.objects.create(
+                    destinataire=admin,
+                    type=Notification.TypeNotification.ABSENCE,
+                    content_object=instance,
+                    title=f"Nouvelle absence signalée",
+                    message=f"Absence de {student_user.get_full_name()} ({instance.etudiant.classe.nom}) signalée par {instance.enseignant_matiere.enseignant.utilisateur.get_full_name()}.",
+                )
+        except Exception as e:
+            print(f"Error notifying admins: {e}")
     else:
         # Update existing notifications
         Notification.objects.filter(
@@ -115,6 +130,23 @@ def notify_on_note(sender, instance, created, **kwargs):
             title=title,
             is_read=False  # Reset to unread so they see the change
         )
+
+@receiver(post_save, sender=Evaluation)
+def notify_on_evaluation(sender, instance, created, **kwargs):
+    """Notify admins when a new evaluation is created."""
+    if created:
+        try:
+            admins = Utilisateur.objects.filter(role=Utilisateur.Role.ADMIN)
+            for admin in admins:
+                Notification.objects.create(
+                    destinataire=admin,
+                    type=Notification.TypeNotification.SYSTEM,
+                    content_object=instance,
+                    title="Nouvelle évaluation planifiée",
+                    message=f"Une nouvelle évaluation de {instance.matiere.nom} pour la classe {instance.classe.nom} a été planifiée pour le {instance.date}.",
+                )
+        except Exception as e:
+            print(f"Error notifying admins of evaluation: {e}")
 
 @receiver(post_delete, sender=Note)
 @receiver(post_delete, sender=Reclamation)
