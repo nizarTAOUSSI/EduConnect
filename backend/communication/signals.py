@@ -18,6 +18,22 @@ def notify_teacher_on_reclamation(sender, instance, created, **kwargs):
             title="Nouvelle réclamation",
             message=f"Nouvelle réclamation de {instance.expediteur.get_full_name()}: {instance.message[:50]}...",
         )
+        
+        
+        try:
+            admins = Utilisateur.objects.filter(role=Utilisateur.Role.ADMIN)
+            for admin in admins:
+                if admin != instance.destinataire: 
+                    Notification.objects.create(
+                        destinataire=admin,
+                        from_user=instance.expediteur,
+                        type=Notification.TypeNotification.RECLAMATION,
+                        content_object=instance,
+                        title="Nouvelle réclamation (Admin)",
+                        message=f"Réclamation de {instance.expediteur.get_full_name()} pour {instance.destinataire.get_full_name()}: {instance.message[:50]}...",
+                    )
+        except Exception as e:
+            print(f"Error notifying admins of reclamation: {e}")
 
 @receiver(post_save, sender=Reclamation)
 def notify_student_on_reclamation_response(sender, instance, created, **kwargs):
@@ -120,6 +136,20 @@ def notify_on_note(sender, instance, created, **kwargs):
                 )
         except Exception as e:
             print(f"Error notifying parents: {e}")
+
+        # Notify Admins
+        try:
+            admins = Utilisateur.objects.filter(role=Utilisateur.Role.ADMIN)
+            for admin in admins:
+                Notification.objects.create(
+                    destinataire=admin,
+                    type=Notification.TypeNotification.NOTE,
+                    content_object=instance,
+                    title=f"Nouvelle note (Admin)",
+                    message=f"Note de {instance.valeur_note}/20 pour {student_user.get_full_name()} ({instance.evaluation.matiere.nom}) ajoutée.",
+                )
+        except Exception as e:
+            print(f"Error notifying admins of note: {e}")
     else:
         # Update existing notifications
         Notification.objects.filter(
