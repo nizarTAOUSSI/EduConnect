@@ -12,10 +12,7 @@ def env_list(name, default=''):
     value = os.getenv(name, default)
     return [item.strip() for item in value.split(',') if item.strip()]
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv(
-    'SECRET_KEY',
-    'django-insecure-a3)cj)_j(@(ue&zq*$8h=_jf09
-)
+SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = env_bool('DEBUG', default=True)
 ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
