@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, GraduationCap, BookOpen, Activity, AlertCircle, MessageSquare, Clock, Bell, UserCheck, School, Calendar, FileText } from 'lucide-react';
+import { Users, GraduationCap, Activity, AlertCircle, MessageSquare, Bell, UserCheck, School, FileText } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../components/ui/Spinner';

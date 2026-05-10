@@ -50,7 +50,7 @@ export default function ParentChildren() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {children.length > 0 ? children.map((child, i) => (
+        {children.length > 0 ? children.map((child) => (
           <div key={child.id} className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm hover:shadow-xl transition-all group">
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">

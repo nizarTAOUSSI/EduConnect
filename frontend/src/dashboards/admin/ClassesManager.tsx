@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, GraduationCap, Users, User, Mail, Phone, BookOpen, UserCheck } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, GraduationCap, Users, Mail, Phone, BookOpen, UserCheck } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';

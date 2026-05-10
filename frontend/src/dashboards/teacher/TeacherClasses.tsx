@@ -37,7 +37,7 @@ export default function TeacherClasses() {
   const [classes, setClasses] = useState<Classe[]>([]);
   const [students, setStudents] = useState<Record<number, Student[]>>({});
   const [loading, setLoading] = useState(true);
-  const [teacherId, setTeacherId] = useState<number | null>(null);
+  // const [teacherId, setTeacherId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -68,7 +68,7 @@ export default function TeacherClasses() {
           toast.error('Profil enseignant non trouvé');
           return;
         }
-        setTeacherId(teacher.id);
+        // setTeacherId(teacher.id);
         const currentTeacherId = teacher.id;
 
         const [assignRes] = await Promise.all([
@@ -247,7 +247,7 @@ export default function TeacherClasses() {
           setProfileDate('');
         }}
         title={`Profil Étudiant : ${selectedStudent?.first_name} ${selectedStudent?.last_name}`}
-        maxWidth="3xl"
+        maxWidth="2xl"
       >
         {loadingProfile ? (
           <div className="flex justify-center py-12"><Spinner /></div>

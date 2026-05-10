@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, ChevronDown, ChevronRight, GraduationCap, UserCheck, Clock, Edit2, X, Check, FileText, Users, BookOpen } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, UserCheck, Clock, Edit2, X, Check, FileText } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
@@ -99,55 +99,55 @@ export default function StudentsManager() {
   const [absenceDateFilter, setAbsenceDateFilter] = useState('');
 
   // Assignments modal state (Teachers & Subjects)
-  const [isAssignmentsModalOpen, setIsAssignmentsModalOpen] = useState(false);
-  const [selectedClassAssignments, setSelectedClassAssignments] = useState<any[]>([]);
-  const [assignmentsLoading, setAssignmentsLoading] = useState(false);
-  const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
+  // const [isAssignmentsModalOpen, setIsAssignmentsModalOpen] = useState(false);
+  // const [selectedClassAssignments, setSelectedClassAssignments] = useState<any[]>([]);
+  // const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+  // const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
 
   // Student list modal state
-  const [isStudentsModalOpen, setIsStudentsModalOpen] = useState(false);
-  const [selectedClassStudents, setSelectedClassStudents] = useState<any[]>([]);
-  const [studentsLoading, setStudentsLoading] = useState(false);
-  const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  // const [isStudentsModalOpen, setIsStudentsModalOpen] = useState(false);
+  // const [selectedClassStudents, setSelectedClassStudents] = useState<any[]>([]);
+  // const [studentsLoading, setStudentsLoading] = useState(false);
+  // const [studentSearchTerm, setStudentSearchTerm] = useState('');
 
-  const resolveClassName = useCallback((student: Student) => {
-    if (student.classe_name?.trim()) return student.classe_name.trim();
-    if (student.classe !== null) {
-      const cls = classes.find(c => c.id === student.classe);
-      return cls ? `${cls.nom} — ${cls.niveau}` : `Classe #${student.classe}`;
-    }
-    return null;
-  }, [classes]);
+  // const resolveClassName = useCallback((student: Student) => {
+  //   if (student.classe_name?.trim()) return student.classe_name.trim();
+  //   if (student.classe !== null) {
+  //     const cls = classes.find(c => c.id === student.classe);
+  //     return cls ? `${cls.nom} — ${cls.niveau}` : `Classe #${student.classe}`;
+  //   }
+  //   return null;
+  // }, [classes]);
 
-  const fetchClassStudents = async (classe: any) => {
-    try {
-      setViewingAbsencesStudent({ id: -2000 - classe.id, first_name: 'Classe', last_name: classe.nom } as any);
-      setStudentsLoading(true);
-      setIsStudentsModalOpen(true);
-      setStudentSearchTerm('');
-      const res = await api.get(`/accounts/etudiants/?classe=${classe.id}`);
-      setSelectedClassStudents(res.data.results || res.data);
-    } catch (error) {
-      toast.error('Erreur lors du chargement des étudiants');
-    } finally {
-      setStudentsLoading(false);
-    }
-  };
+  // const fetchClassStudents = async (classe: any) => {
+  //   try {
+  //     setViewingAbsencesStudent({ id: -2000 - classe.id, first_name: 'Classe', last_name: classe.nom } as any);
+  //     setStudentsLoading(true);
+  //     setIsStudentsModalOpen(true);
+  //     setStudentSearchTerm('');
+  //     const res = await api.get(`/accounts/etudiants/?classe=${classe.id}`);
+  //     setSelectedClassStudents(res.data.results || res.data);
+  //   } catch (error) {
+  //     toast.error('Erreur lors du chargement des étudiants');
+  //   } finally {
+  //     setStudentsLoading(false);
+  //   }
+  // };
 
-  const fetchClassAssignments = async (classe: any) => {
-    try {
-      setViewingAbsencesStudent({ id: -3000 - classe.id, first_name: 'Classe', last_name: classe.nom } as any);
-      setAssignmentsLoading(true);
-      setIsAssignmentsModalOpen(true);
-      setAssignmentSearchTerm('');
-      const res = await api.get(`/academics/enseignant-matieres/?classe=${classe.id}`);
-      setSelectedClassAssignments(res.data.results || res.data);
-    } catch (error) {
-      toast.error('Erreur lors du chargement des affectations');
-    } finally {
-      setAssignmentsLoading(false);
-    }
-  };
+  // const fetchClassAssignments = async (classe: any) => {
+  //   try {
+  //     setViewingAbsencesStudent({ id: -3000 - classe.id, first_name: 'Classe', last_name: classe.nom } as any);
+  //     setAssignmentsLoading(true);
+  //     setIsAssignmentsModalOpen(true);
+  //     setAssignmentSearchTerm('');
+  //     const res = await api.get(`/academics/enseignant-matieres/?classe=${classe.id}`);
+  //     setSelectedClassAssignments(res.data.results || res.data);
+  //   } catch (error) {
+  //     toast.error('Erreur lors du chargement des affectations');
+  //   } finally {
+  //     setAssignmentsLoading(false);
+  //   }
+  // };
 
   const buildStudents = (rawStudents: RawStudent[], userMap: Map<number, User>, classeMap: Map<number, Classe>) => {
     return rawStudents.map((s: RawStudent) => {
@@ -401,7 +401,7 @@ export default function StudentsManager() {
         {filtered.map(student => {
           const isExpanded = expandedId === student.id;
           const detail = detailData[student.id];
-          const className = resolveClassName(student);
+          // const className = resolveClassName(student);
           const name = buildName(student.first_name, student.last_name, student.email, `Étudiant #${student.id}`);
           const ini = initials(student.first_name, student.last_name, student.email);
 
@@ -605,7 +605,7 @@ export default function StudentsManager() {
           setViewingTab('absences');
         }}
         title={viewingAbsencesStudent ? `Dossier Étudiant : ${viewingAbsencesStudent.first_name} ${viewingAbsencesStudent.last_name}` : 'Détails'}
-        maxWidth="3xl"
+        maxWidth="2xl"
       >
         {viewingAbsencesStudent && detailData[viewingAbsencesStudent.id]?.loading ? (
           <div className="flex justify-center py-12"><Spinner /></div>
@@ -665,7 +665,7 @@ export default function StudentsManager() {
                 </div>
 
                 {/* Liste Absences */}
-                <div className="max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                <div className="max-h-100overflow-y-auto pr-1 custom-scrollbar">
                   <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
                     {detailData[viewingAbsencesStudent.id].absences.length === 0 ? (
                       <div className="text-center py-12 text-slate-400 text-sm italic">Aucune absence.</div>
@@ -712,7 +712,7 @@ export default function StudentsManager() {
                 </div>
 
                 {/* Liste Notes */}
-                <div className="max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                <div className="max-h-100 overflow-y-auto pr-1 custom-scrollbar">
                   <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
                     {detailData[viewingAbsencesStudent.id].notes.length === 0 ? (
                       <div className="text-center py-12 text-slate-400 text-sm italic">Aucune note enregistrée.</div>

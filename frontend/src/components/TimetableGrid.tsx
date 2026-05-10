@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import Spinner from './ui/Spinner';
 import Modal from './ui/Modal';
-import { Calendar, Clock, User, BookOpen, Trash2, Edit2, School, Info, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, BookOpen, Trash2, Edit2, School, AlertCircle } from 'lucide-react';
 
 interface Seance {
   id: number;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bell, CheckCircle, AlertTriangle, Info, X, Clock } from 'lucide-react';
+import { Bell, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react';
 import api from '../api/axios';
 import Spinner from '../components/ui/Spinner';
 import toast from 'react-hot-toast';

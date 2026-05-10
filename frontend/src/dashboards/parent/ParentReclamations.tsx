@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MessageSquare, Users, Eye, AlertCircle, Search, Filter, Calendar, User, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { MessageSquare, Search, Filter, Calendar, User, Clock, CheckCircle2 } from 'lucide-react';
 import api from '../../api/axios';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
@@ -46,10 +46,9 @@ export default function ParentReclamations() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'en_attente' | 'traitee' | 'rejetee'>('all');
   const [dateFilter, setDateFilter] = useState('');
 
-  const loadChildReclamations = async (child: Child) => {
+  const loadChildReclamations = async () => {
     setLoadingReclamations(true);
     try {
-      // Fetch all reclamations and we will filter by expediteur (which is student user id)
       const reclamationsRes = await api.get('/communication/reclamations/');
       setReclamations(reclamationsRes.data.results || reclamationsRes.data);
     } catch (error) {
@@ -84,7 +83,9 @@ export default function ParentReclamations() {
           setChildren(childrenList);
           if (childrenList.length > 0) {
             setSelectedChild(childrenList[0]);
-            await loadChildReclamations(childrenList[0]);
+            // await loadChildReclamations(childrenList[0]);
+            await loadChildReclamations();
+
           }
         }
       } catch (error) {
@@ -101,7 +102,8 @@ export default function ParentReclamations() {
     if (child) {
       setSelectedChild(child);
       // Re-fetching reclamations for the selected child (though currently we fetch all)
-      await loadChildReclamations(child);
+      // await loadChildReclamations(child);
+      await loadChildReclamations();
     }
   };
 

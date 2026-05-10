@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, LogOut, ChevronRight, GraduationCap, FileSpreadsheet, Clock, MessageSquare, Calendar, Bell } from 'lucide-react';
+import { LayoutDashboard, LogOut, ChevronRight, GraduationCap, FileSpreadsheet, Clock, MessageSquare, Calendar, Bell } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../api/axios';
 import logo from '../../assets/Logo.png';

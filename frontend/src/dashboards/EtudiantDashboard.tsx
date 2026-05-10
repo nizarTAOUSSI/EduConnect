@@ -197,7 +197,7 @@ export default function EtudiantDashboard() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{new Date(note.evaluation_details?.date).toLocaleDateString()}</span>
+                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{note.evaluation_details?.date ? new Date(note.evaluation_details.date).toLocaleDateString() : ''}</span>
                 </div>
               </div>
             )) : (

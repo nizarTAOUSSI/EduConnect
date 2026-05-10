@@ -83,7 +83,7 @@ export default function TeacherReclamations() {
 
       await api.patch(`/communication/reclamations/${selectedReclamation.id}/`, updateData);
 
-      setReclamations(prev => prev.map(rec =>
+      setReclamations((prev:any) => prev.map((rec:any) =>
         rec.id === selectedReclamation.id
           ? { ...rec, ...updateData }
           : rec
@@ -172,7 +172,7 @@ export default function TeacherReclamations() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="pl-10 pr-8 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none font-bold text-slate-700 text-sm min-w-[140px]"
+              className="pl-10 pr-8 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none font-bold text-slate-700 text-sm min-w-35"
             >
               <option value="all">Tous les statuts</option>
               <option value="en_attente">En attente</option>
@@ -338,7 +338,7 @@ export default function TeacherReclamations() {
             <textarea
               value={responseText}
               onChange={(e) => setResponseText(e.target.value)}
-              className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 min-h-[160px] text-slate-700 leading-relaxed"
+              className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 min-h-40 text-slate-700 leading-relaxed"
               placeholder="Expliquez les raisons de votre décision à l'étudiant..."
               required
             />

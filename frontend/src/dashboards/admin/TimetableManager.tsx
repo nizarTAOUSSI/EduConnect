@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Calendar, Clock, BookOpen, User, School, Search } from 'lucide-react';
+import { Plus, Trash2, School, } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
@@ -8,11 +8,11 @@ import TimetableGrid from '../../components/TimetableGrid';
 
 export default function TimetableManager() {
   const [classes, setClasses] = useState<any[]>([]);
-  const [matieres, setMatieres] = useState<any[]>([]);
+  // const [matieres, setMatieres] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [salles, setSalles] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | string>('');
-  const [seances, setSeances] = useState<any[]>([]);
+  // const [seances, setSeances] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -36,7 +36,7 @@ export default function TimetableManager() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [classesRes, matieresRes, assignmentsRes, sallesRes, userRes] = await Promise.all([
+      const [classesRes, assignmentsRes, sallesRes, userRes] = await Promise.all([
         api.get('/academics/classes/'),
         api.get('/academics/matieres/'),
         api.get('/academics/enseignant-matieres/'),
@@ -44,7 +44,6 @@ export default function TimetableManager() {
         api.get('/accounts/auth/me/'),
       ]);
       setClasses(classesRes.data.results || classesRes.data);
-      setMatieres(matieresRes.data.results || matieresRes.data);
       setAssignments(assignmentsRes.data.results || assignmentsRes.data);
       setSalles(sallesRes.data.results || sallesRes.data);
       
@@ -70,28 +69,28 @@ export default function TimetableManager() {
     }
   };
 
-  const fetchSeances = async () => {
-    if (!selectedClassId) return;
-    try {
-      const res = await api.get(`/academics/seances/?classe=${selectedClassId}`);
-      setSeances(res.data.results || res.data);
-    } catch (error) {
-      console.error('Erreur lors du chargement des séances');
-    }
-  };
+  // const fetchSeances = async () => {
+  //   if (!selectedClassId) return;
+  //   try {
+  //     const res = await api.get(`/academics/seances/?classe=${selectedClassId}`);
+  //     setSeances(res.data.results || res.data);
+  //   } catch (error) {
+  //     console.error('Erreur lors du chargement des séances');
+  //   }
+  // };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    fetchSeances();
-  }, [selectedClassId]);
+  // useEffect(() => {
+  //   fetchSeances();
+  // }, [selectedClassId]);
 
-  const handleDeleteSeance = (id: number) => {
-    setItemToDelete({ id, isEvaluation: false });
-    setIsDeleteModalOpen(true);
-  };
+  // const handleDeleteSeance = (id: number) => {
+  //   setItemToDelete({ id, isEvaluation: false });
+  //   setIsDeleteModalOpen(true);
+  // };
 
   const handleDeleteItem = async () => {
     if (!itemToDelete) return;

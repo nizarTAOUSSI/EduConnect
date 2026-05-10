@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { School, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import api from '../../api/axios';
 import Spinner from '../../components/ui/Spinner';
 import TimetableGrid from '../../components/TimetableGrid';

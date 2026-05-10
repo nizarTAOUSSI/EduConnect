@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronRight, BookOpen, GraduationCap, Edit2, X, Check, Plus } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, BookOpen, GraduationCap, Edit2, X, Plus } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';

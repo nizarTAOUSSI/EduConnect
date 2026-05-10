@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FileSpreadsheet, ChevronDown, Search, User, BookOpen } from 'lucide-react';
+import { FileSpreadsheet,Search, User, BookOpen } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../hooks/useAuth';
 import Spinner from '../../components/ui/Spinner';
