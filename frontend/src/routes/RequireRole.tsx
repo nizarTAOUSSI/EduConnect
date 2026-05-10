@@ -10,7 +10,8 @@ export default function RequireRole({
   role: User['role'];
   children: ReactNode;
 }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated , isLoading } = useAuth();
+  if (isLoading) return null; 
   if (!isAuthenticated) return <Navigate to="/" replace />;
   if (!user) return null;
   if (user.role !== role) return <Navigate to="/dashboard" replace />;

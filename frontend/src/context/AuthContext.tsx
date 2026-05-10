@@ -37,14 +37,17 @@ const API_BASE_URL = 'https://backend-production-904d.up.railway.app/api';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => !!localStorage.getItem('access_token'));
   const [error, setError] = useState<string | null>(null);
 
   const clearError = useCallback(() => setError(null), []);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
-    if (!token) return;
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
 
     let cancelled = false;
     (async () => {
@@ -54,11 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             'Authorization': `Bearer ${token}`,
           },
         });
-        if (!userResponse.ok) return;
-        const userData = await userResponse.json();
-        if (!cancelled) setUser(userData);
+        if (!userResponse.ok) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        } else {
+          const userData = await userResponse.json();
+          if (!cancelled) setUser(userData);
+        }
       } catch {
         // ignore bootstrap errors (offline/CORS/etc.)
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     })();
 
@@ -84,8 +93,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(data.detail || 'Login failed');
       }
 
-      const { access } = await response.json();
+      const { access, refresh } = await response.json();
       localStorage.setItem('access_token', access);
+      if (refresh) localStorage.setItem('refresh_token', refresh);
 
       // Fetch user data
       const userResponse = await fetch(`${API_BASE_URL}/accounts/auth/me/`, {
@@ -143,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     setUser(null);
     setError(null);
   }, []);

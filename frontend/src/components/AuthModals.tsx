@@ -8,7 +8,7 @@ import type { SignupData } from '../context/AuthContext';
 export function LoginModal({
   isOpen,
   onClose,
-  onSwitchToSignup,
+  // onSwitchToSignup,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -84,7 +84,7 @@ export function LoginModal({
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6 p-4 bg-red-50/80 border border-red-200/50 rounded-lg flex gap-3"
               >
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <p className="text-sm text-red-700">{error}</p>
               </motion.div>
             )}
@@ -138,7 +138,7 @@ export function LoginModal({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
@@ -151,7 +151,7 @@ export function LoginModal({
               </button>
             </form>
 
-            <p className="text-center text-sm text-slate-600 mt-6">
+            {/* <p className="text-center text-sm text-slate-600 mt-6">
               Pas de compte?{' '}
               <button
                 onClick={() => {
@@ -162,7 +162,7 @@ export function LoginModal({
               >
                 S\'inscrire
               </button>
-            </p>
+            </p> */}
           </motion.div>
         </motion.div>
       )}
@@ -271,7 +271,7 @@ export function SignupModal({
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6 p-4 bg-red-50/80 border border-red-200/50 rounded-lg flex gap-3"
               >
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <p className="text-sm text-red-700">{error}</p>
               </motion.div>
             )}
@@ -422,7 +422,7 @@ export function SignupModal({
               <button
                 type="submit"
                 disabled={isLoading || !passwordsMatch || !isPasswordValid}
-                className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-linear-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>

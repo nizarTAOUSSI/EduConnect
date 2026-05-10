@@ -7,7 +7,8 @@ export default function RequireAuth({
 }: {
   children: ReactNode;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null; 
   if (!isAuthenticated) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

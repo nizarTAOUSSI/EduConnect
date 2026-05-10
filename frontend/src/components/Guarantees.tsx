@@ -26,7 +26,7 @@ export default function Guarantees() {
   return (
     <section id="securite" className="py-32 bg-slate-900 relative">
       
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-[32px_32px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
@@ -66,7 +66,7 @@ export default function Guarantees() {
               transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
               className="group relative bg-slate-800/50 backdrop-blur-md rounded-3xl p-10 border border-slate-700/50 hover:border-slate-600 transition-colors duration-500 overflow-hidden"
             >
-              <div className={`absolute -inset-px rounded-3xl bg-gradient-to-br ${guarantee.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
+              <div className={`absolute -inset-px rounded-3xl bg-linear-to-br ${guarantee.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
               
               <div className="relative z-10">
                 <div className="w-16 h-16 rounded-2xl bg-slate-800/80 shadow-inner shadow-white/5 border border-slate-700/50 flex items-center justify-center mb-8 transform group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">

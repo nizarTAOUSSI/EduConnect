@@ -298,7 +298,7 @@ export default function ClassesManager() {
           {studentsLoading ? (
             <div className="flex justify-center py-12"><Spinner className="text-emerald-600" /></div>
           ) : (
-            <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="max-h-100 overflow-y-auto pr-2 custom-scrollbar">
               {selectedClassStudents.filter(s => 
                 `${s.first_name} ${s.last_name} ${s.email}`.toLowerCase().includes(studentSearchTerm.toLowerCase())
               ).length === 0 ? (
@@ -375,7 +375,7 @@ export default function ClassesManager() {
           {assignmentsLoading ? (
             <div className="flex justify-center py-12"><Spinner className="text-blue-600" /></div>
           ) : (
-            <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="max-h-100 overflow-y-auto pr-2 custom-scrollbar">
               {selectedClassAssignments.filter(a => 
                 `${a.matiere_name} ${a.enseignant_name}`.toLowerCase().includes(assignmentSearchTerm.toLowerCase())
               ).length === 0 ? (

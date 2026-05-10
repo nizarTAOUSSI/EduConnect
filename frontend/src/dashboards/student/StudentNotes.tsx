@@ -90,7 +90,7 @@ export default function StudentNotes() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-6 rounded-3xl text-white shadow-lg shadow-indigo-100">
+        <div className="bg-linear-to-br from-indigo-500 to-indigo-600 p-6 rounded-3xl text-white shadow-lg shadow-indigo-100">
           <p className="text-indigo-100 text-sm font-medium">Moyenne Générale</p>
           <p className="text-3xl font-black mt-1">{stats.moyenne}<span className="text-lg font-normal opacity-70">/20</span></p>
           <div className="mt-4 flex items-center gap-2 text-xs font-bold bg-white/10 w-fit px-2 py-1 rounded-lg">

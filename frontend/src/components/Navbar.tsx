@@ -3,14 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronRight, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/Logo.png';
-import { LoginModal, SignupModal } from './AuthModals';
+import { LoginModal} from './AuthModals';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
+  // const [showSignup, setShowSignup] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
 
   const dashboardPath =
@@ -88,18 +88,20 @@ export default function Navbar() {
                 <>
                   <button 
                     onClick={() => setShowLogin(true)}
-                    className="font-semibold text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                    className="group  cursor-pointer relative bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all overflow-hidden flex items-center gap-2"
                   >
+                    <div className="absolute inset-0 w-full h-full bg-linear-to-r from-primary/50 to-purple-500/50 opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
                     Se connecter
+                   <ChevronRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
                   </button>
-                  <button 
+                  {/* <button 
                     onClick={() => setShowSignup(true)}
                     className="group relative bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all overflow-hidden flex items-center gap-2"
                   >
-                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/50 to-purple-500/50 opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
+                    <div className="absolute inset-0 w-full h-full bg-linear-to-r from-primary/50 to-purple-500/50 opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
                     <span className="relative z-10">Démarrer</span>
                     <ChevronRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-                  </button>
+                  </button> */}
                 </>
               )}
             </div>
@@ -148,11 +150,11 @@ export default function Navbar() {
                       setShowLogin(true);
                       setMobileMenuOpen(false);
                     }}
-                    className="text-slate-700 font-semibold text-lg py-2"
+                    className="w-full bg-slate-900 text-white px-4 py-4 rounded-xl text-center font-bold mt-2 shadow-lg shadow-slate-900/20"
                   >
                     Se connecter
                   </button>
-                  <button 
+                  {/* <button 
                     onClick={() => {
                       setShowSignup(true);
                       setMobileMenuOpen(false);
@@ -160,7 +162,7 @@ export default function Navbar() {
                     className="w-full bg-slate-900 text-white px-4 py-4 rounded-xl text-center font-bold mt-2 shadow-lg shadow-slate-900/20"
                   >
                     Démarrer gratuitement
-                  </button>
+                  </button> */}
                 </>
               )}
             </motion.div>
@@ -173,18 +175,18 @@ export default function Navbar() {
         onClose={() => setShowLogin(false)}
         onSwitchToSignup={() => {
           setShowLogin(false);
-          setShowSignup(true);
+          // setShowSignup(true);
         }}
       />
 
-      <SignupModal
+      {/* <SignupModal
         isOpen={showSignup}
         onClose={() => setShowSignup(false)}
         onSwitchToLogin={() => {
           setShowSignup(false);
           setShowLogin(true);
         }}
-      />
+      /> */}
     </>
   );
 }

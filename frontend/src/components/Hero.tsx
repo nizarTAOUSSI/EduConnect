@@ -3,12 +3,12 @@ import { ArrowRight, Play, Database, Server, Cpu, Sparkles } from 'lucide-react'
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[100svh] pt-32 pb-20 lg:pt-48 flex items-center overflow-hidden">
+    <section className="relative min-h-svh pt-32 pb-20 lg:pt-48 flex items-center overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] mix-blend-multiply opacity-70 animate-blob" />
       <div className="absolute top-[20%] right-[-10%] w-[40%] h-[60%] bg-purple-400/20 rounded-full blur-[120px] mix-blend-multiply opacity-70 animate-blob animation-delay-2000" />
       <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] bg-secondary/20 rounded-full blur-[120px] mix-blend-multiply opacity-70 animate-blob animation-delay-4000" />
       
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] z-0" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] z-0" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="text-center max-w-4xl mx-auto">
@@ -63,13 +63,13 @@ export default function Hero() {
         </div>
 
         <motion.div 
-          className="mt-20 relative mx-auto max-w-4xl h-[400px] flex justify-center perspective-[1000px]"
+          className="mt-20 relative mx-auto max-w-4xl h-100 flex justify-center perspective-[1000px]"
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
           <motion.div 
-            className="absolute top-10 w-full max-w-3xl h-[400px] glass rounded-3xl border border-white p-6 shadow-2xl"
+            className="absolute top-10 w-full max-w-3xl h-100ss rounded-3xl border border-white p-6 shadow-2xl"
             animate={{ rotateX: [10, 5, 10], rotateY: [-5, 5, -5] }}
             transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
           >
@@ -82,7 +82,7 @@ export default function Hero() {
                  </div>
                  <div className="flex gap-3">
                    <div className="w-24 h-6 rounded-full bg-slate-200/50" />
-                   <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-purple-500" />
+                   <div className="w-8 h-8 rounded-full bg-linear-to-tr from-primary to-purple-500" />
                  </div>
               </div>
               <div className="flex gap-6 h-full">
@@ -94,13 +94,13 @@ export default function Hero() {
                 </div>
                 <div className="flex-1 flex flex-col gap-4">
                   <div className="flex gap-4">
-                    <div className="flex-1 h-24 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100/50 p-4">
+                    <div className="flex-1 h-24 rounded-2xl bg-linear-to-br from-indigo-50 to-purple-50 border border-indigo-100/50 p-4">
                        <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center mb-2">
                          <Database className="w-4 h-4 text-indigo-500" />
                        </div>
                        <div className="w-1/2 h-3 rounded-full bg-slate-200 mt-2" />
                     </div>
-                    <div className="flex-1 h-24 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100/50 p-4">
+                    <div className="flex-1 h-24 rounded-2xl bg-linear-to-br from-emerald-50 to-teal-50 border border-emerald-100/50 p-4">
                        <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center mb-2">
                          <Cpu className="w-4 h-4 text-emerald-500" />
                        </div>

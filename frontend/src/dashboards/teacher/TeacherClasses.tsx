@@ -312,7 +312,7 @@ export default function TeacherClasses() {
                         <p className={`text-lg font-black ${note.est_absent ? 'text-rose-500' : 'text-primary'}`}>
                           {note.est_absent ? 'ABS' : `${note.valeur_note}/20`}
                         </p>
-                        {note.commentaire && <p className="text-[10px] text-slate-400 italic max-w-[200px] truncate">"{note.commentaire}"</p>}
+                        {note.commentaire && <p className="text-[10px] text-slate-400 italic max-w-50 truncate">"{note.commentaire}"</p>}
                       </div>
                     </div>
                   ))
