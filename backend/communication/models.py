@@ -50,7 +50,7 @@ class Reclamation(models.Model):
         verbose_name_plural = 'Réclamations'
         ordering            = ['-date_creation']
     def __str__(self):
-        return f'Réclamation 
+        return f'Réclamation #{self.pk}'
     def is_pending(self):
         return self.statut == self.Statut.EN_ATTENTE
     def mark_as_treated(self, reponse: str):
