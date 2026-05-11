@@ -23,7 +23,7 @@ class AnneeScolaire(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 class Periode(models.Model):
-    annee_scolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE, related_name='periodes', verbose_name='Année scolaire', null=True, blank=True)
+    annee_scolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE, related_name='periodes', verbose_name='Année scolaire')
     nom        = models.CharField(max_length=100, verbose_name='Nom')
     date_debut = models.DateField(verbose_name='Date de début')
     date_fin   = models.DateField(verbose_name='Date de fin')
@@ -33,7 +33,8 @@ class Periode(models.Model):
         verbose_name_plural = 'Périodes'
         ordering            = ['-date_debut']
     def __str__(self):
-        return f'{self.nom} - {self.annee_scolaire.nom} ({"active" if self.est_active else "inactive"})'
+        annee = self.annee_scolaire.nom if self.annee_scolaire else 'N/A'
+        return f'{self.nom} - {annee} ({"active" if self.est_active else "inactive"})'
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.date_debut < self.annee_scolaire.date_debut or self.date_debut > self.annee_scolaire.date_fin:
