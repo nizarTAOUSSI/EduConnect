@@ -24,10 +24,21 @@ class AnneeScolaireSerializer(serializers.ModelSerializer):
         return attrs
 class PeriodeSerializer(serializers.ModelSerializer):
     annee_scolaire_nom = serializers.ReadOnlyField(source='annee_scolaire.nom')
-    annee_scolaire = serializers.PrimaryKeyRelatedField(queryset=AnneeScolaire.objects.all(), required=False, allow_null=True)
+    
     class Meta:
         model = Periode
         fields = '__all__'
+    
+    def get_fields(self):
+        fields = super().get_fields()
+        if self.instance:
+            fields['annee_scolaire'].required = False
+            fields['annee_scolaire'].allow_null = True
+        else:
+            fields['annee_scolaire'].required = True
+            fields['annee_scolaire'].allow_null = False
+        return fields
+    
     def validate(self, attrs):
         if not self.instance and not attrs.get('annee_scolaire'):
             raise serializers.ValidationError({'annee_scolaire': 'Ce champ est obligatoire.'})

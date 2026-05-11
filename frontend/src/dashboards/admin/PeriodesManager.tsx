@@ -105,8 +105,18 @@ export default function PeriodesManager() {
     e.preventDefault();
     setIsActionLoading(true);
     const formData = new FormData(e.currentTarget);
+    
+    const annee_scolaire_raw = formData.get('annee_scolaire');
+    const annee_scolaire = annee_scolaire_raw ? Number(annee_scolaire_raw) : null;
+
+    if (!annee_scolaire || isNaN(annee_scolaire)) {
+      toast.error('Veuillez sélectionner une année scolaire');
+      setIsActionLoading(false);
+      return;
+    }
+
     const data = {
-      annee_scolaire: Number(formData.get('annee_scolaire')),
+      annee_scolaire: annee_scolaire,
       nom: formData.get('nom'),
       date_debut: formData.get('date_debut'),
       date_fin: formData.get('date_fin'),
