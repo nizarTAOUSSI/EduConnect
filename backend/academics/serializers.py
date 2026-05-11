@@ -24,6 +24,7 @@ class AnneeScolaireSerializer(serializers.ModelSerializer):
         return attrs
 class PeriodeSerializer(serializers.ModelSerializer):
     annee_scolaire_nom = serializers.ReadOnlyField(source='annee_scolaire.nom')
+    annee_scolaire = serializers.PrimaryKeyRelatedField(queryset=AnneeScolaire.objects.all())
     class Meta:
         model = Periode
         fields = '__all__'
