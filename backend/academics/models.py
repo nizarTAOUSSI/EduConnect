@@ -20,7 +20,6 @@ class AnneeScolaire(models.Model):
             if other_active.exists():
                 raise ValidationError('Il ne peut y avoir qu\'une seule année scolaire active à la fois.')
     def save(self, *args, **kwargs):
-        self.full_clean()
         super().save(*args, **kwargs)
 class Periode(models.Model):
     annee_scolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE, related_name='periodes', verbose_name='Année scolaire', null=True, blank=True)
@@ -35,17 +34,6 @@ class Periode(models.Model):
     def __str__(self):
         annee = self.annee_scolaire.nom if self.annee_scolaire else 'N/A'
         return f'{self.nom} - {annee} ({"active" if self.est_active else "inactive"})'
-    def clean(self):
-        from django.core.exceptions import ValidationError
-        if self.date_debut < self.annee_scolaire.date_debut or self.date_debut > self.annee_scolaire.date_fin:
-            raise ValidationError('La date de début de la période doit être dans l\'intervalle de l\'année scolaire.')
-        if self.date_fin < self.annee_scolaire.date_debut or self.date_fin > self.annee_scolaire.date_fin:
-            raise ValidationError('La date de fin de la période doit être dans l\'intervalle de l\'année scolaire.')
-        if self.date_debut > self.date_fin:
-            raise ValidationError('La date de début doit être antérieure à la date de fin.')
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
 class Matiere(models.Model):
     nom         = models.CharField(max_length=150, verbose_name='Nom de la matière')
     coefficient = models.PositiveSmallIntegerField(default=1, verbose_name='Coefficient')

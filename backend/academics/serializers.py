@@ -10,19 +10,17 @@ class AnneeScolaireSerializer(serializers.ModelSerializer):
         model = AnneeScolaire
         fields = '__all__'
     def validate(self, attrs):
-        if self.instance:
-            instance = self.instance
-            for field, value in attrs.items():
-                setattr(instance, field, value)
-        else:
-            instance = AnneeScolaire(**attrs)
-        try:
-            instance.full_clean()
-        except Exception as e:
-            from django.core.exceptions import ValidationError as DjangoValidationError
-            if isinstance(e, DjangoValidationError):
-                raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else e.messages)
-            raise e
+        est_active = attrs.get('est_active', False)
+        if est_active:
+            other_active = AnneeScolaire.objects.filter(est_active=True)
+            if self.instance:
+                other_active = other_active.exclude(pk=self.instance.pk)
+            if other_active.exists():
+                raise serializers.ValidationError({'est_active': 'Il ne peut y avoir qu\'une seule année scolaire active à la fois.'})
+        date_debut = attrs.get('date_debut')
+        date_fin = attrs.get('date_fin')
+        if date_debut and date_fin and date_debut > date_fin:
+            raise serializers.ValidationError({'date_debut': 'La date de début doit être antérieure à la date de fin.'})
         return attrs
 class PeriodeSerializer(serializers.ModelSerializer):
     annee_scolaire_nom = serializers.ReadOnlyField(source='annee_scolaire.nom')
@@ -32,19 +30,17 @@ class PeriodeSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if not self.instance and not attrs.get('annee_scolaire'):
             raise serializers.ValidationError({'annee_scolaire': 'Ce champ est obligatoire.'})
-        if self.instance:
-            instance = self.instance
-            for field, value in attrs.items():
-                setattr(instance, field, value)
-        else:
-            instance = Periode(**attrs)
-        try:
-            instance.full_clean()
-        except Exception as e:
-            from django.core.exceptions import ValidationError as DjangoValidationError
-            if isinstance(e, DjangoValidationError):
-                raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else e.messages)
-            raise e
+        annee_scolaire = attrs.get('annee_scolaire') or (self.instance.annee_scolaire if self.instance else None)
+        date_debut = attrs.get('date_debut') or (self.instance.date_debut if self.instance else None)
+        date_fin = attrs.get('date_fin') or (self.instance.date_fin if self.instance else None)
+        if date_debut and date_fin and date_debut > date_fin:
+            raise serializers.ValidationError({'date_debut': 'La date de début doit être antérieure à la date de fin.'})
+        if annee_scolaire and date_debut:
+            if date_debut < annee_scolaire.date_debut or date_debut > annee_scolaire.date_fin:
+                raise serializers.ValidationError({'date_debut': 'La date de début de la période doit être dans l\'intervalle de l\'année scolaire.'})
+        if annee_scolaire and date_fin:
+            if date_fin < annee_scolaire.date_debut or date_fin > annee_scolaire.date_fin:
+                raise serializers.ValidationError({'date_fin': 'La date de fin de la période doit être dans l\'intervalle de l\'année scolaire.'})
         return attrs
 class MatiereSerializer(serializers.ModelSerializer):
     class Meta:
