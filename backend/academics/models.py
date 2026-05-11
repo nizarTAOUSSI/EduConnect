@@ -24,6 +24,7 @@ class AnneeScolaire(models.Model):
 class Periode(models.Model):
     annee_scolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE, related_name='periodes', verbose_name='Année scolaire', null=True, blank=True)
     nom        = models.CharField(max_length=100, verbose_name='Nom')
+    code       = models.CharField(max_length=5, verbose_name='Code')
     date_debut = models.DateField(verbose_name='Date de début')
     date_fin   = models.DateField(verbose_name='Date de fin')
     est_active = models.BooleanField(default=False, verbose_name='Période active')

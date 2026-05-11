@@ -25,10 +25,36 @@ class AnneeScolaireSerializer(serializers.ModelSerializer):
 class PeriodeSerializer(serializers.ModelSerializer):
     annee_scolaire_nom = serializers.ReadOnlyField(source='annee_scolaire.nom')
     annee_scolaire = serializers.PrimaryKeyRelatedField(queryset=AnneeScolaire.objects.all())
+    code = serializers.CharField(read_only=True)
 
     class Meta:
         model = Periode
         fields = '__all__'
+
+    @staticmethod
+    def _generate_code(nom, annee_scolaire):
+        """Build a ≤5-char code from period name initials + year suffix."""
+        initials = ''.join(w[0].upper() for w in nom.split() if w)
+        year_suffix = ''
+        if annee_scolaire:
+            digits = ''.join(filter(str.isdigit, str(annee_scolaire.nom)))
+            year_suffix = digits[-2:] if len(digits) >= 2 else digits
+        return (initials + year_suffix)[:5]
+
+    def create(self, validated_data):
+        validated_data['code'] = self._generate_code(
+            validated_data.get('nom', ''),
+            validated_data.get('annee_scolaire'),
+        )
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if 'nom' in validated_data or 'annee_scolaire' in validated_data:
+            validated_data['code'] = self._generate_code(
+                validated_data.get('nom', instance.nom),
+                validated_data.get('annee_scolaire', instance.annee_scolaire),
+            )
+        return super().update(instance, validated_data)
 class MatiereSerializer(serializers.ModelSerializer):
     class Meta:
         model = Matiere
