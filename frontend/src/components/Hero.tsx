@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Play, Database, Server, Cpu, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function Hero() {
+  const { t } = useTranslation();
   return (
     <section className="relative min-h-svh pt-32 pb-20 lg:pt-48 flex items-center overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] mix-blend-multiply opacity-70 animate-blob" />
@@ -20,7 +22,7 @@ export default function Hero() {
           >
             <div className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/60 backdrop-blur-md border border-slate-200/50 shadow-sm text-sm font-semibold text-slate-700">
               <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Système de Nouvelle Génération</span>
+              <span>{t('hero.badge')}</span>
             </div>
           </motion.div>
           
@@ -30,8 +32,8 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           >
-            Digitaliser, <br className="hidden md:block" />
-            <span className="text-gradient">Automatiser</span>, Connecter.
+            {t('hero.title_part1')} <br className="hidden md:block" />
+            <span className="text-gradient">{t('hero.title_part2')}</span>{t('hero.title_part3')}
           </motion.h1>
           
           <motion.p 
@@ -40,7 +42,7 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           >
-            L'application cloud intelligente pour repenser l'administration scolaire. Connectez professeurs, élèves et parents dans un écosystème en temps réel.
+            {t('hero.description')}
           </motion.p>
           
           <motion.div 
@@ -50,14 +52,14 @@ export default function Hero() {
             transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             <a href="#fonctionnalites" className="group w-full sm:w-auto px-8 py-4 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center gap-3 transition-all hover:scale-105 hover:bg-slate-800 shadow-[0_4px_20px_rgb(0,0,0,0.15)]">
-              Découvrir la plateforme
+              {t('hero.discover')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </a>
             <a href="#" className="w-full sm:w-auto px-8 py-4 rounded-full glass hover:bg-white/80 font-bold flex items-center justify-center gap-3 transition-all hover:scale-105 text-slate-800">
               <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
                 <Play className="w-3 h-3 text-slate-800 fill-slate-800 ml-0.5" />
               </div>
-              Espace Démo
+              {t('hero.demo')}
             </a>
           </motion.div>
         </div>
@@ -132,8 +134,8 @@ export default function Hero() {
               <Server className="text-white w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold text-slate-800">Synchronisation</div>
-              <div className="text-xs font-medium text-emerald-500">Temps réel actif</div>
+              <div className="text-sm font-bold text-slate-800">{t('hero.sync')}</div>
+              <div className="text-xs font-medium text-emerald-500">{t('hero.realtime')}</div>
             </div>
           </motion.div>
 
@@ -146,8 +148,8 @@ export default function Hero() {
               <Database className="text-white w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold text-slate-800">Zéro Défaut</div>
-              <div className="text-xs font-medium text-slate-500">Validation 100%</div>
+              <div className="text-sm font-bold text-slate-800">{t('hero.zero_defect')}</div>
+              <div className="text-xs font-medium text-slate-500">{t('hero.validation')}</div>
             </div>
           </motion.div>
           
@@ -156,3 +158,4 @@ export default function Hero() {
     </section>
   );
 }
+

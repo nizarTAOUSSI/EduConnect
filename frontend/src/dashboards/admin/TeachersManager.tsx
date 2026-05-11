@@ -4,6 +4,7 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
 import Modal from '../../components/ui/Modal';
+import { useTranslation } from 'react-i18next';
 
 interface User { id: number; first_name: string; last_name: string; email: string; is_active: boolean; }
 interface Teacher {
@@ -21,6 +22,7 @@ const buildName = (first: string, last: string, email: string, fallback: string)
 };
 
 export default function TeachersManager() {
+  const { t } = useTranslation();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [matieres, setMatieres] = useState<Matiere[]>([]);
   const [classes, setClasses] = useState<Classe[]>([]);
@@ -74,8 +76,8 @@ export default function TeachersManager() {
   };
 
   useEffect(() => {
-    loadAll().catch(() => toast.error('Erreur de chargement')).finally(() => setLoading(false));
-  }, []);
+    loadAll().catch(() => toast.error(t('common.error'))).finally(() => setLoading(false));
+  }, [t]);
 
   const loadDetail = async (teacher: Teacher) => {
     if (detailData[teacher.id]) return;
@@ -117,12 +119,12 @@ export default function TeachersManager() {
         email: editForm.email,
       });
       await api.patch(`/accounts/enseignants/${editingTeacher.id}/`, { specialite: editForm.specialite });
-      toast.success('Enseignant mis à jour');
+      toast.success(t('teachers_manager.messages.update_success'));
       setIsEditModalOpen(false);
       setEditingTeacher(null);
       await loadAll();
-    } catch (e: any) { 
-      toast.error(e.response?.data?.detail || 'Erreur'); 
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail || t('common.error'));
     } finally {
       setIsActionLoading(false);
     }
@@ -131,23 +133,23 @@ export default function TeachersManager() {
   const deleteAssignment = async (teacherId: number, asgnId: number) => {
     try {
       await api.delete(`/academics/enseignant-matieres/${asgnId}/`);
-      toast.success('Affectation supprimée');
+      toast.success(t('teachers_manager.messages.delete_assignment_success'));
       setDetailData(prev => ({ ...prev, [teacherId]: { ...prev[teacherId], assignments: prev[teacherId].assignments.filter(a => a.id !== asgnId) } }));
-    } catch { toast.error('Erreur lors de la suppression'); }
+    } catch { toast.error(t('common.error')); }
   };
 
   const addAssignments = async (teacher: Teacher) => {
     const form = newAsgn[teacher.id] || { matiere: [], classe: [] };
-    if (!form.matiere.length || !form.classe.length) { toast.error('Sélectionnez au moins une matière et une classe.'); return; }
+    if (!form.matiere.length || !form.classe.length) { toast.error(t('teachers_manager.messages.select_required')); return; }
     const pairs = form.matiere.flatMap(m => form.classe.map(c => ({ enseignant: teacher.id, matiere: Number(m), classe: Number(c) })));
     try {
       await Promise.all(pairs.map(p => api.post('/academics/enseignant-matieres/', p)));
-      toast.success(`${pairs.length} affectation(s) ajoutée(s)`);
+      toast.success(t('teachers_manager.messages.add_assignments_success', { count: pairs.length }));
       setAddingAsgn(null);
       setNewAsgn(prev => ({ ...prev, [teacher.id]: { matiere: [], classe: [] } }));
       const res = await api.get(`/academics/enseignant-matieres/?enseignant=${teacher.id}`);
       setDetailData(prev => ({ ...prev, [teacher.id]: { ...prev[teacher.id], assignments: res.data.results || res.data } }));
-    } catch { toast.error('Certaines affectations existent déjà.'); }
+    } catch { toast.error(t('teachers_manager.messages.add_assignments_error')); }
   };
 
   const filtered = teachers.filter(t => {
@@ -160,18 +162,18 @@ export default function TeachersManager() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Gestion des Enseignants</h1>
-        <p className="text-slate-500 text-sm mt-1">{teachers.length} enseignant(s) enregistrés</p>
+        <h1 className="text-2xl font-bold text-slate-900">{t('teachers_manager.title')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('teachers_manager.subtitle', { count: teachers.length })}</p>
       </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input type="text" placeholder="Rechercher par nom, email, spécialité…" value={search} onChange={e => setSearch(e.target.value)}
+        <input type="text" placeholder={t('teachers_manager.search_placeholder')} value={search} onChange={e => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
       </div>
 
       <div className="space-y-3">
-        {filtered.length === 0 && <div className="text-center py-16 text-slate-400">Aucun enseignant trouvé.</div>}
+        {filtered.length === 0 && <div className="text-center py-16 text-slate-400">{t('common.no_data')}</div>}
 
         {filtered.map(teacher => {
           const isExpanded = expandedId === teacher.id;
@@ -192,12 +194,12 @@ export default function TeachersManager() {
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-slate-900 text-base truncate">{name}</p>
                   <p className="text-xs text-slate-500">{teacher.email || '—'}</p>
-                  <p className="text-xs text-slate-400">Spécialité : {teacher.specialite || '—'}</p>
+                  <p className="text-xs text-slate-400">{t('teachers_manager.specialty')} : {teacher.specialite || t('common.no_data')}</p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={`w-2 h-2 rounded-full ${teacher.is_active ? 'bg-emerald-400' : 'bg-slate-300'}`} />
-                  <button onClick={() => startEdit(teacher)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Modifier"><Edit2 className="w-4 h-4" /></button>
+                  <button onClick={() => startEdit(teacher)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title={t('common.edit')}><Edit2 className="w-4 h-4" /></button>
                   <button onClick={() => toggle(teacher)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg">
                     {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </button>
@@ -211,16 +213,16 @@ export default function TeachersManager() {
                     <>
                       <div className="flex items-center justify-between">
                         <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                          <BookOpen className="w-4 h-4 text-blue-500" /> Affectations ({detail?.assignments.length ?? 0})
+                          <BookOpen className="w-4 h-4 text-blue-500" /> {t('teachers_manager.assignments')} ({detail?.assignments.length ?? 0})
                         </h4>
                         <button onClick={() => setAddingAsgn(addingAsgn === teacher.id ? null : teacher.id)}
                           className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary/90">
-                          <Plus className="w-3 h-3" /> Ajouter
+                          <Plus className="w-3 h-3" /> {t('common.add')}
                         </button>
                       </div>
 
                       <div className="flex flex-wrap gap-2">
-                        {detail?.assignments.length === 0 && <p className="text-xs text-slate-400 italic">Aucune affectation.</p>}
+                        {detail?.assignments.length === 0 && <p className="text-xs text-slate-400 italic">{t('teachers_manager.no_assignments')}</p>}
                         {detail?.assignments.map(a => {
                           const { mName, cName } = resolveName(a);
                           return (
@@ -238,10 +240,10 @@ export default function TeachersManager() {
 
                       {addingAsgn === teacher.id && (
                         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-                          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Nouvelle(s) affectation(s)</p>
+                          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{t('teachers_manager.add_assignments')}</p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                              <label className="text-xs font-medium text-slate-500 mb-1 block">Matière(s) <span className="text-slate-400">(Ctrl = multi)</span></label>
+                              <label className="text-xs font-medium text-slate-500 mb-1 block">{t('teachers_manager.select_subjects')} <span className="text-slate-400">(Ctrl = multi)</span></label>
                               <select multiple size={Math.min(matieres.length, 6)} value={form.matiere}
                                 onChange={e => { const v = Array.from(e.target.selectedOptions, o => o.value); setNewAsgn(p => ({ ...p, [teacher.id]: { ...form, matiere: v } })); }}
                                 className="w-full border border-slate-200 rounded-lg text-sm p-1 focus:ring-2 focus:ring-primary/20">
@@ -249,7 +251,7 @@ export default function TeachersManager() {
                               </select>
                             </div>
                             <div>
-                              <label className="text-xs font-medium text-slate-500 mb-1 block">Classe(s) <span className="text-slate-400">(Ctrl = multi)</span></label>
+                              <label className="text-xs font-medium text-slate-500 mb-1 block">{t('teachers_manager.select_classes')} <span className="text-slate-400">(Ctrl = multi)</span></label>
                               <select multiple size={Math.min(classes.length, 6)} value={form.classe}
                                 onChange={e => { const v = Array.from(e.target.selectedOptions, o => o.value); setNewAsgn(p => ({ ...p, [teacher.id]: { ...form, classe: v } })); }}
                                 className="w-full border border-slate-200 rounded-lg text-sm p-1 focus:ring-2 focus:ring-primary/20">
@@ -258,8 +260,8 @@ export default function TeachersManager() {
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <button onClick={() => addAssignments(teacher)} className="px-4 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary/90">Confirmer</button>
-                            <button onClick={() => setAddingAsgn(null)} className="px-4 py-1.5 text-slate-500 text-xs hover:bg-slate-100 rounded-lg">Annuler</button>
+                            <button onClick={() => addAssignments(teacher)} className="px-4 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary/90">{t('common.confirm')}</button>
+                            <button onClick={() => setAddingAsgn(null)} className="px-4 py-1.5 text-slate-500 text-xs hover:bg-slate-100 rounded-lg">{t('common.cancel')}</button>
                           </div>
                         </div>
                       )}
@@ -275,13 +277,13 @@ export default function TeachersManager() {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title="Modifier l'enseignant"
+        title={t('common.edit')}
         maxWidth="md"
       >
         <form onSubmit={saveEdit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Prénom</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('auth.signup.first_name')}</label>
               <input
                 value={editForm.first_name}
                 onChange={e => setEditForm(f => ({ ...f, first_name: e.target.value }))}
@@ -290,7 +292,7 @@ export default function TeachersManager() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Nom</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('auth.signup.last_name')}</label>
               <input
                 value={editForm.last_name}
                 onChange={e => setEditForm(f => ({ ...f, last_name: e.target.value }))}
@@ -300,7 +302,7 @@ export default function TeachersManager() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Adresse Email</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('auth.login.email')}</label>
             <input
               type="email"
               value={editForm.email}
@@ -310,7 +312,7 @@ export default function TeachersManager() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Spécialité</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('teachers_manager.specialty')}</label>
             <input
               value={editForm.specialite}
               onChange={e => setEditForm(f => ({ ...f, specialite: e.target.value }))}
@@ -324,7 +326,7 @@ export default function TeachersManager() {
               onClick={() => setIsEditModalOpen(false)}
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all duration-200"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -332,7 +334,7 @@ export default function TeachersManager() {
               className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition-all duration-200 shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              Enregistrer
+              {t('common.save')}
             </button>
           </div>
         </form>

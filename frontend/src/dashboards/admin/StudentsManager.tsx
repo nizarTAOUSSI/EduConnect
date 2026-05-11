@@ -4,6 +4,7 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
 import Modal from '../../components/ui/Modal';
+import { useTranslation } from 'react-i18next';
 
 interface User { id: number; first_name: string; last_name: string; email: string; is_active: boolean; }
 interface Student {
@@ -77,6 +78,7 @@ const initials = (first: string, last: string, email: string) => {
 };
 
 export default function StudentsManager() {
+  const { t, i18n } = useTranslation();
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<Classe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +98,7 @@ export default function StudentsManager() {
   const [viewingAbsencesStudent, setViewingAbsencesStudent] = useState<Student | null>(null);
   const [activeTab, setViewingTab] = useState<'absences' | 'notes'>('absences');
   const [absenceSearch, setAbsenceSearch] = useState('');
-  const [absenceDateFilter, setAbsenceDateFilter] = useState('');
+  // const [absenceDateFilter, setAbsenceDateFilter] = useState('');
 
   // Assignments modal state (Teachers & Subjects)
   // const [isAssignmentsModalOpen, setIsAssignmentsModalOpen] = useState(false);
@@ -376,51 +378,61 @@ export default function StudentsManager() {
   if (loading) return <div className="flex h-64 items-center justify-center"><Spinner /></div>;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Gestion des Étudiants</h1>
-        <p className="text-slate-500 text-sm mt-1">{students.length} étudiant(s) enregistrés</p>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input type="text" placeholder="Rechercher par nom, email, code apogée…" value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{t('students_manager.title')}</h1>
+          <p className="text-slate-500 mt-1 font-medium">{t('students_manager.subtitle')}</p>
         </div>
-        <select value={classFilter} onChange={e => setClassFilter(e.target.value)}
-          className="bg-white border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20">
-          <option value="all">Toutes les classes</option>
-          {classes.map(c => <option key={c.id} value={String(c.id)}>{c.nom} — {c.niveau}</option>)}
-        </select>
       </div>
 
-      <div className="space-y-3">
-        {filtered.length === 0 && <div className="text-center py-16 text-slate-400">Aucun étudiant trouvé.</div>}
+      <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <input
+              type="text"
+              placeholder={t('students_manager.search_placeholder')}
+              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <select
+            className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-bold text-slate-700"
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+          >
+            <option value="all">{t('students_manager.all_classes')}</option>
+            {classes.map(c => (
+              <option key={c.id} value={String(c.id)}>{c.nom} ({c.niveau})</option>
+            ))}
+          </select>
+        </div>
 
-        {filtered.map(student => {
-          const isExpanded = expandedId === student.id;
-          const detail = detailData[student.id];
-          // const className = resolveClassName(student);
-          const name = buildName(student.first_name, student.last_name, student.email, `Étudiant #${student.id}`);
-          const ini = initials(student.first_name, student.last_name, student.email);
+        <div className="space-y-3">
+          {filtered.length === 0 && <div className="text-center py-16 text-slate-400">{t('common.no_data')}</div>}
 
-          return (
-            <div key={student.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="flex items-center gap-4 p-4">
-                {}
-                <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-base shrink-0">
-                  {ini}
-                </div>
+          {filtered.map(student => {
+            const isExpanded = expandedId === student.id;
+            const detail = detailData[student.id];
+            const name = buildName(student.first_name, student.last_name, student.email, `Étudiant #${student.id}`);
+            const ini = initials(student.first_name, student.last_name, student.email);
 
-                {}
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-900 text-base truncate">{name}</p>
-                  <p className="text-xs text-slate-500">{student.email}</p>
-                  <p className="text-xs text-slate-400">Apogée : {student.code_apogee}</p>
-                </div>
+            return (
+              <div key={student.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-4 p-4">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-base shrink-0">
+                    {ini}
+                  </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-900 text-base truncate">{name}</p>
+                    <p className="text-xs text-slate-500">{student.email}</p>
+                    <p className="text-xs text-slate-400">{t('students_manager.table.apogee')} : {student.code_apogee}</p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => {
                         setViewingAbsencesStudent(student);
@@ -428,7 +440,7 @@ export default function StudentsManager() {
                         loadDetail(student);
                       }}
                       className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
-                      title="Absences"
+                      title={t('students_manager.tabs.absences')}
                     >
                       <Clock className="w-4 h-4" />
                     </button>
@@ -439,96 +451,96 @@ export default function StudentsManager() {
                         loadDetail(student);
                       }}
                       className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
-                      title="Notes"
+                      title={t('students_manager.tabs.notes')}
                     >
                       <FileText className="w-4 h-4" />
                     </button>
-                    <button onClick={() => startEdit(student)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier">
+                    <button onClick={() => startEdit(student)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title={t('common.edit')}>
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button onClick={() => toggle(student)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
                       {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                     </button>
                   </div>
-              </div>
+                </div>
 
-              {isExpanded && (
-                <div className="border-t border-slate-100 bg-slate-50 p-5">
-                  {detail?.loading ? (
-                    <div className="flex justify-center py-6"><Spinner /></div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
-                          <UserCheck className="w-4 h-4 text-indigo-500" /> Parent(s) rattaché(s)
-                        </h4>
-                        {detail?.parents.length ? (
-                          <div className="space-y-3">
-                            {detail.parents.map(parent => (
-                              <div key={parent.id} className="bg-white rounded-lg px-3 py-3 border border-slate-100 flex items-center justify-between gap-3">
-                                <div>
-                                  <p className="font-semibold text-slate-900 text-sm">{parent.nom_complet}</p>
-                                  <p className="text-xs text-slate-500">{parent.email}</p>
+                {isExpanded && (
+                  <div className="border-t border-slate-100 bg-slate-50 p-5">
+                    {detail?.loading ? (
+                      <div className="flex justify-center py-6"><Spinner /></div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
+                            <UserCheck className="w-4 h-4 text-indigo-500" /> {t('students_manager.tabs.parents')}
+                          </h4>
+                          {detail?.parents.length ? (
+                            <div className="space-y-3">
+                              {detail.parents.map(parent => (
+                                <div key={parent.id} className="bg-white rounded-lg px-3 py-3 border border-slate-100 flex items-center justify-between gap-3">
+                                  <div>
+                                    <p className="font-semibold text-slate-900 text-sm">{parent.nom_complet}</p>
+                                    <p className="text-xs text-slate-500">{parent.email}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => handleDetachParent(student, parent)}
+                                    disabled={savingStudentId === student.id}
+                                    className="rounded-full bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition"
+                                  >
+                                    {t('common.delete')}
+                                  </button>
                                 </div>
-                                <button
-                                  onClick={() => handleDetachParent(student, parent)}
-                                  disabled={savingStudentId === student.id}
-                                  className="rounded-full bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition"
-                                >
-                                  Détacher
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-slate-400 italic">Aucun parent associé.</p>
-                        )}
-
-                        <div className="mt-4">
-                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ajouter un parent</label>
-                          <div className="mt-2 flex gap-2">
-                            <select
-                              value={selectedParentIds[student.id] ?? ''}
-                              onChange={e => setSelectedParentIds(prev => ({ ...prev, [student.id]: Number(e.target.value) || '' }))}
-                              className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
-                            >
-                              <option value="">Sélectionner un parent</option>
-                              {detail?.availableParents.map(parent => (
-                                <option key={parent.id} value={parent.id}>
-                                  {parent.nom_complet} — {parent.email}
-                                </option>
                               ))}
-                            </select>
-                            <button
-                              onClick={() => selectedParentIds[student.id] && handleAttachParent(student, selectedParentIds[student.id] as number)}
-                              disabled={!selectedParentIds[student.id] || savingStudentId === student.id}
-                              className="rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-dark disabled:opacity-60"
-                            >
-                              Ajouter
-                            </button>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-slate-400 italic">{t('students_manager.details.no_parents')}</p>
+                          )}
+
+                          <div className="mt-4">
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{t('students_manager.details.add_parent')}</label>
+                            <div className="mt-2 flex gap-2">
+                              <select
+                                value={selectedParentIds[student.id] ?? ''}
+                                onChange={e => setSelectedParentIds(prev => ({ ...prev, [student.id]: Number(e.target.value) || '' }))}
+                                className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
+                              >
+                                <option value="">{t('common.search')}</option>
+                                {detail?.availableParents.map(parent => (
+                                  <option key={parent.id} value={parent.id}>
+                                    {parent.nom_complet} — {parent.email}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => selectedParentIds[student.id] && handleAttachParent(student, selectedParentIds[student.id] as number)}
+                                disabled={!selectedParentIds[student.id] || savingStudentId === student.id}
+                                className="rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-dark disabled:opacity-60"
+                              >
+                                {t('common.add')}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title="Modifier l'étudiant"
+        title={t('common.edit')}
         maxWidth="md"
       >
         <form onSubmit={saveEdit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Prénom</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('auth.signup.first_name')}</label>
               <input
                 value={editForm.first_name}
                 onChange={e => setEditForm(f => ({ ...f, first_name: e.target.value }))}
@@ -537,7 +549,7 @@ export default function StudentsManager() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Nom</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('auth.signup.last_name')}</label>
               <input
                 value={editForm.last_name}
                 onChange={e => setEditForm(f => ({ ...f, last_name: e.target.value }))}
@@ -547,7 +559,7 @@ export default function StudentsManager() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Adresse Email</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('auth.login.email')}</label>
             <input
               type="email"
               value={editForm.email}
@@ -557,7 +569,7 @@ export default function StudentsManager() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Code Apogée</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('students_manager.table.apogee')}</label>
             <input
               value={editForm.code_apogee}
               onChange={e => setEditForm(f => ({ ...f, code_apogee: e.target.value }))}
@@ -565,13 +577,13 @@ export default function StudentsManager() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Classe</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('students_manager.table.class')}</label>
             <select
               value={editForm.new_class}
               onChange={e => setEditForm(f => ({ ...f, new_class: e.target.value }))}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-slate-700"
             >
-              <option value="">— Aucune classe —</option>
+              <option value="">— {t('students_manager.all_classes')} —</option>
               {classes.map(c => <option key={c.id} value={String(c.id)}>{c.nom} — {c.niveau}</option>)}
             </select>
           </div>
@@ -582,7 +594,7 @@ export default function StudentsManager() {
               onClick={() => setIsEditModalOpen(false)}
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all duration-200"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -590,7 +602,7 @@ export default function StudentsManager() {
               className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition-all duration-200 shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              Enregistrer
+              {t('common.save')}
             </button>
           </div>
         </form>
@@ -601,81 +613,68 @@ export default function StudentsManager() {
         onClose={() => {
           setViewingAbsencesStudent(null);
           setAbsenceSearch('');
-          setAbsenceDateFilter('');
+          // setAbsenceDateFilter('');
           setViewingTab('absences');
         }}
-        title={viewingAbsencesStudent ? `Dossier Étudiant : ${viewingAbsencesStudent.first_name} ${viewingAbsencesStudent.last_name}` : 'Détails'}
+        title={viewingAbsencesStudent ? `${t('students_manager.title')} : ${viewingAbsencesStudent.first_name} ${viewingAbsencesStudent.last_name}` : t('common.actions')}
         maxWidth="2xl"
       >
         {viewingAbsencesStudent && detailData[viewingAbsencesStudent.id]?.loading ? (
           <div className="flex justify-center py-12"><Spinner /></div>
         ) : viewingAbsencesStudent && detailData[viewingAbsencesStudent.id] ? (
           <div className="space-y-6">
-            {/* Tabs Selector */}
             <div className="flex p-1 bg-slate-100 rounded-2xl w-fit">
               <button 
                 onClick={() => setViewingTab('absences')}
                 className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'absences' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                Absences
+                {t('students_manager.tabs.absences')}
               </button>
               <button 
                 onClick={() => setViewingTab('notes')}
                 className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'notes' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                Notes & Évaluations
+                {t('students_manager.tabs.notes')}
               </button>
             </div>
 
             {activeTab === 'absences' ? (
               <>
-                {/* Statistiques épurées Absences */}
                 <div className="flex flex-wrap items-center gap-6 px-2 py-1 border-b border-slate-100 pb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-slate-900">{detailData[viewingAbsencesStudent.id].absences.length}</span>
-                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">Total Absences</span>
+                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">{t('students_manager.tabs.absences')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-emerald-600">{detailData[viewingAbsencesStudent.id].absences.filter(a => a.justifiee).length}</span>
-                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">Justifiées</span>
+                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">{t('students_manager.details.justified')}</span>
                   </div>
                 </div>
 
-                {/* Filtres homogènes */}
                 <div className="flex gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input 
                       type="text" 
-                      placeholder="Filtrer par matière ou prof..." 
+                      placeholder={t('common.search')} 
                       value={absenceSearch}
                       onChange={(e) => setAbsenceSearch(e.target.value)}
                       className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 transition-all"
                     />
                   </div>
-                  <div className="relative w-40">
-                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
-                      type="date" 
-                      value={absenceDateFilter}
-                      onChange={(e) => setAbsenceDateFilter(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 transition-all font-medium text-slate-600"
-                    />
-                  </div>
                 </div>
 
-                {/* Liste Absences */}
-                <div className="max-h-100overflow-y-auto pr-1 custom-scrollbar">
+                <div className="max-h-100 overflow-y-auto pr-1 custom-scrollbar">
                   <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
                     {detailData[viewingAbsencesStudent.id].absences.length === 0 ? (
-                      <div className="text-center py-12 text-slate-400 text-sm italic">Aucune absence.</div>
+                      <div className="text-center py-12 text-slate-400 text-sm italic">{t('students_manager.details.no_absences')}</div>
                     ) : (
                       detailData[viewingAbsencesStudent.id].absences.map((abs, index) => (
                         <div key={abs.id} className={`flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${index !== 0 ? 'border-t border-slate-100' : ''}`}>
                           <div className="flex items-center gap-5 flex-1 min-w-0">
                             <div className="w-14 shrink-0">
                               <p className="text-sm font-bold text-slate-900 leading-none">{abs.date.split('-')[2]}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{new Date(abs.date).toLocaleString('fr-fr', { month: 'short' }).replace('.', '')}</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{new Date(abs.date).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }).replace('.', '')}</p>
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-bold text-slate-800 truncate">{abs.enseignant_matiere_details?.matiere_name}</p>
@@ -683,7 +682,7 @@ export default function StudentsManager() {
                             </div>
                           </div>
                           <div className="flex items-center gap-4 shrink-0 ml-4">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${abs.justifiee ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>{abs.justifiee ? 'Justifiée' : 'Non justifiée'}</span>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${abs.justifiee ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>{abs.justifiee ? t('students_manager.details.justified') : t('students_manager.details.unjustified')}</span>
                             <button onClick={() => handleAbsenceClick(viewingAbsencesStudent, abs)} className={`p-2 rounded-lg transition-all ${abs.justifiee ? 'bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-600' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
                               {abs.justifiee ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
                             </button>
@@ -696,26 +695,17 @@ export default function StudentsManager() {
               </>
             ) : (
               <>
-                {/* Statistiques épurées Notes */}
                 <div className="flex flex-wrap items-center gap-6 px-2 py-1 border-b border-slate-100 pb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-indigo-600">{detailData[viewingAbsencesStudent.id].notes.length}</span>
-                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">Évaluations</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-slate-900">
-                      {(detailData[viewingAbsencesStudent.id].notes.reduce((sum, n) => sum + (n.valeur_note || 0), 0) / 
-                       (detailData[viewingAbsencesStudent.id].notes.filter(n => !n.est_absent).length || 1)).toFixed(2)}
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">Moyenne Simple</span>
+                    <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">{t('students_manager.tabs.notes')}</span>
                   </div>
                 </div>
 
-                {/* Liste Notes */}
                 <div className="max-h-100 overflow-y-auto pr-1 custom-scrollbar">
                   <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
                     {detailData[viewingAbsencesStudent.id].notes.length === 0 ? (
-                      <div className="text-center py-12 text-slate-400 text-sm italic">Aucune note enregistrée.</div>
+                      <div className="text-center py-12 text-slate-400 text-sm italic">{t('students_manager.details.no_notes')}</div>
                     ) : (
                       detailData[viewingAbsencesStudent.id].notes.map((note, index) => (
                         <div key={note.id} className={`flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${index !== 0 ? 'border-t border-slate-100' : ''}`}>
@@ -733,9 +723,6 @@ export default function StudentsManager() {
                               </p>
                             </div>
                           </div>
-                          <div className="shrink-0 ml-4 flex items-center gap-2">
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">/ 20</span>
-                          </div>
                         </div>
                       ))
                     )}
@@ -752,7 +739,7 @@ export default function StudentsManager() {
                 }}
                 className="px-6 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest shadow-sm"
               >
-                Fermer
+                {t('common.cancel')}
               </button>
             </div>
           </div>
@@ -765,7 +752,7 @@ export default function StudentsManager() {
           setJustifyingAbsence(null);
           setJustificationMotif('');
         }}
-        title="Justifier l'absence"
+        title={t('students_manager.details.justify')}
         maxWidth="sm"
       >
         <form 
@@ -780,18 +767,18 @@ export default function StudentsManager() {
           <div className="bg-emerald-50 text-emerald-800 p-4 rounded-2xl flex items-start gap-3">
             <FileText className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
             <p className="text-sm font-medium">
-              Justification pour l'absence du <strong>{justifyingAbsence?.absence.date}</strong>.
+              {t('students_manager.details.justify')} : <strong>{justifyingAbsence?.absence.date}</strong>.
             </p>
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Motif de la justification</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('students_manager.details.justify')}</label>
             <textarea
               value={justificationMotif}
               onChange={e => setJustificationMotif(e.target.value)}
               required
               rows={3}
-              placeholder="Ex: Certificat médical, convocation..."
+              placeholder="..."
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
             />
           </div>
@@ -805,7 +792,7 @@ export default function StudentsManager() {
               }}
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -813,7 +800,7 @@ export default function StudentsManager() {
               className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              Confirmer
+              {t('common.confirm')}
             </button>
           </div>
         </form>

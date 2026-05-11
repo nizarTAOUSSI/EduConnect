@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Trash2, FileText, Calendar, BookOpen, GraduationCap, User, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
@@ -53,6 +54,7 @@ interface Assignment {
 }
 
 export default function EvaluationsManager() {
+  const { t } = useTranslation();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -126,7 +128,7 @@ export default function EvaluationsManager() {
       setAssignments(Array.isArray(assignData) ? assignData : []);
       setPeriodes(Array.isArray(periodData) ? periodData : []);
     } catch (error) {
-      toast.error('Erreur lors du chargement des données');
+      toast.error(t('evaluations_manager.messages.load_error'));
     } finally {
       setLoading(false);
     }
@@ -140,7 +142,7 @@ export default function EvaluationsManager() {
       const res = await api.get(`/grades/notes/?evaluation=${evaluation.id}`);
       setNotes(res.data.results || res.data);
     } catch (error) {
-      toast.error('Erreur lors du chargement des notes');
+      toast.error(t('evaluations_manager.messages.load_notes_error'));
     } finally {
       setNotesLoading(false);
     }
@@ -156,12 +158,12 @@ export default function EvaluationsManager() {
     try {
       setIsActionLoading(true);
       await api.delete(`/grades/evaluations/${evalToDelete}/`);
-      toast.success('Évaluation supprimée définitivement');
+      toast.success(t('evaluations_manager.messages.delete_success'));
       setIsDeleteModalOpen(false);
       setEvalToDelete(null);
       fetchData();
     } catch (error) {
-      toast.error('Erreur lors de la suppression');
+      toast.error(t('evaluations_manager.messages.delete_error'));
     } finally {
       setIsActionLoading(false);
     }
@@ -181,7 +183,7 @@ export default function EvaluationsManager() {
         note_max: parseFloat(formData.note_max.toString())
       };
       await api.post('/grades/evaluations/', payload);
-      toast.success('Évaluation créée avec succès');
+      toast.success(t('evaluations_manager.messages.save_success'));
       setIsCreateModalOpen(false);
       fetchData();
       setFormData({
@@ -197,7 +199,7 @@ export default function EvaluationsManager() {
         periode: ''
       });
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || error.response?.data?.non_field_errors?.[0] || 'Erreur lors de la création');
+      toast.error(error.response?.data?.detail || error.response?.data?.non_field_errors?.[0] || t('evaluations_manager.messages.save_error'));
     } finally {
       setIsActionLoading(false);
     }
@@ -242,15 +244,15 @@ export default function EvaluationsManager() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gestion des Évaluations</h1>
-          <p className="text-slate-500 mt-1">Supervisez et gérez toutes les évaluations du système.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('evaluations_manager.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('evaluations_manager.subtitle')}</p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition-all duration-200 shadow-lg shadow-indigo-100 flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          Ajouter une évaluation
+          {t('evaluations_manager.add_evaluation')}
         </button>
       </div>
 
@@ -260,7 +262,7 @@ export default function EvaluationsManager() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Rechercher par matière ou enseignant..."
+              placeholder={t('evaluations_manager.search_placeholder')}
               className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -272,7 +274,7 @@ export default function EvaluationsManager() {
               value={filters.classe}
               onChange={(e) => setFilters({ ...filters, classe: e.target.value })}
             >
-              <option value="">Toutes les classes</option>
+              <option value="">{t('common.all_classes')}</option>
               {classes.map(c => (
                 <option key={c.id} value={c.id}>{c.nom} ({c.niveau})</option>
               ))}
@@ -282,7 +284,7 @@ export default function EvaluationsManager() {
               value={filters.teacher}
               onChange={(e) => setFilters({ ...filters, teacher: e.target.value })}
             >
-              <option value="">Tous les enseignants</option>
+              <option value="">{t('teachers_manager.search_placeholder')}</option>
               {teachers.map(t => (
                 <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
               ))}
@@ -291,7 +293,7 @@ export default function EvaluationsManager() {
         </div>
 
         <div className="overflow-x-auto -mx-8">
-          <Table columns={['Évaluation', 'Classe', 'Enseignant', 'Planification', 'Actions']} isEmpty={filteredEvaluations.length === 0}>
+          <Table columns={[t('evaluations_manager.table.evaluation'), t('evaluations_manager.table.class'), t('evaluations_manager.table.teacher'), t('evaluations_manager.table.planning'), t('common.actions')]} isEmpty={filteredEvaluations.length === 0}>
             {filteredEvaluations.map((evalItem) => (
               <tr key={evalItem.id} className="hover:bg-slate-50/50 transition-colors group">
                 <Td>
@@ -329,7 +331,7 @@ export default function EvaluationsManager() {
                       </div>
                     </div>
                   ) : (
-                    <span className="px-2 py-1 bg-amber-50 text-amber-600 text-[10px] font-black rounded uppercase tracking-wider">Non planifiée</span>
+                    <span className="px-2 py-1 bg-amber-50 text-amber-600 text-[10px] font-black rounded uppercase tracking-wider">{t('evaluations_manager.not_planned')}</span>
                   )}
                 </Td>
                 <Td>
@@ -337,14 +339,14 @@ export default function EvaluationsManager() {
                     <button
                       onClick={() => fetchNotes(evalItem)}
                       className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
-                      title="Voir les notes"
+                      title={t('evaluations_manager.view_notes')}
                     >
                       <BookOpen className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleDeleteClick(evalItem.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                      title="Supprimer définitivement"
+                      title={t('evaluations_manager.delete_forever')}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -360,26 +362,26 @@ export default function EvaluationsManager() {
       <Modal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
-        title="Ajouter une évaluation"
+        title={t('evaluations_manager.add_evaluation')}
         maxWidth="md"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Type</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('evaluations_manager.form.type')}</label>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({...formData, type: e.target.value})}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600/20 transition-all"
                 required
               >
-                <option value="CC">Contrôle Continu</option>
-                <option value="Examen">Examen Final</option>
-                <option value="TP">Travaux Pratiques</option>
+                <option value="CC">{t('evaluations_manager.types.CC')}</option>
+                <option value="Examen">{t('evaluations_manager.types.Examen')}</option>
+                <option value="TP">{t('evaluations_manager.types.TP')}</option>
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Note Max</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('evaluations_manager.form.max_note')}</label>
               <input
                 type="number"
                 value={formData.note_max}
@@ -391,27 +393,27 @@ export default function EvaluationsManager() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Matière</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('affectations_manager.table.subject')}</label>
             <select
               value={formData.matiere}
               onChange={(e) => setFormData({...formData, matiere: e.target.value, enseignant: '', classe: ''})}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600/20 transition-all"
               required
             >
-              <option value="">Sélectionner une matière</option>
+              <option value="">{t('affectations_manager.select_subject')}</option>
               {matieres.map(m => <option key={m.id} value={m.id}>{m.nom}</option>)}
             </select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Période / Semestre</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('evaluations_manager.form.period')}</label>
             <select
               required
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
               value={formData.periode}
               onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
             >
-              <option value="">Sélectionnez une période</option>
+              <option value="">{t('evaluations_manager.form.select_period')}</option>
               {periodes.map(p => (
                 <option key={p.id} value={p.id}>{p.nom} ({p.code})</option>
               ))}
@@ -420,7 +422,7 @@ export default function EvaluationsManager() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Enseignant</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('affectations_manager.table.teacher')}</label>
               <select
                 value={formData.enseignant}
                 onChange={(e) => setFormData({...formData, enseignant: e.target.value, classe: ''})}
@@ -428,12 +430,12 @@ export default function EvaluationsManager() {
                 required
                 disabled={!formData.matiere}
               >
-                <option value="">Enseignant</option>
+                <option value="">{t('affectations_manager.table.teacher')}</option>
                 {getTeachersForMatiere().map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Classe</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('affectations_manager.table.class')}</label>
               <select
                 value={formData.classe}
                 onChange={(e) => setFormData({...formData, classe: e.target.value})}
@@ -441,14 +443,14 @@ export default function EvaluationsManager() {
                 required
                 disabled={!formData.enseignant}
               >
-                <option value="">Classe</option>
+                <option value="">{t('affectations_manager.table.class')}</option>
                 {getClassesForTeacherMatiere().map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
               </select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Planification (Optionnelle)</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('evaluations_manager.form.planning_opt')}</label>
             <div className="grid grid-cols-3 gap-3">
               <input
                 type="date"
@@ -472,13 +474,13 @@ export default function EvaluationsManager() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Salle (Optionnelle)</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('evaluations_manager.form.room_opt')}</label>
             <select
               value={formData.salle}
               onChange={(e) => setFormData({...formData, salle: e.target.value})}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600/20 transition-all"
             >
-              <option value="">Sélectionner une salle</option>
+              <option value="">{t('evaluations_manager.form.select_room')}</option>
               {salles.map(s => <option key={s.id} value={s.id}>{s.nom} ({s.capacite} places)</option>)}
             </select>
           </div>
@@ -489,7 +491,7 @@ export default function EvaluationsManager() {
               onClick={() => setIsCreateModalOpen(false)} 
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button 
               type="submit" 
@@ -497,7 +499,7 @@ export default function EvaluationsManager() {
               className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 flex items-center gap-2 disabled:opacity-50"
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              Créer
+              {t('common.add')}
             </button>
           </div>
         </form>
@@ -517,7 +519,7 @@ export default function EvaluationsManager() {
             <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {notes.length === 0 ? (
                 <div className="text-center py-12 text-slate-400 border border-dashed border-slate-200 rounded-3xl">
-                  Aucune note saisie pour cette évaluation.
+                  {t('evaluations_manager.no_notes')}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-3">
@@ -536,7 +538,7 @@ export default function EvaluationsManager() {
                       </div>
                       <div className="flex items-center gap-4">
                         {note.est_absent ? (
-                          <span className="px-3 py-1 bg-rose-50 text-rose-600 text-xs font-black rounded-full uppercase">Absent</span>
+                          <span className="px-3 py-1 bg-rose-50 text-rose-600 text-xs font-black rounded-full uppercase">{t('common.absent')}</span>
                         ) : (
                           <div className="flex items-center gap-1">
                             <span className="text-xl font-black text-slate-900">{note.valeur_note}</span>
@@ -554,7 +556,7 @@ export default function EvaluationsManager() {
                 onClick={() => setIsNotesModalOpen(false)}
                 className="px-8 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all uppercase tracking-widest text-xs"
               >
-                Fermer
+                {t('common.close')}
               </button>
             </div>
           </div>
@@ -565,9 +567,9 @@ export default function EvaluationsManager() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Supprimer définitivement"
-        message="Êtes-vous sûr de vouloir supprimer cette évaluation ? Cette action est irréversible et supprimera également toutes les notes associées."
-        confirmLabel="Supprimer"
+        title={t('evaluations_manager.delete_forever')}
+        message={t('common.delete_confirm')}
+        confirmLabel={t('common.delete')}
         variant="danger"
         isLoading={isActionLoading}
       />

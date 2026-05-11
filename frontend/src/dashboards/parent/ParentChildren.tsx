@@ -4,9 +4,11 @@ import api from '../../api/axios';
 import { useAuth } from '../../hooks/useAuth';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 export default function ParentChildren() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [children, setChildren] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,20 +35,20 @@ export default function ParentChildren() {
           }
         }
       } catch (error) {
-        toast.error('Erreur lors du chargement des profils enfants');
+        toast.error(t('parent_children.messages.load_error'));
       } finally {
         setLoading(false);
       }
     };
     if (user?.id) fetchChildren();
-  }, [user]);
+  }, [user, t]);
 
   if (loading) return <div className="flex h-64 items-center justify-center"><Spinner /></div>;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Mes Enfants</h1>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('parent_children.title')}</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -58,8 +60,8 @@ export default function ParentChildren() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-slate-900">{child.nom_complet || `${child.first_name || ''} ${child.last_name || ''}`}</h3>
-                <p className="text-primary font-bold">{child.classe_name || 'Classe non assignée'}</p>
-                <p className="text-slate-400 text-sm font-medium mt-1">Code: {child.code_apogee || 'N/A'}</p>
+                <p className="text-primary font-bold">{child.classe_name || t('parent_children.not_assigned')}</p>
+                <p className="text-slate-400 text-sm font-medium mt-1">{t('parent_children.code')}: {child.code_apogee || 'N/A'}</p>
               </div>
             </div>
 
@@ -67,23 +69,23 @@ export default function ParentChildren() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-slate-400">
                   <Mail className="w-3.5 h-3.5" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Email</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{t('parent_children.email')}</span>
                 </div>
-                <p className="text-sm font-bold text-slate-700">{child.email || 'Non renseigné'}</p>
+                <p className="text-sm font-bold text-slate-700">{child.email || t('parent_children.not_provided')}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-slate-400">
                   <Phone className="w-3.5 h-3.5" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Contact</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{t('parent_children.contact')}</span>
                 </div>
-                <p className="text-sm font-bold text-slate-700">Non renseigné</p>
+                <p className="text-sm font-bold text-slate-700">{t('parent_children.not_provided')}</p>
               </div>
             </div>
           </div>
         )) : (
           <div className="col-span-2 text-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-slate-400 italic">
             <User className="w-12 h-12 mx-auto mb-4 opacity-20" />
-            Aucun enfant trouvé.
+            {t('parent_children.no_children')}
           </div>
         )}
       </div>

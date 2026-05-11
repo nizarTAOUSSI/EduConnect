@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, UserCheck, BookOpen, School, Edit2, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
 import Table, { Td } from '../../components/ui/Table';
 import Modal from '../../components/ui/Modal';
+
 export default function AffectationsManager() {
+  const { t } = useTranslation();
   const [assignments, setAssignments] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
@@ -20,6 +23,7 @@ export default function AffectationsManager() {
     matiere: '',
     classe: '',
   });
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -34,14 +38,16 @@ export default function AffectationsManager() {
       setClasses(classesRes.data.results || classesRes.data);
       setMatieres(matieresRes.data.results || matieresRes.data);
     } catch (error) {
-      toast.error('Erreur lors du chargement des données');
+      toast.error(t('affectations_manager.messages.load_error'));
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchData();
   }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
@@ -53,21 +59,22 @@ export default function AffectationsManager() {
       };
       if (editingAssignment) {
         await api.patch(`/academics/enseignant-matieres/${editingAssignment.id}/`, payload);
-        toast.success('Affectation modifiée avec succès');
+        toast.success(t('affectations_manager.messages.update_success'));
       } else {
         await api.post('/academics/enseignant-matieres/', payload);
-        toast.success('Affectation ajoutée avec succès');
+        toast.success(t('affectations_manager.messages.save_success'));
       }
       setIsModalOpen(false);
       setEditingAssignment(null);
       setFormData({ enseignant: '', matiere: '', classe: '' });
       fetchData();
     } catch (error: any) {
-      toast.error('Erreur lors de l\'enregistrement');
+      toast.error(t('affectations_manager.messages.save_error'));
     } finally {
       setIsActionLoading(false);
     }
   };
+
   const handleEdit = (assignment: any) => {
     setEditingAssignment(assignment);
     setFormData({
@@ -77,16 +84,18 @@ export default function AffectationsManager() {
     });
     setIsModalOpen(true);
   };
+
   const handleDelete = async (id: number) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette affectation ?')) return;
+    if (!confirm(t('affectations_manager.messages.delete_confirm'))) return;
     try {
       await api.delete(`/academics/enseignant-matieres/${id}/`);
-      toast.success('Affectation supprimée');
+      toast.success(t('affectations_manager.messages.delete_success'));
       fetchData();
     } catch (error) {
-      toast.error('Erreur lors de la suppression');
+      toast.error(t('affectations_manager.messages.delete_error'));
     }
   };
+
   const filteredAssignments = assignments.filter(a => {
     const teacherName = teachers.find(t => t.id === a.enseignant) 
       ? `${teachers.find(t => t.id === a.enseignant)?.first_name} ${teachers.find(t => t.id === a.enseignant)?.last_name}` 
@@ -95,13 +104,15 @@ export default function AffectationsManager() {
     const className = classes.find(c => c.id === a.classe)?.nom || '';
     return `${teacherName} ${matiereName} ${className}`.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
   if (loading) return <div className="flex h-64 items-center justify-center"><Spinner className="text-blue-600" /></div>;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Affectations</h1>
-          <p className="text-slate-500 mt-1">Gérez les affectations des enseignants aux classes et matières.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('affectations_manager.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('affectations_manager.subtitle')}</p>
         </div>
         <button
           onClick={() => {
@@ -112,22 +123,24 @@ export default function AffectationsManager() {
           className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all duration-200 shadow-lg shadow-blue-100 flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          Ajouter une affectation
+          {t('affectations_manager.add_assignment')}
         </button>
       </div>
+
       <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
         <div className="relative mb-8 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
-            placeholder="Rechercher une affectation..."
+            placeholder={t('affectations_manager.search_placeholder')}
             className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all duration-200"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
         <div className="overflow-x-auto -mx-8">
-          <Table columns={['Enseignant', 'Matière', 'Classe', 'Actions']} isEmpty={filteredAssignments.length === 0}>
+          <Table columns={[t('affectations_manager.table.teacher'), t('affectations_manager.table.subject'), t('affectations_manager.table.class'), t('common.actions')]} isEmpty={filteredAssignments.length === 0}>
             {filteredAssignments.map((assignment) => (
               <tr key={assignment.id} className="hover:bg-slate-50/50 transition-colors group">
                 <Td>
@@ -165,12 +178,14 @@ export default function AffectationsManager() {
                     <button
                       onClick={() => handleEdit(assignment)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                      title={t('common.edit')}
                     >
                       <Edit2 className="w-4.5 h-4.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(assignment.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                      title={t('common.delete')}
                     >
                       <Trash2 className="w-4.5 h-4.5" />
                     </button>
@@ -181,22 +196,23 @@ export default function AffectationsManager() {
           </Table>
         </div>
       </div>
+
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingAssignment ? "Modifier l'affectation" : "Ajouter une affectation"}
+        title={editingAssignment ? t('affectations_manager.edit_assignment') : t('affectations_manager.add_assignment')}
         maxWidth="md"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Enseignant</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('affectations_manager.table.teacher')}</label>
             <select
               value={formData.enseignant}
               onChange={(e) => setFormData({ ...formData, enseignant: e.target.value })}
               required
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all duration-200"
             >
-              <option value="">Sélectionner un enseignant</option>
+              <option value="">{t('affectations_manager.select_teacher')}</option>
               {teachers.map((teacher) => (
                 <option key={teacher.id} value={teacher.id}>
                   {teacher.first_name} {teacher.last_name}
@@ -205,14 +221,14 @@ export default function AffectationsManager() {
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Matière</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('affectations_manager.table.subject')}</label>
             <select
               value={formData.matiere}
               onChange={(e) => setFormData({ ...formData, matiere: e.target.value })}
               required
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-amber-600/20 focus:border-amber-600 transition-all duration-200"
             >
-              <option value="">Sélectionner une matière</option>
+              <option value="">{t('affectations_manager.select_subject')}</option>
               {matieres.map((matiere) => (
                 <option key={matiere.id} value={matiere.id}>
                   {matiere.nom}
@@ -221,14 +237,14 @@ export default function AffectationsManager() {
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Classe</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('affectations_manager.table.class')}</label>
             <select
               value={formData.classe}
               onChange={(e) => setFormData({ ...formData, classe: e.target.value })}
               required
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all duration-200"
             >
-              <option value="">Sélectionner une classe</option>
+              <option value="">{t('affectations_manager.select_class')}</option>
               {classes.map((classe) => (
                 <option key={classe.id} value={classe.id}>
                   {classe.nom} ({classe.niveau})
@@ -242,7 +258,7 @@ export default function AffectationsManager() {
               onClick={() => setIsModalOpen(false)}
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all duration-200"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -250,7 +266,7 @@ export default function AffectationsManager() {
               className="px-8 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all duration-200 shadow-lg shadow-blue-200 flex items-center gap-2 disabled:opacity-50"
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              {editingAssignment ? "Modifier" : "Ajouter"}
+              {editingAssignment ? t('common.edit') : t('common.add')}
             </button>
           </div>
         </form>

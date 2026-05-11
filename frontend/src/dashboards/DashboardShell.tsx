@@ -3,6 +3,7 @@ import { LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/Logo.png';
+import { useTranslation } from 'react-i18next';
 
 export default function DashboardShell({
   title,
@@ -12,6 +13,7 @@ export default function DashboardShell({
   children: ReactNode;
 }) {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
@@ -34,7 +36,7 @@ export default function DashboardShell({
                 <span className="text-sm font-semibold text-slate-900 truncate">{title}</span>
                 <span className="text-xs text-slate-500 truncate">
                   {user?.first_name} {user?.last_name} ·{' '}
-                  <span className="capitalize">{user?.role}</span>
+                  <span className="capitalize">{t(`roles.${user?.role}`)}</span>
                 </span>
               </div>
             </div>
@@ -44,7 +46,7 @@ export default function DashboardShell({
               className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              Se déconnecter
+              {t('dashboard.logout')}
             </button>
           </div>
 
@@ -53,7 +55,7 @@ export default function DashboardShell({
               <span className="text-sm font-semibold text-slate-900">{title}</span>
               <span className="text-xs text-slate-500">
                 {user?.first_name} {user?.last_name} ·{' '}
-                <span className="capitalize">{user?.role}</span>
+                <span className="capitalize">{t(`roles.${user?.role}`)}</span>
               </span>
             </div>
           </div>

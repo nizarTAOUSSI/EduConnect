@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Users, ChevronDown, ChevronRight, GraduationCap, Edit2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
@@ -28,6 +29,7 @@ const getInitials = (first: string, last: string, email: string) =>
   ((first?.[0] || email?.[0] || '?') + (last?.[0] || '')).toUpperCase();
 
 export default function ParentsManager() {
+  const { t } = useTranslation();
   const [parents, setParents] = useState<Parent[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<Classe[]>([]);
@@ -93,17 +95,14 @@ export default function ParentsManager() {
       setClasses(cRes.data.results || cRes.data);
     } catch (e) {
       console.error(e);
-      toast.error('Erreur de chargement des parents');
+      toast.error(t('parents_manager.messages.load_error'));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const load = async () => {
-      await loadAll();
-    };
-    load();
+    loadAll();
   }, []);
 
   const resolveClass = (s: Student) => {
@@ -126,11 +125,9 @@ export default function ParentsManager() {
       await api.patch(`/accounts/parents/${parent.id}/`, { enfants: updatedChildren });
       await loadAll();
       setSelectedChildIds(prev => ({ ...prev, [parent.id]: '' }));
-      toast.success('Enfant rattaché au parent');
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { detail?: string } } };
-      console.error(err);
-      toast.error(err.response?.data?.detail || 'Impossible de rattacher l’enfant');
+      toast.success(t('parents_manager.messages.attach_success'));
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || t('parents_manager.messages.attach_error'));
     } finally {
       setSavingParentId(null);
     }
@@ -142,11 +139,9 @@ export default function ParentsManager() {
       setSavingParentId(parent.id);
       await api.patch(`/accounts/parents/${parent.id}/`, { enfants: updatedChildren });
       await loadAll();
-      toast.success('Enfant retiré du parent');
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { detail?: string } } };
-      console.error(err);
-      toast.error(err.response?.data?.detail || 'Impossible de retirer l’enfant');
+      toast.success(t('parents_manager.messages.detach_success'));
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || t('parents_manager.messages.detach_error'));
     } finally {
       setSavingParentId(null);
     }
@@ -158,16 +153,19 @@ export default function ParentsManager() {
 
     setIsActionLoading(true);
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
+    const data = {
+      first_name: formData.get('first_name'),
+      last_name: formData.get('last_name'),
+      email: formData.get('email'),
+    };
 
     try {
-      // Parents information is actually stored in the linked Utilisateur model
       await api.patch(`/accounts/utilisateurs/${editingParent.utilisateur}/`, data);
-      toast.success('Informations du parent mises à jour');
+      toast.success(t('parents_manager.messages.update_success'));
       setIsEditModalOpen(false);
       await loadAll();
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
+      toast.error(error.response?.data?.detail || t('parents_manager.messages.update_error'));
     } finally {
       setIsActionLoading(false);
     }
@@ -186,18 +184,23 @@ export default function ParentsManager() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Gestion des Parents</h1>
-        <p className="text-slate-500 text-sm mt-1">{parents.length} parent(s) enregistrés</p>
+        <h1 className="text-2xl font-bold text-slate-900">{t('parents_manager.title')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('parents_manager.subtitle', { count: parents.length })}</p>
       </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input type="text" placeholder="Rechercher par nom ou email…" value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+        <input 
+          type="text" 
+          placeholder={t('parents_manager.search_placeholder')} 
+          value={search} 
+          onChange={e => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" 
+        />
       </div>
 
       <div className="space-y-3">
-        {filtered.length === 0 && <div className="text-center py-16 text-slate-400">Aucun parent trouvé.</div>}
+        {filtered.length === 0 && <div className="text-center py-16 text-slate-400">{t('parents_manager.no_parents')}</div>}
 
         {filtered.map(parent => {
           const isExpanded = expandedId === parent.id;
@@ -207,7 +210,6 @@ export default function ParentsManager() {
 
           return (
             <div key={parent.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              {}
               <div className="flex items-center gap-4 p-4">
                 <div className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-base shrink-0">
                   {ini}
@@ -215,7 +217,7 @@ export default function ParentsManager() {
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-slate-900 text-base truncate">{name}</p>
                   <p className="text-xs text-slate-500">{parent.email || '—'}</p>
-                  <p className="text-xs text-slate-400">{children.length} enfant(s) rattaché(s)</p>
+                  <p className="text-xs text-slate-400">{t('parents_manager.subtitle', { count: children.length })}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={`w-2 h-2 rounded-full ${parent.is_active ? 'bg-emerald-400' : 'bg-slate-300'}`} />
@@ -225,7 +227,7 @@ export default function ParentsManager() {
                       setIsEditModalOpen(true);
                     }}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Modifier"
+                    title={t('common.edit')}
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
@@ -235,11 +237,10 @@ export default function ParentsManager() {
                 </div>
               </div>
 
-              {}
               {isExpanded && (
                 <div className="border-t border-slate-100 bg-slate-50 p-5">
                   <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
-                    <Users className="w-4 h-4 text-rose-500" /> Enfants rattachés
+                    <Users className="w-4 h-4 text-rose-500" /> {t('parents_manager.attached_children')}
                   </h4>
 
                   <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto]">
@@ -248,7 +249,7 @@ export default function ParentsManager() {
                       onChange={e => setSelectedChildIds(prev => ({ ...prev, [parent.id]: Number(e.target.value) || '' }))}
                       className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
                     >
-                      <option value="">Ajouter un enfant</option>
+                      <option value="">{t('parents_manager.add_child')}</option>
                       {getAvailableChildren(parent).map(child => (
                         <option key={child.id} value={child.id}>
                           {buildName(child.first_name, child.last_name, child.email, `Étudiant #${child.id}`)}
@@ -260,15 +261,15 @@ export default function ParentsManager() {
                       disabled={!selectedChildIds[parent.id] || savingParentId === parent.id}
                       className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-dark disabled:opacity-60"
                     >
-                      Ajouter
+                      {t('parents_manager.attach')}
                     </button>
                   </div>
 
                   {children.length === 0 ? (
                     <p className="text-xs text-slate-400 italic">
                       {parent.enfants.length > 0
-                        ? `${parent.enfants.length} enfant(s) lié(s) introuvable(s) dans la liste.`
-                        : 'Aucun enfant rattaché.'}
+                        ? t('parents_manager.children_not_found', { count: parent.enfants.length })
+                        : t('parents_manager.no_children')}
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -297,7 +298,7 @@ export default function ParentsManager() {
                               disabled={savingParentId === parent.id}
                               className="rounded-full bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition"
                             >
-                              Retirer
+                              {t('parents_manager.detach')}
                             </button>
                           </div>
                         );
@@ -314,13 +315,13 @@ export default function ParentsManager() {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title="Modifier les informations du parent"
+        title={t('parents_manager.edit_parent')}
         maxWidth="md"
       >
         <form onSubmit={handleEditSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Prénom</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('auth.signup.first_name')}</label>
               <input
                 name="first_name"
                 defaultValue={editingParent?.first_name}
@@ -329,7 +330,7 @@ export default function ParentsManager() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Nom</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('auth.signup.last_name')}</label>
               <input
                 name="last_name"
                 defaultValue={editingParent?.last_name}
@@ -339,7 +340,7 @@ export default function ParentsManager() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Adresse Email</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('common.email')}</label>
             <input
               name="email"
               type="email"
@@ -355,7 +356,7 @@ export default function ParentsManager() {
               onClick={() => setIsEditModalOpen(false)}
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all duration-200"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -363,7 +364,7 @@ export default function ParentsManager() {
               className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition-all duration-200 shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              Enregistrer
+              {t('common.save')}
             </button>
           </div>
         </form>

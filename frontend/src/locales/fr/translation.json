@@ -1,0 +1,941 @@
+{
+  "navbar": {
+    "features": "Fonctionnalités",
+    "ecosystem": "Écosystème",
+    "security": "Sécurité",
+    "dashboard": "Mon tableau de bord",
+    "login": "Se connecter",
+    "logout": "Se déconnecter"
+  },
+  "hero": {
+    "badge": "Système de Nouvelle Génération",
+    "title_part1": "Digitaliser,",
+    "title_part2": "Automatiser",
+    "title_part3": ", Connecter.",
+    "description": "L'application cloud intelligente pour repenser l'administration scolaire. Connectez professeurs, élèves et parents dans un écosystème en temps réel.",
+    "discover": "Découvrir la plateforme",
+    "demo": "Espace Démo",
+    "sync": "Synchronisation",
+    "realtime": "Temps réel actif",
+    "zero_defect": "Zéro Défaut",
+    "validation": "Validation 100%"
+  },
+  "features": {
+    "badge": "L'Architecture du Succès",
+    "title": "Notre Solution Digitale",
+    "description": "Repensez la gestion de votre établissement avec une architecture conçue pour la rapidité, la fiabilité absolue et l'élégance.",
+    "global_accessibility": {
+      "title": "Accessibilité Globale",
+      "description": "Une plateforme centralisée et accessible en ligne 24/7 depuis n'importe quel appareil avec une interface adaptative ultra-rapide."
+    },
+    "reliable_engine": {
+      "title": "Moteur de Calcul Fiable",
+      "description": "Automatisation complète des calculs complexes : les moyennes et les crédits sont générés instantanément, sans aucune erreur humaine."
+    },
+    "fluid_communication": {
+      "title": "Communication Fluide",
+      "description": "Transparence totale, suivi des résultats et notifications en temps réel pour tous les acteurs grâce à notre système de messagerie intégré."
+    }
+  },
+  "ecosystem": {
+    "title": "L'Écosystème Connecté",
+    "description": "Une plateforme modulaire conçue spécifiquement pour répondre aux exigences technologiques de chaque utilisateur.",
+    "tabs": {
+      "admin": "Administration",
+      "profs": "Professeurs",
+      "etudiants": "Étudiants",
+      "parents": "Parents"
+    },
+    "admin": {
+      "title": "Contrôle Total & Supervision",
+      "description": "L'administration dispose d'un outil puissant pour piloter l'établissement : configuration avancée des cursus, centralisation des données et tableaux de bord analytiques.",
+      "f1": "Tableaux de bord analytiques",
+      "f2": "Gestion fine des droits",
+      "f3": "Supervision globale en temps réel"
+    },
+    "profs": {
+      "title": "Efficacité Pédagogique",
+      "description": "Gagnez un temps précieux. Saisissez les évaluations intuitivement; le moteur intelligent applique instantanément les barèmes et calcule les moyennes certifiées.",
+      "f1": "Grilles d'évaluation personnalisables",
+      "f2": "Calcul automatisé sans erreur",
+      "f3": "Génération rapide d'appréciations"
+    },
+    "etudiants": {
+      "title": "Autonomie & Transparence",
+      "description": "Un espace personnel moderne pour visualiser son parcours, consulter ses relevés digitalisés et interagir rapidement via la plateforme de réclamation.",
+      "f1": "Relevés de notes interactifs",
+      "f2": "Graphiques de progression",
+      "f3": "Hub de réclamations intégré"
+    },
+    "parents": {
+      "title": "Connexion Ininterrompue",
+      "description": "Une application partenaire rassurante pour rester connecté à la scolarité de vos enfants, avec des alertes configurables et un accès transparent aux résultats.",
+      "f1": "Alertes personnalisables",
+      "f2": "Vue globale du parcours",
+      "f3": "Accès sécurisé multi-enfants"
+    },
+    "explore": "Explorer la solution détaillée"
+  },
+  "guarantees": {
+    "badge": "Infrastructure",
+    "main_title": "Des fondations bâties sur la fiabilité absolue.",
+    "main_description": "Nous utilisons les mêmes standards de sécurité que l'industrie financière pour garantir que vos données restent privées, précises et toujours disponibles.",
+    "auto": {
+      "title": "Automatisation Stratégique",
+      "description": "Une réduction drastique des tâches manuelles. Oubliez les erreurs humaines avec des barèmes pré-validés."
+    },
+    "zero": {
+      "title": "Zéro Défaut Garanti",
+      "description": "Une intégrité parfaite. Les flux de validation en cascade bloquent tout écart statistique détecté."
+    },
+    "sec": {
+      "title": "Sécurité Architecturale",
+      "description": "Une forteresse numérique. Chiffrement AES-256 et architecture RBAC assurant la confidentialité absolue de vos données."
+    }
+  },
+  "footer": {
+    "description": "L'application web pour l'optimisation des flux pédagogiques et administratifs.",
+    "contact": "Contact",
+    "rights": "Tous droits réservés."
+  },
+  "auth": {
+    "login": {
+      "title": "Se connecter",
+      "email": "Email",
+      "email_placeholder": "votre.email@example.com",
+      "password": "Mot de passe",
+      "password_placeholder": "••••••••",
+      "submit": "Se connecter",
+      "loading": "Connexion...",
+      "no_account": "Pas de compte?",
+      "signup": "S'inscrire"
+    },
+    "signup": {
+      "title": "S'inscrire",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "email": "Email",
+      "password": "Mot de passe",
+      "confirm_password": "Confirmer le mot de passe",
+      "role": "Rôle",
+      "role_student": "Étudiant",
+      "role_teacher": "Enseignant",
+      "role_parent": "Parent",
+      "submit": "Créer un compte",
+      "loading": "Création...",
+      "have_account": "Déjà un compte?",
+      "login": "Se connecter",
+      "password_mismatch": "Les mots de passe ne correspondent pas",
+      "password_too_short": "Le mot de passe doit faire au moins 8 caractères"
+    }
+  },
+  "dashboard": {
+    "logout": "Se déconnecter",
+    "shell": {
+      "title": "Tableau de bord"
+    },
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Utilisateurs",
+      "teachers": "Enseignants",
+      "students": "Étudiants",
+      "parents": "Parents",
+      "classes": "Classes",
+      "rooms": "Salles",
+      "subjects": "Matières",
+      "evaluations": "Évaluations",
+      "timetable": "Emploi du temps",
+      "notifications": "Notifications",
+      "absences": "Absences",
+      "grades": "Notes",
+      "complaints": "Réclamations",
+      "children": "Mes enfants",
+      "children_grades": "Notes des Enfants",
+      "my_grades": "Mes Notes",
+      "my_absences": "Mes Absences",
+      "my_classes": "Mes Classes",
+      "grades_management": "Gestion des Notes"
+    }
+  },
+  "roles": {
+    "admin": "Administrateur",
+    "enseignant": "Enseignant",
+    "parent": "Parent",
+    "etudiant": "Étudiant"
+  },
+  "admin_dashboard": {
+    "title": "Vue d'ensemble",
+    "welcome": "Bienvenue dans votre centre d'administration EduConnect.",
+    "system_online": "Système en ligne",
+    "stats": {
+      "users": "Utilisateurs",
+      "teachers": "Enseignants",
+      "absences_today": "Absences Aujourd'hui",
+      "pending_reclamations": "Réclamations en attente",
+      "trend_week": "+{{count}} cette semaine"
+    },
+    "notifications": {
+      "title": "Notifications Récentes",
+      "no_notifs": "Aucune notification récente à afficher.",
+      "new": "Nouveau"
+    },
+    "shortcuts": {
+      "title": "Raccourcis",
+      "manage_classes": "Gérer les Classes",
+      "manage_users": "Gérer les Utilisateurs",
+      "students_list": "Liste des Étudiants",
+      "evaluations": "Évaluations"
+    },
+    "errors": {
+      "load_stats": "Erreur lors du chargement des statistiques",
+      "update_notif": "Erreur lors de la mise à jour de la notification"
+    }
+  },
+  "common": {
+    "actions": "Actions",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "save": "Sauvegarder",
+    "cancel": "Annuler",
+    "search": "Rechercher...",
+    "all_roles": "Tous les rôles",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "status": "Statut",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "confirm": "Confirmer",
+    "add": "Ajouter",
+    "no_data": "Aucune donnée disponible",
+    "close": "Fermer",
+    "view": "Voir",
+    "remove": "Retirer",
+    "absent": "Absent",
+    "all_classes": "Toutes les classes",
+    "specialty": "Spécialité",
+    "name": "Nom",
+    "level": "Niveau",
+    "email": "Email",
+    "phone": "Téléphone",
+    "coming_soon": "Module en cours",
+    "section_available_soon": "Cette section sera disponible prochainement."
+  },
+  "users_manager": {
+    "title": "Utilisateurs",
+    "subtitle": "Gérez les comptes enseignants, étudiants et parents.",
+    "add_user": "Ajouter un utilisateur",
+    "edit_user": "Modifier l'utilisateur",
+    "search_placeholder": "Rechercher par nom, email...",
+    "table": {
+      "user": "Utilisateur",
+      "email": "Email",
+      "role": "Rôle"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des utilisateurs",
+      "delete_success": "Utilisateur supprimé avec succès",
+      "delete_error": "Erreur lors de la suppression",
+      "save_success": "Utilisateur créé avec succès",
+      "update_success": "Utilisateur mis à jour",
+      "save_error": "Erreur lors de la sauvegarde"
+    },
+    "delete_confirm": {
+      "title": "Supprimer l'utilisateur",
+      "message": "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible."
+    }
+  },
+  "students_manager": {
+    "title": "Gestion des Étudiants",
+    "subtitle": "Supervision complète du parcours académique et administratif.",
+    "add_student": "Inscrire un étudiant",
+    "search_placeholder": "Rechercher un étudiant...",
+    "all_classes": "Toutes les classes",
+    "tabs": {
+      "absences": "Absences",
+      "notes": "Notes",
+      "parents": "Parents"
+    },
+    "table": {
+      "code": "Code",
+      "class": "Classe",
+      "apogee": "Code Apogée"
+    },
+    "details": {
+      "no_absences": "Aucune absence enregistrée",
+      "no_notes": "Aucune note disponible",
+      "no_parents": "Aucun parent lié",
+      "add_parent": "Lier un parent",
+      "justify": "Justifier",
+      "justified": "Justifiée",
+      "unjustified": "Non justifiée"
+    },
+    "messages": {
+      "load_error": "Erreur de chargement",
+      "update_success": "Étudiant mis à jour",
+      "update_error": "Erreur lors de la mise à jour",
+      "parent_link_success": "Parent lié avec succès",
+      "parent_link_error": "Erreur lors de la liaison",
+      "absence_justify_success": "Absence justifiée"
+    }
+  },
+  "classes_manager": {
+    "title": "Classes",
+    "subtitle": "Gérez les classes et leurs niveaux.",
+    "add_class": "Ajouter une classe",
+    "edit_class": "Modifier la classe",
+    "create_class": "Créer une classe",
+    "search_placeholder": "Rechercher une classe...",
+    "table": {
+      "class": "Classe",
+      "level": "Niveau",
+      "students": "Étudiants",
+      "assignments": "Affectations"
+    },
+    "levels": {
+      "1": "1ère Année",
+      "2": "2ème Année",
+      "3": "3ème Année",
+      "4": "4ème Année",
+      "5": "5ème Année"
+    },
+    "modals": {
+      "students_title": "Étudiants - {{name}}",
+      "assignments_title": "Affectations - {{name}}",
+      "filter_students": "Filtrer les étudiants...",
+      "filter_assignments": "Filtrer par matière ou enseignant...",
+      "no_assignments": "Aucune affectation trouvée pour cette classe."
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des classes",
+      "load_students_error": "Erreur lors du chargement des étudiants",
+      "load_assignments_error": "Erreur lors du chargement des affectations",
+      "delete_success": "Classe supprimée avec succès",
+      "update_success": "Classe mise à jour",
+      "save_success": "Classe créée avec succès"
+    }
+  },
+  "teachers_manager": {
+    "title": "Gestion des Enseignants",
+    "subtitle": "{{count}} enseignant(s) enregistrés",
+    "search_placeholder": "Rechercher par nom, email, spécialité…",
+    "specialty": "Spécialité",
+    "assignments": "Affectations & Cours",
+    "add_assignments": "Ajouter des affectations",
+    "no_assignments": "Aucune affectation.",
+    "select_subjects": "Sélectionner matières",
+    "select_classes": "Sélectionner classes",
+    "messages": {
+      "update_success": "Enseignant mis à jour",
+      "delete_assignment_success": "Affectation supprimée",
+      "add_assignments_success": "{{count}} affectation(s) ajoutée(s)",
+      "add_assignments_error": "Certaines affectations existent déjà.",
+      "select_required": "Sélectionnez au moins une matière et une classe."
+    }
+  },
+  "matieres_manager": {
+    "title": "Matières",
+    "subtitle": "Gérez le catalogue des matières enseignées.",
+    "add_subject": "Ajouter une matière",
+    "edit_subject": "Modifier la matière",
+    "create_subject": "Créer une matière",
+    "search_placeholder": "Rechercher une matière...",
+    "table": {
+      "subject": "Matière",
+      "coefficient": "Coefficient"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des matières",
+      "delete_success": "Matière supprimée avec succès",
+      "update_success": "Matière mise à jour",
+      "save_success": "Matière créée avec succès"
+    }
+  },
+  "salles_manager": {
+    "title": "Salles",
+    "subtitle": "Gérez les salles de classe et leur capacité.",
+    "add_room": "Ajouter une salle",
+    "edit_room": "Modifier la salle",
+    "create_room": "Créer une salle",
+    "search_placeholder": "Rechercher une salle...",
+    "table": {
+      "room": "Salle",
+      "capacity": "Capacité",
+      "type": "Type"
+    },
+    "types": {
+      "cours": "Cours",
+      "tp": "TP / Labo",
+      "amphi": "Amphithéâtre"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des salles",
+      "delete_success": "Salle supprimée avec succès",
+      "update_success": "Salle mise à jour",
+      "save_success": "Salle créée avec succès",
+      "delete_error": "Erreur lors de la suppression",
+      "save_error": "Erreur lors de la sauvegarde"
+    },
+    "delete_confirm": {
+      "title": "Supprimer la salle",
+      "message": "Êtes-vous sûr de vouloir supprimer la salle \"{{name}}\" ?"
+    }
+  },
+  "parents_manager": {
+    "title": "Gestion des Parents",
+    "subtitle": "{{count}} parent(s) enregistrés",
+    "search_placeholder": "Rechercher par nom ou email…",
+    "no_parents": "Aucun parent trouvé.",
+    "attached_children": "Enfants rattachés",
+    "add_child": "Ajouter un enfant",
+    "attach": "Ajouter",
+    "detach": "Retirer",
+    "no_children": "Aucun enfant rattaché.",
+    "children_not_found": "{{count}} enfant(s) lié(s) introuvable(s) dans la liste.",
+    "edit_parent": "Modifier les informations du parent",
+    "messages": {
+      "load_error": "Erreur de chargement des parents",
+      "attach_success": "Enfant rattaché au parent",
+      "attach_error": "Impossible de rattacher l’enfant",
+      "detach_success": "Enfant retiré du parent",
+      "detach_error": "Impossible de retirer l’enfant",
+      "update_success": "Informations du parent mises à jour",
+      "update_error": "Erreur lors de la mise à jour"
+    }
+  },
+  "affectations_manager": {
+    "title": "Affectations",
+    "subtitle": "Gérez les affectations des enseignants aux classes et matières.",
+    "add_assignment": "Ajouter une affectation",
+    "edit_assignment": "Modifier l'affectation",
+    "search_placeholder": "Rechercher une affectation...",
+    "table": {
+      "teacher": "Enseignant",
+      "subject": "Matière",
+      "class": "Classe"
+    },
+    "select_teacher": "Sélectionner un enseignant",
+    "select_subject": "Sélectionner une matière",
+    "select_class": "Sélectionner une classe",
+    "messages": {
+      "load_error": "Erreur lors du chargement des données",
+      "save_success": "Affectation ajoutée avec succès",
+      "update_success": "Affectation modifiée avec succès",
+      "delete_success": "Affectation supprimée",
+      "delete_confirm": "Êtes-vous sûr de vouloir supprimer cette affectation ?",
+      "save_error": "Erreur lors de l'enregistrement",
+      "delete_error": "Erreur lors de la suppression"
+    }
+  },
+  "evaluations_manager": {
+    "title": "Gestion des Évaluations",
+    "subtitle": "Supervisez et gérez toutes les évaluations du système.",
+    "add_evaluation": "Ajouter une évaluation",
+    "search_placeholder": "Rechercher par matière ou enseignant...",
+    "table": {
+      "evaluation": "Évaluation",
+      "class": "Classe",
+      "teacher": "Enseignant",
+      "planning": "Planification"
+    },
+    "not_planned": "Non planifiée",
+    "view_notes": "Voir les notes",
+    "no_notes": "Aucune note saisie pour cette évaluation.",
+    "delete_forever": "Supprimer définitivement",
+    "types": {
+      "CC": "Contrôle Continu",
+      "Examen": "Examen Final",
+      "TP": "Travaux Pratiques"
+    },
+    "form": {
+      "type": "Type",
+      "max_note": "Note Max",
+      "period": "Période / Semestre",
+      "select_period": "Sélectionnez une période",
+      "planning_opt": "Planification (Optionnelle)",
+      "room_opt": "Salle (Optionnelle)",
+      "select_room": "Sélectionner une salle"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des données",
+      "load_notes_error": "Erreur lors du chargement des notes",
+      "delete_success": "Évaluation supprimée définitivement",
+      "save_success": "Évaluation créée avec succès",
+      "delete_error": "Erreur lors de la suppression",
+      "save_error": "Erreur lors de la création"
+    }
+  },
+  "timetable_manager": {
+    "title": "Emploi du temps",
+    "subtitle": "Gérez la planification des cours par classe.",
+    "add_session": "Ajouter une séance",
+    "select_class": "Sélectionner une classe",
+    "no_class_selected": "Veuillez sélectionner une classe pour voir son emploi du temps.",
+    "edit_session": "Modifier la séance",
+    "program_course_eval": "Programmer un cours ou évaluation",
+    "normal_course": "Cours normal",
+    "evaluation_exam": "Évaluation / Examen",
+    "course_and_teacher": "Cours et Prof",
+    "select_course": "Sélectionner un cours",
+    "day_of_week": "Jour de la semaine",
+    "start_time": "Heure de début",
+    "end_time": "Heure de fin",
+    "room": "Salle",
+    "select_room_opt": "Sélectionner une salle (optionnel)",
+    "evaluation_date": "Date de l'évaluation",
+    "evaluation_type": "Type d'évaluation",
+    "max_note": "Note Max",
+    "days": {
+      "lundi": "Lundi",
+      "mardi": "Mardi",
+      "mercredi": "Mercredi",
+      "jeudi": "Jeudi",
+      "vendredi": "Vendredi",
+      "samedi": "Samedi",
+      "dimanche": "Dimanche"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des données",
+      "load_details_error": "Erreur lors du chargement des détails",
+      "invalid_assignment": "Affectation invalide",
+      "save_success": "Séance ajoutée avec succès",
+      "update_success": "Séance modifiée avec succès",
+      "eval_save_success": "Évaluation programmée avec succès",
+      "eval_update_success": "Évaluation modifiée avec succès",
+      "convert_success": "Séance transformée en évaluation",
+      "delete_session_success": "Séance supprimée",
+      "delete_eval_success": "Évaluation retirée de l'emploi du temps",
+      "delete_eval_confirm": "Voulez-vous retirer cette évaluation de l'emploi du temps ? Elle restera accessible pour la saisie des notes.",
+      "save_error": "Erreur lors de l'enregistrement",
+      "delete_error": "Erreur lors de la suppression"
+    }
+  },
+  "student_absences": {
+    "title": "Mes Absences",
+    "subtitle": "Suivez votre assiduité et justifiez vos absences par séance.",
+    "stats": {
+      "unjustified": "Non Justifiées",
+      "justified": "Justifiées",
+      "presence_rate": "Taux de présence"
+    },
+    "history_title": "Historique détaillé des absences",
+    "table": {
+      "date": "Date",
+      "duration": "Durée: {{count}}h",
+      "justified": "Justifiée",
+      "unjustified": "Non Justifiée"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement de vos absences",
+      "no_absences": "Aucune absence enregistrée. Félicitations !"
+    }
+  },
+  "student_notes": {
+    "title": "Mon Bulletin",
+    "subtitle": "Consultez vos notes détaillées et les appréciations des professeurs.",
+    "stats": {
+      "average": "Moyenne Générale",
+      "best": "Meilleure Note",
+      "min": "Note Minimale",
+      "current_performance": "Performance Actuelle",
+      "excellent": "Excellent",
+      "to_improve": "À améliorer"
+    },
+    "filters": {
+      "search_placeholder": "Rechercher par matière ou commentaire...",
+      "all_periods": "Toutes les périodes",
+      "all_types": "Tous les types"
+    },
+    "table": {
+      "subject_type": "Matière & Type",
+      "teacher": "Enseignant",
+      "grade": "Note",
+      "comment": "Commentaire du Professeur",
+      "no_comment": "Pas de commentaire particulier."
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement de vos notes",
+      "no_results": "Aucun résultat trouvé."
+    }
+  },
+  "student_reclamations": {
+    "title": "Mes Réclamations",
+    "subtitle": "Consultez vos notes et faites des réclamations.",
+    "stats": {
+      "pending": "En attente",
+      "treated": "Traitées",
+      "rejected": "Rejetées"
+    },
+    "notes_section": {
+      "title": "Mes Notes",
+      "subtitle": "Cliquez sur une note pour faire une réclamation",
+      "table": {
+        "evaluation": "Évaluation",
+        "type": "Type",
+        "subject": "Matière",
+        "grade": "Note",
+        "comment": "Commentaire",
+        "not_graded": "Non noté"
+      },
+      "claim": "Réclamer"
+    },
+    "reclamations_section": {
+      "title": "Mes Réclamations",
+      "no_reclamations": "Aucune réclamation envoyée.",
+      "teacher_reply": "Réponse de l'enseignant :",
+      "unknown_teacher": "Enseignant inconnu",
+      "unknown_subject": "Matière inconnue"
+    },
+    "modal": {
+      "title": "Faire une réclamation",
+      "note_details": "Détails de la note :",
+      "evaluation": "Évaluation :",
+      "subject": "Matière :",
+      "grade": "Note :",
+      "comment": "Commentaire :",
+      "your_claim": "Votre réclamation",
+      "placeholder": "Expliquez les raisons de votre réclamation...",
+      "submit": "Envoyer la réclamation"
+    },
+    "status": {
+      "en_attente": "En attente",
+      "traitee": "Traitée",
+      "rejetee": "Rejetée"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des données",
+      "access_denied": "Accès non autorisé",
+      "profile_not_found": "Profil étudiant non trouvé",
+      "no_recipient": "Impossible de déterminer le destinataire de la réclamation.",
+      "no_teacher": "Aucun enseignant trouvé pour cette évaluation. Veuillez contacter l'administration.",
+      "send_success": "Réclamation envoyée avec succès",
+      "send_error": "Erreur lors de l'envoi de la réclamation"
+    }
+  },
+  "student_timetable": {
+    "title": "Mon Emploi du Temps",
+    "subtitle": "Consultez votre emploi du temps hebdomadaire.",
+    "messages": {
+      "load_error": "Erreur lors du chargement de votre profil",
+      "no_class": "Vous n'êtes affecté à aucune classe pour le moment."
+    }
+  },
+  "teacher_absences": {
+    "title": "Gestion des Absences",
+    "subtitle": "Faites l'appel et gérez l'historique complet des présences.",
+    "stats": {
+      "total_absences": "Total Absences",
+      "sessions_managed": "Séances gérées",
+      "global_summary": "Résumé Global",
+      "stats_desc": "Statistiques sur vos enregistrements de présence."
+    },
+    "attendance_section": {
+      "title": "Faire l'appel aujourd'hui",
+      "launch_sheet": "Lancer la feuille de présence"
+    },
+    "history_section": {
+      "title": "Historique des Séances",
+      "count": "{{count}} séance(s) trouvée(s)",
+      "no_history": "Aucun historique pour cette date.",
+      "absent_students": "Étudiants absents"
+    },
+    "modal": {
+      "title_create": "Faire l'appel",
+      "title_edit": "Modifier l'appel",
+      "course_date": "Date du cours",
+      "session_subject": "Séance / Matière",
+      "select_session": "Sélectionner une séance",
+      "student_list": "Liste des Étudiants",
+      "present": "Présent",
+      "absent": "Absent"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des données",
+      "load_students_error": "Erreur lors du chargement des étudiants",
+      "select_session_error": "Veuillez sélectionner une séance",
+      "date_mismatch_error": "La date choisie ({{date}}) est un {{day}}, mais la séance est programmée le {{sessionDay}}.",
+      "save_success": "Feuille de présence mise à jour",
+      "save_error": "Erreur lors de la sauvegarde"
+    }
+  },
+  "teacher_classes": {
+    "title": "Mes Classes",
+    "subtitle": "Classes et étudiants que vous enseignez.",
+    "search_placeholder": "Rechercher une classe...",
+    "no_classes": "Aucune classe trouvée.",
+    "subjects_count": "{{count}} matière(s)",
+    "students_count": "{{count}} étudiant(s)",
+    "students_list": "Étudiants ({{count}})",
+    "no_students": "Aucun étudiant dans cette classe.",
+    "view_profile": "Voir le profil",
+    "student_profile": {
+      "title": "Profil Étudiant : {{name}}",
+      "search_placeholder": "Rechercher par matière ou évaluation...",
+      "notes_title": "Notes dans vos matières",
+      "absences_title": "Absences dans vos séances",
+      "no_notes": "Aucune note trouvée avec ces filtres.",
+      "no_absences": "Aucune absence trouvée avec ces filtres.",
+      "load_error": "Erreur lors du chargement du profil"
+    }
+  },
+  "teacher_notes": {
+    "title": "Gestion des Notes",
+    "subtitle": "Créez des évaluations et saisissez les notes.",
+    "new_evaluation": "Nouvelle Évaluation",
+    "evaluations_title": "Évaluations",
+    "search_placeholder": "Rechercher une évaluation...",
+    "no_evaluations": "Aucune évaluation trouvée.",
+    "enter_grades": "Saisir Notes",
+    "form": {
+      "type": "Type d'évaluation",
+      "date": "Date",
+      "start_time": "Heure de début",
+      "end_time": "Heure de fin"
+    },
+    "grade_modal": {
+      "title": "Saisie des notes - {{matiere}} ({{classe}})",
+      "max_note": "Note Max : {{count}}",
+      "student": "Étudiant",
+      "grade": "Note",
+      "comment": "Commentaire",
+      "absent_long": "Cocher si l'étudiant était absent",
+      "submit": "Enregistrer les notes"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des données",
+      "load_students_error": "Erreur lors du chargement des étudiants",
+      "create_success": "Évaluation créée avec succès",
+      "create_error": "Erreur lors de la création de l'évaluation",
+      "save_success": "Notes enregistrées avec succès",
+      "save_error": "Erreur lors de l'enregistrement des notes"
+    }
+  },
+  "teacher_reclamations": {
+    "title": "Réclamations",
+    "subtitle": "Gérez les réclamations des étudiants et apportez des réponses.",
+    "stats": {
+      "pending": "En attente",
+      "treated": "Traitées",
+      "rejected": "Rejetées"
+    },
+    "filters": {
+      "search_placeholder": "Rechercher par étudiant, matière ou message...",
+      "all_status": "Tous les statuts",
+      "reset": "Réinitialiser"
+    },
+    "inbox_title": "Boîte de Réception",
+    "results_count": "{{count}} RÉSULTATS",
+    "no_reclamations": "Aucune réclamation reçue.",
+    "eval_details": "Détails de l'évaluation",
+    "original_comment": "Commentaire original",
+    "your_response": "Votre Réponse",
+    "reply_btn": "Répondre",
+    "response_modal": {
+      "title": "Répondre à la réclamation",
+      "student_message": "Message de l'étudiant",
+      "decision": "Décision",
+      "treat": "Traiter",
+      "reject": "Rejeter",
+      "detailed_response": "Votre réponse détaillée",
+      "placeholder": "Expliquez les raisons de votre décision à l'étudiant...",
+      "cancel": "Annuler",
+      "submit_treat": "Valider le traitement",
+      "submit_reject": "Confirmer le rejet"
+    },
+    "messages": {
+      "load_error": "Erreur lors du chargement des réclamations",
+      "reply_required": "Veuillez saisir une réponse",
+      "send_success": "Réponse envoyée avec succès",
+      "send_error": "Erreur lors de l'envoi de la réponse"
+    }
+  },
+  "timetable_grid": {
+    "loading": "Chargement de l'emploi du temps...",
+    "error": "Erreur lors du chargement de l'emploi du temps",
+    "endpoint_error": "Endpoint non trouvé. Assurez-vous d'avoir déployé le backend.",
+    "retry_error": "Réessayez plus tard ou contactez l'administrateur.",
+    "no_seance": "Aucune séance ou évaluation prévue.",
+    "seance_details": "Détails de la séance",
+    "evaluation_details": "Détails de l'évaluation",
+    "room": "Salle",
+    "teacher": "Enseignant",
+    "subject": "Matière",
+    "class": "Classe",
+    "type": "Type",
+    "evaluation": "Évaluation",
+    "course": "Cours",
+    "unspecified": "Non spécifié",
+    "not_assigned": "Non assigné",
+    "no_class_assigned": "Cet enfant n'est affecté à aucune classe.",
+    "no_child_found": "Aucun enfant trouvé.",
+    "days": {
+      "lundi": "Lundi",
+      "mardi": "Mardi",
+      "mercredi": "Mercredi",
+      "jeudi": "Jeudi",
+      "vendredi": "Vendredi",
+      "samedi": "Samedi",
+      "dimanche": "Dimanche"
+    }
+  },
+  "parent_absences": {
+    "title": "Suivi des Absences",
+    "selected_child": "Enfant sélectionné",
+    "history_title": "Historique détaillé pour {{name}}",
+    "stats": {
+      "total": "Total Absences",
+      "justified": "Justifiées",
+      "unjustified": "Non justifiées"
+    },
+    "filters": {
+      "search_placeholder": "Rechercher par matière ou prof...",
+      "date_placeholder": "Filtrer par date"
+    },
+    "table": {
+      "subject": "Matière",
+      "date": "Date",
+      "status": "Statut",
+      "justified": "Justifiée",
+      "unjustified": "Non justifiée"
+    },
+    "no_absences": "Aucune absence trouvée.",
+    "messages": {
+      "load_children_error": "Erreur lors du chargement des enfants",
+      "load_absences_error": "Erreur lors du chargement des absences"
+    }
+  },
+  "parent_children": {
+    "title": "Mes Enfants",
+    "subtitle": "Vos enfants.",
+    "no_children": "Aucun enfant trouvé.",
+    "not_assigned": "Classe non assignée",
+    "code": "Code",
+    "email": "Email",
+    "contact": "Contact",
+    "not_provided": "Non renseigné",
+    "messages": {
+      "load_error": "Erreur lors du chargement des profils enfants"
+    }
+  },
+  "parent_notes": {
+    "title": "Bulletin Scolaire",
+    "subtitle": "Suivez les résultats académiques et les appréciations des professeurs pour vos enfants.",
+    "filters": {
+      "all_periods": "Toutes les périodes",
+      "all_types": "Tous les types"
+    },
+    "table": {
+      "evaluation": "Évaluation",
+      "grade": "Note",
+      "comment": "Appréciation",
+      "absent": "Absent",
+      "no_comment": "Aucun commentaire particulier."
+    },
+    "no_notes": "Aucune note trouvée pour cette période.",
+    "messages": {
+      "load_error": "Erreur lors du chargement des notes",
+      "change_child_error": "Erreur lors du changement d'enfant"
+    }
+  },
+  "parent_reclamations": {
+    "title": "Réclamations",
+    "filters": {
+      "search_placeholder": "Rechercher par message...",
+      "all_status": "Tous les statuts",
+      "date_placeholder": "Filtrer par date"
+    },
+    "table": {
+      "message": "Message",
+      "status": "Statut",
+      "date": "Date",
+      "response": "Réponse",
+      "no_response": "Pas encore de réponse"
+    },
+    "no_reclamations": "Aucune réclamation trouvée.",
+    "messages": {
+      "load_children_error": "Erreur lors du chargement des enfants",
+      "load_reclamations_error": "Erreur lors du chargement des réclamations"
+    }
+  },
+  "parent_timetable": {
+    "title": "Emploi du temps des enfants",
+    "subtitle": "Consultez l'emploi du temps de vos enfants.",
+    "select_child": "Sélectionner un enfant",
+    "messages": {
+      "load_children_error": "Erreur lors du chargement de vos enfants"
+    }
+  },
+  "teacher_dashboard": {
+    "title": "Tableau de Bord Enseignant",
+    "welcome": "Bienvenue, {{name}}. Voici l'état de vos activités pédagogiques.",
+    "stats": {
+      "classes": "Mes Classes",
+      "students": "Total Étudiants",
+      "reclamations": "Réclamations",
+      "absences": "Absences Notées",
+      "to_treat": "À traiter"
+    },
+    "recent_activities": "Activités Récentes",
+    "recent_evaluations": "Évaluations Récentes",
+    "pending_reclamations": "Réclamations en attente",
+    "no_recent_evals": "Aucune évaluation récente.",
+    "no_pending_recs": "Aucune réclamation en attente.",
+    "view_all": "Voir tout"
+  },
+  "student_dashboard": {
+    "title": "Tableau de Bord Étudiant",
+    "welcome": "Content de vous revoir, {{name}} !",
+    "stats": {
+      "average": "Moyenne Générale",
+      "absences": "Total Absences",
+      "matieres": "Mes Matières",
+      "not_available": "N/A"
+    },
+    "recent_notes": "Notes Récentes",
+    "notifications": "Notifications",
+    "no_recent_notes": "Aucune note récente pour cette période.",
+    "no_notifs": "Aucune notification.",
+    "period_selector": "Choisir la période"
+  },
+  "parent_dashboard": {
+    "title": "Tableau de Bord Parent",
+    "welcome": "Bienvenue, {{name}} !",
+    "stats": {
+      "children": "Mes Enfants",
+      "reclamations": "Réclamations Actives",
+      "absences": "Total Absences"
+    },
+    "recent_activities": "Activités Récentes",
+    "notifications": "Notifications",
+    "no_activities": "Aucune activité récente trouvée.",
+    "no_notifs": "Aucune notification.",
+    "activity_types": {
+      "grade": "Nouvelle note pour {{name}}",
+      "absence": "Nouvelle absence pour {{name}}",
+      "reclamation": "Réponse à une réclamation"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Restez informé des dernières mises à jour.",
+    "mark_all_read": "Tout marquer comme lu",
+    "no_notifs": "Aucune notification trouvée.",
+    "no_notifs_title": "Aucune notification",
+    "messages": {
+      "load_error": "Erreur lors du chargement des notifications",
+      "update_error": "Erreur lors de la mise à jour de la notification",
+      "mark_all_success": "Toutes les notifications ont été marquées comme lues"
+    }
+  },
+  "teacher_timetable": {
+    "title": "Emploi du Temps",
+    "subtitle": "Consultez votre emploi du temps personnel ou celui des classes.",
+    "my_timetable": "Mon Emploi",
+    "class_timetable": "Par Classe",
+    "no_class_assigned": "Aucune classe affectée à votre profil.",
+    "messages": {
+      "loading": "Chargement de l'emploi du temps...",
+      "load_error": "Erreur lors du chargement des données"
+    }
+  }
+}

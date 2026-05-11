@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Clock, Plus, Search, Calendar, Users, UserX, Activity, History, Edit2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
@@ -72,6 +73,7 @@ interface GroupedSession {
 }
 
 export default function TeacherAbsences() {
+  const { t } = useTranslation();
   const [absences, setAbsences] = useState<Absence[]>([]);
   const [seances, setSeances] = useState<Seance[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
@@ -95,7 +97,7 @@ export default function TeacherAbsences() {
         const user = userRes.data;
 
         if (user.role !== 'enseignant') {
-          toast.error('Accès non autorisé');
+          toast.error(t('student_reclamations.messages.access_denied'));
           return;
         }
 
@@ -121,14 +123,14 @@ export default function TeacherAbsences() {
 
       } catch (error) {
         console.error(error);
-        toast.error('Erreur lors du chargement des données');
+        toast.error(t('teacher_absences.messages.load_error'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (selectedSeance && attendanceDate) {
@@ -148,7 +150,7 @@ export default function TeacherAbsences() {
       const res = await api.get(`/accounts/etudiants/?classe=${classId}`);
       setStudents(prev => ({ ...prev, [classId]: res.data.results || res.data }));
     } catch (error) {
-      toast.error('Erreur lors du chargement des étudiants');
+      toast.error(t('teacher_absences.messages.load_students_error'));
     }
   };
 
@@ -170,7 +172,7 @@ export default function TeacherAbsences() {
 
   const submitAttendance = async () => {
     if (!selectedClass || !selectedSeance) {
-      toast.error('Veuillez sélectionner une séance');
+      toast.error(t('teacher_absences.messages.select_session_error'));
       return;
     }
 
@@ -192,7 +194,7 @@ export default function TeacherAbsences() {
     const dayOfDate = daysMap[selectedDate.getDay()];
 
     if (dayOfDate !== seance.jour) {
-      toast.error(`La date choisie (${attendanceDate}) est un ${dayOfDate}, mais la séance est programmée le ${seance.jour}.`);
+      toast.error(t('teacher_absences.messages.date_mismatch_error', { date: attendanceDate, day: dayOfDate, sessionDay: seance.jour }));
       return;
     }
 
@@ -225,7 +227,7 @@ export default function TeacherAbsences() {
       });
 
       await Promise.all(promises);
-      toast.success('Feuille de présence mise à jour');
+      toast.success(t('teacher_absences.messages.save_success'));
       // On recharge les données pour mettre à jour l'historique
       const [newSeancesRes, newAbsRes] = await Promise.all([
         api.get('/academics/seances/'),
@@ -237,7 +239,7 @@ export default function TeacherAbsences() {
       setIsAttendanceModalOpen(false);
 
     } catch (error: any) {
-      toast.error('Erreur lors de la sauvegarde : ' + (error.response?.data?.non_field_errors?.[0] || 'Erreur inconnue'));
+      toast.error(t('teacher_absences.messages.save_error') + ' : ' + (error.response?.data?.non_field_errors?.[0] || ''));
     } finally {
       setIsActionLoading(false);
     }
@@ -284,8 +286,8 @@ export default function TeacherAbsences() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gestion des Absences</h1>
-          <p className="text-slate-500 mt-1">Faites l'appel et gérez l'historique complet des présences.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('teacher_absences.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('teacher_absences.subtitle')}</p>
         </div>
         <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-2">
           <Calendar className="w-5 h-5 text-slate-400 ml-2" />
@@ -312,7 +314,7 @@ export default function TeacherAbsences() {
                 <div className="p-2 bg-primary/10 rounded-lg text-primary">
                   <Users className="w-5 h-5" />
                 </div>
-                Faire l'appel aujourd'hui
+                {t('teacher_absences.attendance_section.title')}
               </h3>
             </div>
             <div className="p-8">
@@ -330,7 +332,7 @@ export default function TeacherAbsences() {
                       <Plus className="w-5 h-5 text-slate-300 group-hover:text-primary group-hover:rotate-90 transition-all" />
                     </div>
                     <h4 className="font-black text-slate-900 text-lg leading-tight">{classe.nom}</h4>
-                    <p className="text-sm text-slate-500 mt-1">Lancer la feuille de présence</p>
+                    <p className="text-sm text-slate-500 mt-1">{t('teacher_absences.attendance_section.launch_sheet')}</p>
                   </button>
                 ))}
               </div>
@@ -344,10 +346,10 @@ export default function TeacherAbsences() {
                 <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
                   <History className="w-5 h-5" />
                 </div>
-                Historique des Séances
+                {t('teacher_absences.history_section.title')}
               </h3>
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                {historySessions.length} séance(s) trouvée(s)
+                {t('teacher_absences.history_section.count', { count: historySessions.length })}
               </span>
             </div>
             <div className="divide-y divide-slate-100">
@@ -359,7 +361,7 @@ export default function TeacherAbsences() {
                 >
                   <div className="flex items-center gap-6">
                     <div className="w-14 h-14 rounded-2xl bg-slate-100 flex flex-col items-center justify-center text-slate-400 border border-slate-200 shrink-0">
-                      <span className="text-[10px] font-black uppercase tracking-tighter leading-none mb-1">Jour</span>
+                      <span className="text-[10px] font-black uppercase tracking-tighter leading-none mb-1">{t('student_absences.table.date')}</span>
                       <span className="text-sm font-black text-slate-900">{session.date.split('-')[2]}/{session.date.split('-')[1]}</span>
                     </div>
                     <div>
@@ -377,7 +379,7 @@ export default function TeacherAbsences() {
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="text-right">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">Étudiants absents</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">{t('teacher_absences.history_section.absent_students')}</p>
                       <div className="flex items-center gap-2 justify-end">
                         <span className={`text-lg font-black ${session.absent_count > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
                           {session.absent_count}
@@ -392,7 +394,7 @@ export default function TeacherAbsences() {
                 </div>
               )) : (
                 <div className="p-20 text-center text-slate-400 italic">
-                  Aucun historique pour cette date.
+                  {t('teacher_absences.history_section.no_history')}
                 </div>
               )}
             </div>
@@ -403,16 +405,16 @@ export default function TeacherAbsences() {
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl shadow-slate-200 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl" />
             <Activity className="w-10 h-10 text-primary mb-6" />
-            <h3 className="text-2xl font-bold mb-2">Résumé Global</h3>
-            <p className="text-slate-400 text-sm mb-8 leading-relaxed">Statistiques sur vos enregistrements de présence.</p>
+            <h3 className="text-2xl font-bold mb-2">{t('teacher_absences.stats.global_summary')}</h3>
+            <p className="text-slate-400 text-sm mb-8 leading-relaxed">{t('teacher_absences.stats.stats_desc')}</p>
             <div className="space-y-6">
               <div className="flex justify-between items-end">
                 <div>
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Absences</p>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">{t('teacher_absences.stats.total_absences')}</p>
                   <p className="text-3xl font-black">{absences.length}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Séances gérées</p>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">{t('teacher_absences.stats.sessions_managed')}</p>
                   <p className="text-2xl font-black text-primary">{new Set(absences.map(a => `${a.date}-${a.seance}`)).size}</p>
                 </div>
               </div>
@@ -424,13 +426,13 @@ export default function TeacherAbsences() {
       <Modal 
         isOpen={isAttendanceModalOpen} 
         onClose={() => setIsAttendanceModalOpen(false)} 
-        title={`${attendanceData[Object.keys(attendanceData)[0] as any]?.absence_id ? 'Modifier' : 'Faire'} l'appel - ${classes.find(c => c.id === selectedClass)?.nom || ''}`}
+        title={`${attendanceData[Object.keys(attendanceData)[0] as any]?.absence_id ? t('common.edit') : t('teacher_absences.modal.title_create')} - ${classes.find(c => c.id === selectedClass)?.nom || ''}`}
         maxWidth="2xl"
       >
         <div className="space-y-8 py-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Date du cours</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('teacher_absences.modal.course_date')}</label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input 
@@ -442,7 +444,7 @@ export default function TeacherAbsences() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Séance / Matière</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('teacher_absences.modal.session_subject')}</label>
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <select 
@@ -450,7 +452,7 @@ export default function TeacherAbsences() {
                   onChange={(e) => setSelectedSeance(parseInt(e.target.value))}
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 font-bold text-slate-900 appearance-none"
                 >
-                  <option value="">Sélectionner une séance</option>
+                  <option value="">{t('teacher_absences.modal.select_session')}</option>
                   {selectedClass && getSeancesForClass(selectedClass).map(s => (
                     <option key={s.id} value={s.id}>
                       {s.matiere_name} ({s.heure_debut} - {s.heure_fin})
@@ -462,7 +464,7 @@ export default function TeacherAbsences() {
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-4">Liste des Étudiants</h4>
+            <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-4">{t('teacher_absences.modal.student_list')}</h4>
             <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
               {currentClassStudents.map((student) => (
                 <div key={student.id} className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-primary/20 transition-all group">
@@ -490,7 +492,7 @@ export default function TeacherAbsences() {
                         : 'bg-white text-slate-400 border border-slate-200 hover:border-emerald-300 hover:text-emerald-500'
                       }`}
                     >
-                      {attendanceData[student.id]?.absent ? 'Absent' : 'Présent'}
+                      {attendanceData[student.id]?.absent ? t('teacher_absences.modal.absent') : t('teacher_absences.modal.present')}
                     </button>
                   </div>
                 </div>
@@ -503,7 +505,7 @@ export default function TeacherAbsences() {
               onClick={() => setIsAttendanceModalOpen(false)}
               className="px-8 py-4 text-slate-500 font-bold hover:bg-slate-100 rounded-2xl transition-all"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button 
               onClick={submitAttendance}
@@ -511,7 +513,7 @@ export default function TeacherAbsences() {
               className="px-10 py-4 bg-primary text-white font-black rounded-2xl hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 disabled:opacity-50 flex items-center gap-2"
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              {attendanceData[Object.keys(attendanceData)[0] as any]?.absence_id ? 'Mettre à jour' : 'Enregistrer'}
+              {t('common.save')}
             </button>
           </div>
         </div>

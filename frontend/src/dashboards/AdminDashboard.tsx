@@ -4,8 +4,10 @@ import { Users, GraduationCap, Activity, AlertCircle, MessageSquare, Bell, UserC
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({ 
     users: 0, 
     classes: 0, 
@@ -26,7 +28,7 @@ export default function AdminDashboard() {
       // Dispatch event to update sidebar counts
       window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de la notification', error);
+      console.error(t('admin_dashboard.errors.update_notif'), error);
     }
   };
 
@@ -72,14 +74,14 @@ export default function AdminDashboard() {
         setRecentNotifications(normalizedNotifs.slice(0, 5));
 
       } catch (error) {
-        toast.error('Erreur lors du chargement des statistiques');
+        toast.error(t('admin_dashboard.errors.load_stats'));
       } finally {
         setLoading(false);
       }
     };
     
     fetchStats();
-  }, []);
+  }, [t]);
 
   if (loading) {
     return <div className="flex h-64 items-center justify-center"><Spinner /></div>;
@@ -89,20 +91,20 @@ export default function AdminDashboard() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Vue d'ensemble</h1>
-          <p className="text-slate-500 mt-1 font-medium">Bienvenue dans votre centre d'administration EduConnect.</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{t('admin_dashboard.title')}</h1>
+          <p className="text-slate-500 mt-1 font-medium">{t('admin_dashboard.welcome')}</p>
         </div>
         <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100">
           <Activity className="w-4 h-4 animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-wider">Système en ligne</span>
+          <span className="text-xs font-bold uppercase tracking-wider">{t('admin_dashboard.system_online')}</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Utilisateurs" value={stats.users} icon={Users} color="bg-blue-600" trend="+2 cette semaine" />
-        <StatCard title="Enseignants" value={stats.teachers} icon={UserCheck} color="bg-indigo-600" />
-        <StatCard title="Absences Aujourd'hui" value={stats.absencesToday} icon={AlertCircle} color="bg-rose-600" />
-        <StatCard title="Réclamations en attente" value={stats.pendingReclamations} icon={MessageSquare} color="bg-amber-600" />
+        <StatCard title={t('admin_dashboard.stats.users')} value={stats.users} icon={Users} color="bg-blue-600" trend={t('admin_dashboard.stats.trend_week', { count: 2 })} />
+        <StatCard title={t('admin_dashboard.stats.teachers')} value={stats.teachers} icon={UserCheck} color="bg-indigo-600" />
+        <StatCard title={t('admin_dashboard.stats.absences_today')} value={stats.absencesToday} icon={AlertCircle} color="bg-rose-600" />
+        <StatCard title={t('admin_dashboard.stats.pending_reclamations')} value={stats.pendingReclamations} icon={MessageSquare} color="bg-amber-600" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -112,7 +114,7 @@ export default function AdminDashboard() {
               <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
                 <Bell className="w-6 h-6" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900">Notifications Récentes</h2>
+              <h2 className="text-xl font-bold text-slate-900">{t('admin_dashboard.notifications.title')}</h2>
             </div>
           </div>
           
@@ -151,25 +153,25 @@ export default function AdminDashboard() {
                 </div>
                 {!notif.is_read && (
                   <span className="px-2 py-0.5 bg-indigo-600 text-[8px] font-black text-white rounded-full uppercase animate-pulse">
-                    Nouveau
+                    {t('admin_dashboard.notifications.new')}
                   </span>
                 )}
               </div>
             )) : (
               <div className="text-center py-12 text-slate-400 font-medium italic">
-                Aucune notification récente à afficher.
+                {t('admin_dashboard.notifications.no_notifs')}
               </div>
             )}
           </div>
         </div>
 
         <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-900 mb-8">Raccourcis</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-8">{t('admin_dashboard.shortcuts.title')}</h2>
           <div className="grid grid-cols-1 gap-3">
-            <ShortcutButton icon={School} label="Gérer les Classes" color="text-blue-600" bg="bg-blue-50" to="/dashboard/admin/classes" />
-            <ShortcutButton icon={Users} label="Gérer les Utilisateurs" color="text-indigo-600" bg="bg-indigo-50" to="/dashboard/admin/users" />
-            <ShortcutButton icon={GraduationCap} label="Liste des Étudiants" color="text-emerald-600" bg="bg-emerald-50" to="/dashboard/admin/students" />
-            <ShortcutButton icon={FileText} label="Évaluations" color="text-amber-600" bg="bg-amber-50" to="/dashboard/admin/evaluations" />
+            <ShortcutButton icon={School} label={t('admin_dashboard.shortcuts.manage_classes')} color="text-blue-600" bg="bg-blue-50" to="/dashboard/admin/classes" />
+            <ShortcutButton icon={Users} label={t('admin_dashboard.shortcuts.manage_users')} color="text-indigo-600" bg="bg-indigo-50" to="/dashboard/admin/users" />
+            <ShortcutButton icon={GraduationCap} label={t('admin_dashboard.shortcuts.students_list')} color="text-emerald-600" bg="bg-emerald-50" to="/dashboard/admin/students" />
+            <ShortcutButton icon={FileText} label={t('admin_dashboard.shortcuts.evaluations')} color="text-amber-600" bg="bg-amber-50" to="/dashboard/admin/evaluations" />
           </div>
         </div>
       </div>
@@ -204,3 +206,4 @@ function ShortcutButton({ icon: Icon, label, color, bg, to }: { icon: any, label
     </Link>
   );
 }
+

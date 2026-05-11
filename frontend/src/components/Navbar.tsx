@@ -1,17 +1,24 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronRight, LogOut } from 'lucide-react';
+import { Menu, X, ChevronRight, LogOut, Languages } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/Logo.png';
 import { LoginModal} from './AuthModals';
 import { useAuth } from '../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 export default function Navbar() {
+  const { t, i18n } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   // const [showSignup, setShowSignup] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'fr' ? 'en' : 'fr';
+    i18n.changeLanguage(newLang);
+  };
 
   const dashboardPath =
     user?.role === 'admin'
@@ -55,19 +62,27 @@ export default function Navbar() {
             </Link>
 
             <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-500">
-              <a href="#fonctionnalites" className="hover:text-primary transition-colors">Fonctionnalités</a>
-              <a href="#ecosysteme" className="hover:text-primary transition-colors">Écosystème</a>
-              <a href="#securite" className="hover:text-primary transition-colors">Sécurité</a>
+              <a href="#fonctionnalites" className="hover:text-primary transition-colors">{t('navbar.features')}</a>
+              <a href="#ecosysteme" className="hover:text-primary transition-colors">{t('navbar.ecosystem')}</a>
+              <a href="#securite" className="hover:text-primary transition-colors">{t('navbar.security')}</a>
             </nav>
 
             <div className="hidden md:flex items-center gap-5">
+              <button 
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-slate-100 transition-colors text-sm font-bold text-slate-700 uppercase"
+                title={i18n.language === 'fr' ? 'Switch to English' : 'Passer en Français'}
+              >
+                <Languages className="w-4 h-4" />
+                {i18n.language === 'fr' ? 'EN' : 'FR'}
+              </button>
               {isAuthenticated ? (
                 <div className="flex items-center gap-4">
                   <Link
                     to={dashboardPath}
                     className="text-sm font-semibold text-slate-700 hover:text-slate-900 px-4 py-2 rounded-full hover:bg-slate-100 transition-colors"
                   >
-                    Mon tableau de bord
+                    {t('navbar.dashboard')}
                   </Link>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-semibold text-slate-900">
@@ -80,6 +95,7 @@ export default function Navbar() {
                   <button
                     onClick={handleLogout}
                     className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600"
+                    title={t('navbar.logout')}
                   >
                     <LogOut className="w-5 h-5" />
                   </button>
@@ -91,22 +107,14 @@ export default function Navbar() {
                     className="group  cursor-pointer relative bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all overflow-hidden flex items-center gap-2"
                   >
                     <div className="absolute inset-0 w-full h-full bg-linear-to-r from-primary/50 to-purple-500/50 opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
-                    Se connecter
+                    {t('navbar.login')}
                    <ChevronRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
                   </button>
-                  {/* <button 
-                    onClick={() => setShowSignup(true)}
-                    className="group relative bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all overflow-hidden flex items-center gap-2"
-                  >
-                    <div className="absolute inset-0 w-full h-full bg-linear-to-r from-primary/50 to-purple-500/50 opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
-                    <span className="relative z-10">Démarrer</span>
-                    <ChevronRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-                  </button> */}
                 </>
               )}
             </div>
 
-            <button className="md:hidden text-slate-900 absolute right-6 z-50" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <button className="md:hidden text-slate-900 absolute right-6 z-50 flex items-center gap-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X /> : <Menu />}
             </button>
           </div>
@@ -120,9 +128,19 @@ export default function Navbar() {
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
               className="md:hidden absolute top-[calc(100%+10px)] left-4 right-4 glass rounded-2xl p-6 flex flex-col gap-4 shadow-2xl origin-top"
             >
-              <a href="#fonctionnalites" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-semibold text-lg py-2">Fonctionnalités</a>
-              <a href="#ecosysteme" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-semibold text-lg py-2">Écosystème</a>
-              <a href="#securite" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-semibold text-lg py-2">Sécurité</a>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Menu</span>
+                <button 
+                  onClick={toggleLanguage}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 text-sm font-bold text-slate-700 uppercase"
+                >
+                  <Languages className="w-4 h-4" />
+                  {i18n.language === 'fr' ? 'English' : 'Français'}
+                </button>
+              </div>
+              <a href="#fonctionnalites" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-semibold text-lg py-2">{t('navbar.features')}</a>
+              <a href="#ecosysteme" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-semibold text-lg py-2">{t('navbar.ecosystem')}</a>
+              <a href="#securite" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-semibold text-lg py-2">{t('navbar.security')}</a>
               <div className="h-px w-full bg-slate-200/50 my-2" />
               {isAuthenticated ? (
                 <>
@@ -134,13 +152,13 @@ export default function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full bg-slate-900 hover:bg-slate-800 text-white px-4 py-3 rounded-xl text-center font-semibold transition-colors"
                   >
-                    Mon tableau de bord
+                    {t('navbar.dashboard')}
                   </Link>
                   <button 
                     onClick={handleLogout}
                     className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl text-center font-semibold transition-colors"
                   >
-                    Se déconnecter
+                    {t('navbar.logout')}
                   </button>
                 </>
               ) : (
@@ -152,17 +170,8 @@ export default function Navbar() {
                     }}
                     className="w-full bg-slate-900 text-white px-4 py-4 rounded-xl text-center font-bold mt-2 shadow-lg shadow-slate-900/20"
                   >
-                    Se connecter
+                    {t('navbar.login')}
                   </button>
-                  {/* <button 
-                    onClick={() => {
-                      setShowSignup(true);
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full bg-slate-900 text-white px-4 py-4 rounded-xl text-center font-bold mt-2 shadow-lg shadow-slate-900/20"
-                  >
-                    Démarrer gratuitement
-                  </button> */}
                 </>
               )}
             </motion.div>

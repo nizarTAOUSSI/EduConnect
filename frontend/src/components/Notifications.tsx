@@ -3,6 +3,7 @@ import { Bell, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react';
 import api from '../api/axios';
 import Spinner from '../components/ui/Spinner';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: number;
@@ -15,6 +16,7 @@ interface Notification {
 }
 
 export default function Notifications() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,13 +32,13 @@ export default function Notifications() {
         })) : [];
         setNotifications(normalizedData);
       } catch (error) {
-        toast.error('Erreur lors du chargement des notifications');
+        toast.error(t('notifications.messages.load_error'));
       } finally {
         setLoading(false);
       }
     };
     fetchNotifications();
-  }, []);
+  }, [t]);
 
   const markAsRead = async (notificationId: number) => {
     try {
@@ -47,7 +49,7 @@ export default function Notifications() {
       // Dispatch event to update sidebar counts
       window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour de la notification');
+      toast.error(t('notifications.messages.update_error'));
     }
   };
 
@@ -56,11 +58,11 @@ export default function Notifications() {
       const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
       await Promise.all(unreadIds.map(id => api.patch(`/communication/notifications/${id}/`, { is_read: true })));
       setNotifications(prev => prev.map(notif => ({ ...notif, is_read: true })));
-      toast.success('Toutes les notifications ont été marquées comme lues');
+      toast.success(t('notifications.messages.mark_all_success'));
       // Dispatch event to update sidebar counts
       window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour des notifications');
+      toast.error(t('notifications.messages.update_error'));
     }
   };
 
@@ -92,8 +94,8 @@ export default function Notifications() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Notifications</h1>
-          <p className="text-slate-500 mt-1">Restez informé des dernières mises à jour.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('notifications.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('notifications.subtitle')}</p>
         </div>
         {unreadCount > 0 && (
           <button
@@ -101,7 +103,7 @@ export default function Notifications() {
             className="px-6 py-3 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
           >
             <CheckCircle className="w-5 h-5" />
-            Tout marquer comme lu ({unreadCount})
+            {t('notifications.mark_all_read')} ({unreadCount})
           </button>
         )}
       </div>
@@ -176,9 +178,9 @@ export default function Notifications() {
         )) : (
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-12 text-center">
             <Bell className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-600 mb-2">Aucune notification</h3>
+            <h3 className="text-xl font-bold text-slate-600 mb-2">{t('notifications.no_notifs_title')}</h3>
             <p className="text-slate-400">
-              Vous n'avez pas encore de notifications.
+              {t('notifications.no_notifs')}
             </p>
           </div>
         )}

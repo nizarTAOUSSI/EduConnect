@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MessageSquare, Reply, CheckCircle, XCircle, Clock, Send, ShieldAlert, Search, Filter, Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
@@ -33,6 +34,7 @@ interface Reclamation {
 }
 
 export default function TeacherReclamations() {
+  const { t } = useTranslation();
   const [reclamations, setReclamations] = useState<Reclamation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReclamation, setSelectedReclamation] = useState<Reclamation | null>(null);
@@ -52,13 +54,13 @@ export default function TeacherReclamations() {
         const response = await api.get('/communication/reclamations/');
         setReclamations(response.data.results || response.data);
       } catch (error) {
-        toast.error('Erreur lors du chargement des réclamations');
+        toast.error(t('teacher_reclamations.messages.load_error'));
       } finally {
         setLoading(false);
       }
     };
     fetchReclamations();
-  }, []);
+  }, [t]);
 
   const openResponseModal = (reclamation: Reclamation) => {
     setSelectedReclamation(reclamation);
@@ -70,7 +72,7 @@ export default function TeacherReclamations() {
   const submitResponse = async () => {
     if (!selectedReclamation) return;
     if (!responseText.trim()) {
-      toast.error('Veuillez saisir une réponse');
+      toast.error(t('teacher_reclamations.messages.reply_required'));
       return;
     }
 
@@ -89,11 +91,11 @@ export default function TeacherReclamations() {
           : rec
       ));
 
-      toast.success('Réponse envoyée avec succès');
+      toast.success(t('teacher_reclamations.messages.send_success'));
       setIsResponseModalOpen(false);
       setSelectedReclamation(null);
     } catch (error) {
-      toast.error('Erreur lors de l\'envoi de la réponse');
+      toast.error(t('teacher_reclamations.messages.send_error'));
     } finally {
       setIsActionLoading(false);
     }
@@ -128,8 +130,8 @@ export default function TeacherReclamations() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Réclamations</h1>
-          <p className="text-slate-500 mt-1">Gérez les réclamations des étudiants et apportez des réponses.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('teacher_reclamations.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('teacher_reclamations.subtitle')}</p>
         </div>
       </div>
 
@@ -137,19 +139,19 @@ export default function TeacherReclamations() {
         <StatCard 
           icon={<Clock className="w-8 h-8" />} 
           count={pendingCount} 
-          label="En attente" 
+          label={t('teacher_reclamations.stats.pending')} 
           color="bg-amber-50 text-amber-500" 
         />
         <StatCard 
           icon={<CheckCircle className="w-8 h-8" />} 
           count={treatedCount} 
-          label="Traitées" 
+          label={t('teacher_reclamations.stats.treated')} 
           color="bg-emerald-50 text-emerald-500" 
         />
         <StatCard 
           icon={<XCircle className="w-8 h-8" />} 
           count={rejectedCount} 
-          label="Rejetées" 
+          label={t('teacher_reclamations.stats.rejected')} 
           color="bg-rose-50 text-rose-500" 
         />
       </div>
@@ -160,7 +162,7 @@ export default function TeacherReclamations() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
-            placeholder="Rechercher par étudiant, matière ou message..."
+            placeholder={t('teacher_reclamations.filters.search_placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
@@ -174,10 +176,10 @@ export default function TeacherReclamations() {
               onChange={(e) => setStatusFilter(e.target.value as any)}
               className="pl-10 pr-8 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none font-bold text-slate-700 text-sm min-w-35"
             >
-              <option value="all">Tous les statuts</option>
-              <option value="en_attente">En attente</option>
-              <option value="traitee">Traitées</option>
-              <option value="rejetee">Rejetées</option>
+              <option value="all">{t('teacher_reclamations.filters.all_status')}</option>
+              <option value="en_attente">{t('teacher_reclamations.stats.pending')}</option>
+              <option value="traitee">{t('teacher_reclamations.stats.treated')}</option>
+              <option value="rejetee">{t('teacher_reclamations.stats.rejected')}</option>
             </select>
           </div>
           <div className="relative">
@@ -198,7 +200,7 @@ export default function TeacherReclamations() {
               }}
               className="px-4 py-3 text-rose-600 font-black text-xs uppercase tracking-widest hover:bg-rose-50 rounded-2xl transition-all"
             >
-              Réinitialiser
+              {t('teacher_reclamations.filters.reset')}
             </button>
           )}
         </div>
@@ -210,9 +212,9 @@ export default function TeacherReclamations() {
             <div className="p-2 bg-primary/10 rounded-lg text-primary">
               <MessageSquare className="w-5 h-5" />
             </div>
-            Boîte de Réception
+            {t('teacher_reclamations.inbox_title')}
           </h3>
-          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{filteredReclamations.length} RÉSULTATS</span>
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('teacher_reclamations.results_count', { count: filteredReclamations.length })}</span>
         </div>
         <div className="divide-y divide-slate-100/50">
           {filteredReclamations.length > 0 ? filteredReclamations.map((reclamation) => (
@@ -227,7 +229,7 @@ export default function TeacherReclamations() {
                       <h4 className="font-bold text-slate-900 text-lg">
                         {reclamation.expediteur_details
                           ? `${reclamation.expediteur_details.first_name} ${reclamation.expediteur_details.last_name}`
-                          : `Étudiant #${reclamation.expediteur}`}
+                          : t('teacher_reclamations.student_id', { id: reclamation.expediteur })}
                       </h4>
                       <div className="flex items-center gap-2 mt-0.5">
                         <p className="text-xs font-medium text-slate-400">{reclamation.date_creation}</p>
@@ -242,16 +244,16 @@ export default function TeacherReclamations() {
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/note:opacity-20 transition-opacity">
                         <ShieldAlert className="w-12 h-12 text-primary" />
                       </div>
-                      <p className="text-primary font-bold text-sm mb-4 uppercase tracking-wider">Détails de l'évaluation</p>
+                      <p className="text-primary font-bold text-sm mb-4 uppercase tracking-wider">{t('teacher_reclamations.eval_details')}</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                        <NoteInfo label="Type" value={reclamation.note_details.evaluation_details?.type} />
-                        <NoteInfo label="Matière" value={reclamation.note_details.evaluation_details?.matiere_name} />
-                        <NoteInfo label="Classe" value={reclamation.note_details.evaluation_details?.classe_name} />
-                        <NoteInfo label="Note" value={reclamation.note_details.est_absent ? 'Absent' : reclamation.note_details.valeur_note ?? 'Non noté'} />
+                        <NoteInfo label={t('student_reclamations.modal.type')} value={reclamation.note_details.evaluation_details?.type} />
+                        <NoteInfo label={t('student_reclamations.modal.subject')} value={reclamation.note_details.evaluation_details?.matiere_name} />
+                        <NoteInfo label={t('student_reclamations.modal.class')} value={reclamation.note_details.evaluation_details?.classe_name} />
+                        <NoteInfo label={t('student_reclamations.modal.grade')} value={reclamation.note_details.est_absent ? t('common.absent') : reclamation.note_details.valeur_note ?? t('student_reclamations.notes_section.table.not_graded')} />
                       </div>
                       {reclamation.note_details.commentaire && (
                         <div className="mt-4 pt-4 border-t border-primary/10">
-                          <p className="text-xs text-primary/60 font-bold mb-1 uppercase tracking-widest">Commentaire original</p>
+                          <p className="text-xs text-primary/60 font-bold mb-1 uppercase tracking-widest">{t('teacher_reclamations.original_comment')}</p>
                           <p className="text-sm text-slate-600 italic">"{reclamation.note_details.commentaire}"</p>
                         </div>
                       )}
@@ -264,7 +266,7 @@ export default function TeacherReclamations() {
 
                   {reclamation.reponse && (
                     <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100/50 relative">
-                      <div className="absolute -top-3 left-6 px-3 py-1 bg-emerald-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">Votre Réponse</div>
+                      <div className="absolute -top-3 left-6 px-3 py-1 bg-emerald-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">{t('teacher_reclamations.your_response')}</div>
                       <p className="text-emerald-800 leading-relaxed">{reclamation.reponse}</p>
                     </div>
                   )}
@@ -276,14 +278,14 @@ export default function TeacherReclamations() {
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 self-start w-full lg:w-auto shrink-0"
                   >
                     <Reply className="w-5 h-5" />
-                    Répondre
+                    {t('teacher_reclamations.reply_btn')}
                   </button>
                 )}
               </div>
             </div>
           )) : (
             <div className="p-20 text-center">
-              <p className="text-slate-400 font-medium italic">Aucune réclamation reçue.</p>
+              <p className="text-slate-400 font-medium italic">{t('teacher_reclamations.no_reclamations')}</p>
             </div>
           )}
         </div>
@@ -292,19 +294,19 @@ export default function TeacherReclamations() {
       <Modal 
         isOpen={isResponseModalOpen} 
         onClose={() => setIsResponseModalOpen(false)} 
-        title="Répondre à la réclamation"
+        title={t('teacher_reclamations.response_modal.title')}
         maxWidth="lg"
       >
         <div className="space-y-8">
           {selectedReclamation && (
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Message de l'étudiant</h4>
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">{t('teacher_reclamations.response_modal.student_message')}</h4>
               <p className="text-slate-700 leading-relaxed italic">"{selectedReclamation.message}"</p>
             </div>
           )}
 
           <div className="space-y-4">
-            <label className="text-sm font-bold text-slate-700 ml-1">Décision</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('teacher_reclamations.response_modal.decision')}</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 type="button"
@@ -316,7 +318,7 @@ export default function TeacherReclamations() {
                 }`}
               >
                 <CheckCircle className="w-5 h-5" />
-                <span className="font-bold">Traiter</span>
+                <span className="font-bold">{t('teacher_reclamations.response_modal.treat')}</span>
               </button>
               <button
                 type="button"
@@ -328,18 +330,18 @@ export default function TeacherReclamations() {
                 }`}
               >
                 <XCircle className="w-5 h-5" />
-                <span className="font-bold">Rejeter</span>
+                <span className="font-bold">{t('teacher_reclamations.response_modal.reject')}</span>
               </button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Votre réponse détaillée</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('teacher_reclamations.response_modal.detailed_response')}</label>
             <textarea
               value={responseText}
               onChange={(e) => setResponseText(e.target.value)}
               className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-3xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 min-h-40 text-slate-700 leading-relaxed"
-              placeholder="Expliquez les raisons de votre décision à l'étudiant..."
+              placeholder={t('teacher_reclamations.response_modal.placeholder')}
               required
             />
           </div>
@@ -350,7 +352,7 @@ export default function TeacherReclamations() {
               onClick={() => setIsResponseModalOpen(false)}
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all"
             >
-              Annuler
+              {t('teacher_reclamations.response_modal.cancel')}
             </button>
             <button
               type="button"
@@ -364,7 +366,7 @@ export default function TeacherReclamations() {
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               <Send className="w-4 h-4" />
-              {responseAction === 'accept' ? 'Valider le traitement' : 'Confirmer le rejet'}
+              {responseAction === 'accept' ? t('teacher_reclamations.response_modal.submit_treat') : t('teacher_reclamations.response_modal.submit_reject')}
             </button>
           </div>
         </div>
@@ -386,10 +388,11 @@ function StatCard({ icon, count, label, color }: { icon: React.ReactNode, count:
 }
 
 function StatusBadge({ statut }: { statut: string }) {
+  const { t } = useTranslation();
   const configs: Record<string, { color: string, icon: React.ReactNode, label: string }> = {
-    en_attente: { color: 'bg-amber-50 text-amber-600 border-amber-100', icon: <Clock className="w-3 h-3" />, label: 'En attente' },
-    traitee: { color: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: <CheckCircle className="w-3 h-3" />, label: 'Traitée' },
-    rejetee: { color: 'bg-rose-50 text-rose-600 border-rose-100', icon: <XCircle className="w-3 h-3" />, label: 'Rejetée' }
+    en_attente: { color: 'bg-amber-50 text-amber-600 border-amber-100', icon: <Clock className="w-3 h-3" />, label: t('teacher_reclamations.stats.pending') },
+    traitee: { color: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: <CheckCircle className="w-3 h-3" />, label: t('teacher_reclamations.stats.treated') },
+    rejetee: { color: 'bg-rose-50 text-rose-600 border-rose-100', icon: <XCircle className="w-3 h-3" />, label: t('teacher_reclamations.stats.rejected') }
   };
   const config = configs[statut] || configs.en_attente;
   return (

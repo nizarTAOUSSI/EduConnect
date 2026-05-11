@@ -1,5 +1,6 @@
 import Modal from './Modal';
 import { AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -19,11 +20,15 @@ export default function ConfirmationModal({
   onConfirm,
   title,
   message,
-  confirmLabel = 'Confirmer',
-  cancelLabel = 'Annuler',
+  confirmLabel,
+  cancelLabel,
   variant = 'primary',
   isLoading = false,
 }: ConfirmationModalProps) {
+  const { t } = useTranslation();
+
+  const finalConfirmLabel = confirmLabel || t('common.confirm');
+  const finalCancelLabel = cancelLabel || t('common.cancel');
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="sm">
       <div className="space-y-6">
@@ -42,7 +47,7 @@ export default function ConfirmationModal({
             disabled={isLoading}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all duration-200 disabled:opacity-50"
           >
-            {cancelLabel}
+            {finalCancelLabel}
           </button>
           <button
             onClick={onConfirm}
@@ -50,13 +55,13 @@ export default function ConfirmationModal({
             className={`px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg transition-all duration-200 disabled:opacity-50 flex items-center gap-2 ${
               variant === 'danger' 
                 ? 'bg-red-600 hover:bg-red-700 shadow-red-200' 
-                : 'bg-primary hover:bg-primary-dark shadow-primary/20'
+                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
             }`}
           >
             {isLoading && (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             )}
-            {confirmLabel}
+            {finalConfirmLabel}
           </button>
         </div>
       </div>

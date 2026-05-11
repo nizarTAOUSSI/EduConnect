@@ -1,55 +1,58 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, BookOpen, User, Users, CheckCircle2 } from 'lucide-react';
-
-const tabs = [
-  {
-    id: 'admin',
-    label: 'Administration',
-    icon: <Settings className="w-5 h-5" />,
-    color: 'text-indigo-500',
-    content: {
-      title: 'Contrôle Total & Supervision',
-      description: 'L\'administration dispose d\'un outil puissant pour piloter l\'établissement : configuration avancée des cursus, centralisation des données et tableaux de bord analytiques.',
-      features: ['Tableaux de bord analytiques', 'Gestion fine des droits', 'Supervision globale en temps réel']
-    }
-  },
-  {
-    id: 'profs',
-    label: 'Professeurs',
-    icon: <BookOpen className="w-5 h-5" />,
-    color: 'text-amber-500',
-    content: {
-      title: 'Efficacité Pédagogique',
-      description: 'Gagnez un temps précieux. Saisissez les évaluations intuitivement; le moteur intelligent applique instantanément les barèmes et calcule les moyennes certifiées.',
-      features: ['Grilles d\'évaluation personnalisables', 'Calcul automatisé sans erreur', 'Génération rapide d\'appréciations']
-    }
-  },
-  {
-    id: 'etudiants',
-    label: 'Étudiants',
-    icon: <User className="w-5 h-5" />,
-    color: 'text-emerald-500',
-    content: {
-      title: 'Autonomie & Transparence',
-      description: 'Un espace personnel moderne pour visualiser son parcours, consulter ses relevés digitalisés et interagir rapidement via la plateforme de réclamation.',
-      features: ['Relevés de notes interactifs', 'Graphiques de progression', 'Hub de réclamations intégré']
-    }
-  },
-  {
-    id: 'parents',
-    label: 'Parents',
-    icon: <Users className="w-5 h-5" />,
-    color: 'text-sky-500',
-    content: {
-      title: 'Connexion Ininterrompue',
-      description: 'Une application partenaire rassurante pour rester connecté à la scolarité de vos enfants, avec des alertes configurables et un accès transparent aux résultats.',
-      features: ['Alertes personnalisables', 'Vue globale du parcours', 'Accès sécurisé multi-enfants']
-    }
-  }
-];
+import { useTranslation } from 'react-i18next';
 
 export default function Ecosystem() {
+  const { t } = useTranslation();
+
+  const tabs = [
+    {
+      id: 'admin',
+      label: t('ecosystem.tabs.admin'),
+      icon: <Settings className="w-5 h-5" />,
+      color: 'text-indigo-500',
+      content: {
+        title: t('ecosystem.admin.title'),
+        description: t('ecosystem.admin.description'),
+        features: [t('ecosystem.admin.f1'), t('ecosystem.admin.f2'), t('ecosystem.admin.f3')]
+      }
+    },
+    {
+      id: 'profs',
+      label: t('ecosystem.tabs.profs'),
+      icon: <BookOpen className="w-5 h-5" />,
+      color: 'text-amber-500',
+      content: {
+        title: t('ecosystem.profs.title'),
+        description: t('ecosystem.profs.description'),
+        features: [t('ecosystem.profs.f1'), t('ecosystem.profs.f2'), t('ecosystem.profs.f3')]
+      }
+    },
+    {
+      id: 'etudiants',
+      label: t('ecosystem.tabs.etudiants'),
+      icon: <User className="w-5 h-5" />,
+      color: 'text-emerald-500',
+      content: {
+        title: t('ecosystem.etudiants.title'),
+        description: t('ecosystem.etudiants.description'),
+        features: [t('ecosystem.etudiants.f1'), t('ecosystem.etudiants.f2'), t('ecosystem.etudiants.f3')]
+      }
+    },
+    {
+      id: 'parents',
+      label: t('ecosystem.tabs.parents'),
+      icon: <Users className="w-5 h-5" />,
+      color: 'text-sky-500',
+      content: {
+        title: t('ecosystem.parents.title'),
+        description: t('ecosystem.parents.description'),
+        features: [t('ecosystem.parents.f1'), t('ecosystem.parents.f2'), t('ecosystem.parents.f3')]
+      }
+    }
+  ];
+
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const activeContent = tabs.find(t => t.id === activeTab)?.content;
 
@@ -67,9 +70,9 @@ export default function Ecosystem() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">L'Écosystème Connecté</h2>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">{t('ecosystem.title')}</h2>
             <p className="text-slate-500 text-xl font-medium">
-              Une plateforme modulaire conçue spécifiquement pour répondre aux exigences technologiques de chaque utilisateur.
+              {t('ecosystem.description')}
             </p>
           </motion.div>
         </div>
@@ -143,7 +146,7 @@ export default function Ecosystem() {
                   
                   <div className="mt-14">
                      <button className="h-12 px-6 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-900 font-bold transition-colors flex items-center gap-2 text-sm ring-1 ring-slate-200">
-                      Explorer la solution détaillée
+                      {t('ecosystem.explore')}
                     </button>
                   </div>
                 </motion.div>

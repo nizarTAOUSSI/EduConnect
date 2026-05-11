@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Clock, CheckCircle2, XCircle, AlertCircle, BookOpen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import { useAuth } from '../../hooks/useAuth';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 
 export default function StudentAbsences() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [absences, setAbsences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,13 +25,13 @@ export default function StudentAbsences() {
           setAbsences(response.data.results || response.data);
         }
       } catch (error) {
-        toast.error('Erreur lors du chargement de vos absences');
+        toast.error(t('student_absences.messages.load_error'));
       } finally {
         setLoading(false);
       }
     };
     fetchMyAbsences();
-  }, [user]);
+  }, [user, t]);
 
   const justifiedCount = absences.filter(a => a.justifiee).length;
   const unjustifiedCount = absences.length - justifiedCount;
@@ -40,8 +42,8 @@ export default function StudentAbsences() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Mes Absences</h1>
-          <p className="text-slate-500 mt-1">Suivez votre assiduité et justifiez vos absences par séance.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('student_absences.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('student_absences.subtitle')}</p>
         </div>
       </div>
 
@@ -51,21 +53,21 @@ export default function StudentAbsences() {
             <XCircle className="w-8 h-8" />
           </div>
           <p className="text-3xl font-black text-slate-900">{unjustifiedCount}</p>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Non Justifiées</p>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">{t('student_absences.stats.unjustified')}</p>
         </div>
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center text-center">
           <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-4">
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <p className="text-3xl font-black text-slate-900">{justifiedCount}</p>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Justifiées</p>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">{t('student_absences.stats.justified')}</p>
         </div>
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center text-center">
           <div className="w-16 h-16 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mb-4">
             <Clock className="w-8 h-8" />
           </div>
           <p className="text-3xl font-black text-slate-900">{absences.length > 0 ? '95%' : '100%'}</p>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Taux de présence</p>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">{t('student_absences.stats.presence_rate')}</p>
         </div>
       </div>
 
@@ -73,7 +75,7 @@ export default function StudentAbsences() {
         <div className="p-8 border-b border-slate-100">
           <h3 className="font-bold text-slate-900 flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-rose-500" />
-            Historique détaillé des absences
+            {t('student_absences.history_title')}
           </h3>
         </div>
         <div className="divide-y divide-slate-100">
@@ -81,7 +83,7 @@ export default function StudentAbsences() {
             <div key={i} className="flex flex-col md:flex-row md:items-center justify-between p-8 hover:bg-slate-50/50 transition-colors gap-6">
               <div className="flex items-center gap-6">
                 <div className="w-14 h-14 rounded-2xl bg-slate-100 flex flex-col items-center justify-center text-slate-400 border border-slate-200 shrink-0">
-                  <span className="text-[10px] font-black uppercase tracking-tighter leading-none mb-1">Date</span>
+                  <span className="text-[10px] font-black uppercase tracking-tighter leading-none mb-1">{t('student_absences.table.date')}</span>
                   <span className="text-sm font-black text-slate-900">{abs.date}</span>
                 </div>
                 <div>
@@ -99,7 +101,7 @@ export default function StudentAbsences() {
                           {abs.seance_details.heure_debut} - {abs.seance_details.heure_fin}
                         </span>
                       ) : (
-                        <span>Durée: {abs.duree_heures}h</span>
+                        <span>{t('student_absences.table.duration', { count: abs.duree_heures })}</span>
                       )}
                     </p>
                     {abs.enseignant_matiere_details?.enseignant_name && (
@@ -117,12 +119,12 @@ export default function StudentAbsences() {
                 </div>
               </div>
               <div className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest ${abs.justifiee ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                {abs.justifiee ? 'Justifiée' : 'Non Justifiée'}
+                {abs.justifiee ? t('student_absences.table.justified') : t('student_absences.table.unjustified')}
               </div>
             </div>
           )) : (
             <div className="p-12 text-center text-slate-400 italic">
-              Aucune absence enregistrée. Félicitations !
+              {t('student_absences.messages.no_absences')}
             </div>
           )}
         </div>

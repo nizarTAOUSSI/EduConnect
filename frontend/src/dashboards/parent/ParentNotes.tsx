@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { FileSpreadsheet,Search, User, BookOpen } from 'lucide-react';
+import { FileSpreadsheet, Search, User, BookOpen } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../hooks/useAuth';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 export default function ParentNotes() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [children, setChildren] = useState<any[]>([]);
   const [selectedChild, setSelectedChild] = useState<any>(null);
   const [notes, setNotes] = useState<any[]>([]);
@@ -57,13 +59,13 @@ export default function ParentNotes() {
           setNotes(notesRes.data.results || notesRes.data);
         }
       } catch (error) {
-        toast.error('Erreur lors du chargement des notes');
+        toast.error(t('parent_notes.messages.load_error'));
       } finally {
         setLoading(false);
       }
     };
     if (user?.id) fetchEnfantsNotes();
-  }, [user]);
+  }, [user, t]);
 
   const handleChildChange = async (child: any) => {
     setSelectedChild(child);
@@ -71,7 +73,7 @@ export default function ParentNotes() {
       const notesRes = await api.get(`/grades/notes/?etudiant=${child.id}`);
       setNotes(notesRes.data.results || notesRes.data);
     } catch (error) {
-      toast.error('Erreur lors du changement d\'enfant');
+      toast.error(t('parent_notes.messages.change_child_error'));
     }
   };
 
@@ -89,8 +91,8 @@ export default function ParentNotes() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Bulletin Scolaire</h1>
-        <p className="text-slate-500 mt-1">Suivez les résultats académiques et les appréciations des professeurs pour vos enfants.</p>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('parent_notes.title')}</h1>
+        <p className="text-slate-500 mt-1">{t('parent_notes.subtitle')}</p>
       </div>
 
       {/* Child Selector & Filters */}
@@ -103,102 +105,105 @@ export default function ParentNotes() {
               const child = children.find(c => c.id === Number(e.target.value));
               if (child) handleChildChange(child);
             }}
-            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none font-bold text-slate-700 appearance-none transition-all"
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none appearance-none font-bold text-slate-700 transition-all"
           >
             {children.map(c => (
               <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
             ))}
           </select>
         </div>
-        <div className="flex flex-1 gap-4">
-          <select
-            value={selectedPeriode}
-            onChange={(e) => setSelectedPeriode(e.target.value)}
-            className="px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-          >
-            <option value="all">Toutes les périodes</option>
-            {periodes.map(p => (
-              <option key={p.id} value={p.id}>{p.nom} ({p.code})</option>
-            ))}
-          </select>
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-            />
-          </div>
+
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder={t('common.search')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+          />
         </div>
+
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+          className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none font-bold text-slate-700"
         >
-          <option value="all">Tous les types</option>
-          <option value="CC">Contrôle Continu</option>
-          <option value="Examen">Examen Final</option>
-          <option value="TP">Travaux Pratiques</option>
+          <option value="all">{t('parent_notes.filters.all_types')}</option>
+          <option value="CC">{t('evaluations_manager.types.CC')}</option>
+          <option value="Examen">{t('evaluations_manager.types.Examen')}</option>
+          <option value="TP">{t('evaluations_manager.types.TP')}</option>
+        </select>
+
+        <select
+          value={selectedPeriode}
+          onChange={(e) => setSelectedPeriode(e.target.value)}
+          className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none font-bold text-slate-700"
+        >
+          <option value="all">{t('parent_notes.filters.all_periods')}</option>
+          {periodes.map(p => (
+            <option key={p.id} value={p.id}>{p.nom}</option>
+          ))}
         </select>
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Relevé de notes — {selectedChild?.first_name} {selectedChild?.last_name}</h3>
+          <h3 className="font-bold text-slate-900 flex items-center gap-2">
+            <FileSpreadsheet className="w-5 h-5 text-primary" />
+            {selectedChild?.first_name} {selectedChild?.last_name}
+          </h3>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Matière & Évaluation</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Note</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Commentaire de l'Enseignant</th>
+              <tr className="text-left bg-slate-50/50 border-b border-slate-100">
+                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('parent_notes.table.evaluation')}</th>
+                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('parent_notes.table.grade')}</th>
+                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('parent_notes.table.comment')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredNotes.length > 0 ? (
-                filteredNotes.map((note, i) => (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-primary/10 group-hover:text-primary transition-all">
-                          <BookOpen className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <span className="font-black text-slate-900 block leading-none mb-1">
-                            {note.evaluation_details?.matiere_name || 'Matière'}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            {note.evaluation_details?.type_display} • {note.evaluation_details?.date} • Coeff: {note.evaluation_details?.matiere_coefficient}
-                          </span>
-                        </div>
+            <tbody className="divide-y divide-slate-50">
+              {filteredNotes.length > 0 ? filteredNotes.map((note, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="py-6 px-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <BookOpen className="w-5 h-5" />
                       </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <span className={`text-lg font-black ${note.est_absent ? 'text-rose-500' : 'text-primary'}`}>
-                        {note.est_absent ? 'ABS' : `${note.valeur_note}/20`}
+                      <div>
+                        <p className="font-bold text-slate-900">{note.evaluation_details?.matiere_name}</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase">{note.evaluation_details?.type_display || note.evaluation_details?.type}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-6 px-8">
+                    {note.est_absent ? (
+                      <span className="px-3 py-1 bg-rose-100 text-rose-600 rounded-lg text-xs font-black uppercase tracking-widest">
+                        {t('parent_notes.table.absent')}
                       </span>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="max-w-md">
-                        <p className="text-sm text-slate-500 italic leading-relaxed">
-                          {note.commentaire ? `"${note.commentaire}"` : 'Pas de commentaire particulier.'}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">
-                          — {note.evaluation_details?.enseignant_name}
-                        </p>
+                    ) : ( 
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-xl font-black ${
+                          note.valeur_note >= 10 ? 'text-emerald-600' : 'text-rose-600'
+                        }`}>
+                          {note.valeur_note}
+                        </span>
+                        <span className="text-xs text-slate-400 font-bold">/ {note.evaluation_details?.note_max || 20}</span>
                       </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
+                    )}
+                  </td>
+                  <td className="py-6 px-8">
+                    <p className="text-sm text-slate-600 font-medium italic">
+                      {note.commentaire ? `"${note.commentaire}"` : t('parent_notes.table.no_comment')}
+                    </p>
+                  </td>
+                </tr>
+              )) : (
                 <tr>
-                  <td colSpan={3} className="px-8 py-16 text-center text-slate-400 italic">
-                    <FileSpreadsheet className="w-12 h-12 mx-auto mb-4 opacity-10" />
-                    Aucune donnée trouvée pour cet enfant.
+                  <td colSpan={3} className="py-20 text-center text-slate-400 italic">
+                    {t('parent_notes.no_notes')}
                   </td>
                 </tr>
               )}

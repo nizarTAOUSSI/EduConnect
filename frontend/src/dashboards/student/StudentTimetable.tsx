@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import Spinner from '../../components/ui/Spinner';
 import TimetableGrid from '../../components/TimetableGrid';
 import toast from 'react-hot-toast';
 
 export default function StudentTimetable() {
+  const { t } = useTranslation();
   const [classeId, setClasseId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,13 +26,13 @@ export default function StudentTimetable() {
           setClasseId(student.classe);
         }
       } catch (error) {
-        toast.error('Erreur lors du chargement de votre profil');
+        toast.error(t('student_timetable.messages.load_error'));
       } finally {
         setLoading(false);
       }
     };
     fetchStudentProfile();
-  }, []);
+  }, [t]);
 
   if (loading) {
     return <div className="flex justify-center py-16"><Spinner className="text-emerald-600" /></div>;
@@ -38,16 +41,17 @@ export default function StudentTimetable() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Mon Emploi du Temps</h1>
-        <p className="text-slate-500 mt-1">Consultez votre emploi du temps hebdomadaire.</p>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('student_timetable.title')}</h1>
+        <p className="text-slate-500 mt-1">{t('student_timetable.subtitle')}</p>
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
         {classeId ? (
           <TimetableGrid classeId={classeId} />
         ) : (
-          <div className="text-center py-20 text-slate-400">
-            Vous n'êtes affecté à aucune classe pour le moment.
+          <div className="text-center py-20 text-slate-400 italic">
+            <Calendar className="w-12 h-12 mx-auto mb-4 opacity-10" />
+            {t('student_timetable.messages.no_class')}
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { School, Calendar as CalendarIcon, User as UserIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import Spinner from '../../components/ui/Spinner';
 import TimetableGrid from '../../components/TimetableGrid';
@@ -7,6 +8,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function TeacherTimetable() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [classes, setClasses] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | string>('');
@@ -46,24 +48,24 @@ export default function TeacherTimetable() {
             }
           }
         } else {
-          toast.error('Profil enseignant non trouvé');
+          toast.error(t('teacher_classes.student_profile.load_error'));
         }
       } catch (error) {
         console.error(error);
-        toast.error('Erreur lors du chargement des données');
+        toast.error(t('teacher_timetable.messages.load_error'));
       } finally {
         setLoading(false);
       }
     };
     
     fetchData();
-  }, [user]);
+  }, [user, t]);
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <Spinner className="text-emerald-600 w-10 h-10" />
-        <p className="text-slate-500 font-medium animate-pulse">Chargement de l'emploi du temps...</p>
+        <p className="text-slate-500 font-medium animate-pulse">{t('teacher_timetable.messages.loading')}</p>
       </div>
     );
   }
@@ -72,8 +74,8 @@ export default function TeacherTimetable() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Emploi du Temps</h1>
-          <p className="text-slate-500 mt-1">Consultez votre emploi du temps personnel ou celui des classes.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('teacher_timetable.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('teacher_timetable.subtitle')}</p>
         </div>
         
         <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
@@ -86,7 +88,7 @@ export default function TeacherTimetable() {
             }`}
           >
             <UserIcon className="w-4 h-4" />
-            Mon Emploi
+            {t('teacher_timetable.my_timetable')}
           </button>
           <button
             onClick={() => setView('class')}
@@ -97,7 +99,7 @@ export default function TeacherTimetable() {
             }`}
           >
             <School className="w-4 h-4" />
-            Par Classe
+            {t('teacher_timetable.class_timetable')}
           </button>
         </div>
       </div>
@@ -106,7 +108,7 @@ export default function TeacherTimetable() {
         {view === 'class' && (
           <div className="flex flex-col sm:flex-row items-end gap-6 mb-8 animate-in slide-in-from-top-4 duration-300">
             <div className="space-y-2 flex-1 max-w-xs">
-              <label className="text-sm font-bold text-slate-700 ml-1">Sélectionner une classe</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('classes_manager.select_class')}</label>
               <div className="relative">
                 <School className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <select
@@ -119,7 +121,7 @@ export default function TeacherTimetable() {
                       <option key={c.id} value={c.id}>{c.nom} ({c.niveau})</option>
                     ))
                   ) : (
-                    <option value="">Aucune classe</option>
+                    <option value="">{t('teacher_classes.no_classes')}</option>
                   )}
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -141,7 +143,7 @@ export default function TeacherTimetable() {
           ) : (
             <div className="text-center py-20 text-slate-400 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
               <CalendarIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
-              <p className="font-medium">Aucune classe affectée à votre profil.</p>
+              <p className="font-medium">{t('teacher_timetable.no_class_assigned')}</p>
             </div>
           )}
         </div>

@@ -5,9 +5,11 @@ import Spinner from '../../components/ui/Spinner';
 import TimetableGrid from '../../components/TimetableGrid';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 export default function ParentTimetable() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [children, setChildren] = useState<any[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<number | string>('');
   const [loading, setLoading] = useState(true);
@@ -41,13 +43,13 @@ export default function ParentTimetable() {
           }
         }
       } catch (error) {
-        toast.error('Erreur lors du chargement de vos enfants');
+        toast.error(t('parent_timetable.messages.load_children_error'));
       } finally {
         setLoading(false);
       }
     };
     if (user?.id) fetchChildren();
-  }, [user]);
+  }, [user, t]);
 
   const selectedChild = children.find(c => c.id === parseInt(selectedChildId as string));
 
@@ -58,14 +60,14 @@ export default function ParentTimetable() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Emploi du temps des enfants</h1>
-        <p className="text-slate-500 mt-1">Consultez l'emploi du temps de vos enfants.</p>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('parent_timetable.title')}</h1>
+        <p className="text-slate-500 mt-1">{t('parent_timetable.subtitle')}</p>
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row items-end gap-6 mb-8">
           <div className="space-y-2 flex-1 max-w-xs">
-            <label className="text-sm font-bold text-slate-700 ml-1">Sélectionner un enfant</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('parent_timetable.select_child')}</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <select
@@ -87,7 +89,7 @@ export default function ParentTimetable() {
           <TimetableGrid classeId={selectedChild.classe} />
         ) : (
           <div className="text-center py-20 text-slate-400">
-            {selectedChildId ? "Cet enfant n'est affecté à aucune classe." : "Aucun enfant trouvé."}
+            {selectedChildId ? t('timetable_grid.no_class_assigned') : t('timetable_grid.no_child_found')}
           </div>
         )}
       </div>

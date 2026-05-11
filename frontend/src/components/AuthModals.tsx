@@ -1,9 +1,10 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import type { SignupData } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export function LoginModal({
   isOpen,
@@ -14,6 +15,7 @@ export function LoginModal({
   onClose: () => void;
   onSwitchToSignup: () => void;
 }) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -66,10 +68,10 @@ export function LoginModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="glass rounded-2xl p-8 w-full max-w-md shadow-2xl"
+            className="glass rounded-2xl p-8 w-125 max-md shadow-2xl"
           >
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-900">Se connecter</h2>
+              <h2 className="text-2xl font-bold text-slate-900">{t('auth.login.title')}</h2>
               <button
                 onClick={handleClose}
                 className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -92,7 +94,7 @@ export function LoginModal({
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Email
+                  {t('auth.login.email')}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
@@ -100,7 +102,7 @@ export function LoginModal({
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="votre.email@example.com"
+                    placeholder={t('auth.login.email_placeholder')}
                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-primary focus:outline-none transition-all"
                     required
                   />
@@ -109,7 +111,7 @@ export function LoginModal({
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Mot de passe
+                  {t('auth.login.password')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
@@ -117,7 +119,7 @@ export function LoginModal({
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={t('auth.login.password_placeholder')}
                     className="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-primary focus:outline-none transition-all"
                     required
                   />
@@ -143,16 +145,16 @@ export function LoginModal({
                 {isLoading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Connexion...
+                    {t('auth.login.loading')}
                   </>
                 ) : (
-                  'Se connecter'
+                  t('auth.login.submit')
                 )}
               </button>
             </form>
 
             {/* <p className="text-center text-sm text-slate-600 mt-6">
-              Pas de compte?{' '}
+              {t('auth.login.no_account')}{' '}
               <button
                 onClick={() => {
                   handleClose();
@@ -160,7 +162,7 @@ export function LoginModal({
                 }}
                 className="font-semibold text-primary hover:text-primary/80 transition-colors"
               >
-                S\'inscrire
+                {t('auth.login.signup')}
               </button>
             </p> */}
           </motion.div>
@@ -179,6 +181,7 @@ export function SignupModal({
   onClose: () => void;
   onSwitchToLogin: () => void;
 }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<SignupData>({
     email: '',
     password: '',
@@ -256,7 +259,7 @@ export function SignupModal({
             className="glass rounded-2xl p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-900">S\'inscrire</h2>
+              <h2 className="text-2xl font-bold text-slate-900">{t('auth.signup.title')}</h2>
               <button
                 onClick={handleClose}
                 className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -280,7 +283,7 @@ export function SignupModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Prénom
+                    {t('auth.signup.first_name')}
                   </label>
                   <div className="relative">
                     <User className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
@@ -298,7 +301,7 @@ export function SignupModal({
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Nom
+                    {t('auth.signup.last_name')}
                   </label>
                   <div className="relative">
                     <User className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
@@ -317,7 +320,7 @@ export function SignupModal({
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Email
+                  {t('auth.signup.email')}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
@@ -326,7 +329,7 @@ export function SignupModal({
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="votre.email@example.com"
+                    placeholder={t('auth.login.email_placeholder')}
                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-primary focus:outline-none transition-all"
                     required
                   />
@@ -335,7 +338,7 @@ export function SignupModal({
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Rôle
+                  {t('auth.signup.role')}
                 </label>
                 <select
                   name="role"
@@ -343,15 +346,15 @@ export function SignupModal({
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-primary focus:outline-none transition-all text-slate-900"
                 >
-                  <option value="etudiant">Étudiant</option>
-                  <option value="enseignant">Enseignant</option>
-                  <option value="parent">Parent</option>
+                  <option value="etudiant">{t('auth.signup.role_student')}</option>
+                  <option value="enseignant">{t('auth.signup.role_teacher')}</option>
+                  <option value="parent">{t('auth.signup.role_parent')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Mot de passe
+                  {t('auth.signup.password')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
@@ -377,13 +380,13 @@ export function SignupModal({
                   </button>
                 </div>
                 <p className={`text-xs mt-1 ${isPasswordValid ? 'text-green-600' : 'text-slate-500'}`}>
-                  Minimum 8 caractères
+                  {t('auth.signup.password_too_short')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Confirmer le mot de passe
+                  {t('auth.signup.confirm_password')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
@@ -414,7 +417,7 @@ export function SignupModal({
                 </div>
                 {formData.password_confirm && !passwordsMatch && (
                   <p className="text-xs text-red-600 mt-1">
-                    Les mots de passe ne correspondent pas
+                    {t('auth.signup.password_mismatch')}
                   </p>
                 )}
               </div>
@@ -427,16 +430,16 @@ export function SignupModal({
                 {isLoading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Inscription...
+                    {t('auth.signup.loading')}
                   </>
                 ) : (
-                  'S\'inscrire'
+                  t('auth.signup.submit')
                 )}
               </button>
             </form>
 
             <p className="text-center text-sm text-slate-600 mt-6">
-              Vous avez déjà un compte?{' '}
+              {t('auth.signup.have_account')}{' '}
               <button
                 onClick={() => {
                   handleClose();
@@ -444,7 +447,7 @@ export function SignupModal({
                 }}
                 className="font-semibold text-primary hover:text-primary/80 transition-colors"
               >
-                Se connecter
+                {t('auth.signup.login')}
               </button>
             </p>
           </motion.div>

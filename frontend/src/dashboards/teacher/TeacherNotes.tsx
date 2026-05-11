@@ -1,86 +1,53 @@
 import { useEffect, useState } from 'react';
-import { FileSpreadsheet, Plus, Edit2, BookOpen, Trash2, Search } from 'lucide-react';
+import { Search, Plus, FileText, Users, ChevronRight, BookOpen, Clock, Calendar, CheckCircle2, UserX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 import Modal from '../../components/ui/Modal';
+import Table, { Td } from '../../components/ui/Table';
 
 interface Evaluation {
   id: number;
   type: string;
+  type_display: string;
   date: string;
-  heure_debut?: string;
-  heure_fin?: string;
+  heure_debut: string;
+  heure_fin: string;
   note_max: number;
   matiere: number;
+  matiere_name: string;
   classe: number;
-  matiere_name?: string;
-  classe_name?: string;
-}
-
-interface Note {
-  id: number;
-  evaluation: number;
-  etudiant: number;
-  valeur_note: number | null;
-  commentaire: string;
-  est_absent: boolean;
-  etudiant_name?: string;
-  etudiant_email?: string;
-  etudiant_details?: {
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
-}
-
-interface Assignment {
-  id: number;
-  matiere: number;
-  classe: number;
-  matiere_name?: string;
-  classe_name?: string;
+  classe_name: string;
+  enseignant: number;
+  enseignant_name: string;
+  salle: number | null;
+  periode: number | null;
 }
 
 interface Student {
   id: number;
-  utilisateur: number;
-  code_apogee: string;
-  classe: number | null;
   first_name: string;
   last_name: string;
-  email: string;
-  classe_name: string | null;
+  code_apogee: string;
 }
 
 export default function TeacherNotes() {
+  const { t } = useTranslation();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [classes, setClasses] = useState<any[]>([]);
-  const [matieres, setMatieres] = useState<any[]>([]);
-  const [students, setStudents] = useState<Record<number, Student[]>>({});
-  const [teacherId, setTeacherId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isCreateEvalModalOpen, setIsCreateEvalModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [evalToDelete, setEvalToDelete] = useState<number | null>(null);
+  const [selectedEval, setSelectedEval] = useState<Evaluation | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [grades, setGrades] = useState<Record<number, { note: string; comment: string; absent: boolean }>>({});
   const [isActionLoading, setIsActionLoading] = useState(false);
-  
-  // Filters
-  const [classFilter, setClassFilter] = useState<string>('');
-  const [searchFilter, setSearchFilter] = useState<string>('');
+  const [periodes, setPeriodes] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
 
-  const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
-  const [evaluationForm, setEvaluationForm] = useState<{
-    type: string;
-    date: string;
-    heure_debut: string;
-    heure_fin: string;
-    note_max: number;
-    matiere: string | number;
-    classe: string | number;
-  }>({
+  const [formData, setFormData] = useState({
     type: 'CC',
     date: new Date().toISOString().split('T')[0],
     heure_debut: '',
@@ -88,610 +55,421 @@ export default function TeacherNotes() {
     note_max: 20,
     matiere: '',
     classe: '',
+    periode: ''
   });
-  const [gradesData, setGradesData] = useState<Record<number, { valeur_note: string; commentaire: string; est_absent: boolean }>>({});
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [evalRes, periodRes, assignRes] = await Promise.all([
+        api.get('/grades/evaluations/?only_my_evaluations=true'),
+        api.get('/academics/periodes/'),
+        api.get('/academics/enseignant-matieres/')
+      ]);
+      setEvaluations(evalRes.data.results || evalRes.data);
+      setPeriodes(periodRes.data.results || periodRes.data);
+      setAssignments(assignRes.data.results || assignRes.data);
+    } catch (error) {
+      toast.error(t('teacher_notes.messages.load_error'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Get current user and teacher profile
-        const userRes = await api.get('/accounts/auth/me/');
-        const user = userRes.data;
-
-        if (user.role !== 'enseignant') {
-          toast.error('Accès non autorisé');
-          return;
-        }
-
-        const teacherRes = await api.get(`/accounts/enseignants/?utilisateur=${user.id}`);
-        const teacherData = teacherRes.data.results || teacherRes.data;
-        const teacher = Array.isArray(teacherData) ? teacherData[0] : teacherData;
-
-        if (!teacher) {
-          toast.error('Profil enseignant non trouvé');
-          return;
-        }
-
-        const teacherId = teacher.id;
-        setTeacherId(teacherId);
-
-        // Get teacher's assignments
-        const assignRes = await api.get(`/academics/enseignant-matieres/?enseignant=${teacherId}`);
-        const assigns = assignRes.data.results || assignRes.data;
-        setAssignments(assigns);
-
-        // Get unique classes and matieres
-        const classIds = [...new Set(assigns.map((a: Assignment) => a.classe))];
-        const matiereIds = [...new Set(assigns.map((a: Assignment) => a.matiere))];
-
-        const [classRes, matRes, evalRes] = await Promise.all([
-          Promise.all(classIds.map(id => api.get(`/academics/classes/${id}/`))),
-          Promise.all(matiereIds.map(id => api.get(`/academics/matieres/${id}/`))),
-          api.get('/grades/evaluations/'),
-        ]);
-
-        setClasses(classRes.map(r => r.data));
-        setMatieres(matRes.map(r => r.data));
-        setEvaluations(evalRes.data.results || evalRes.data);
-
-      } catch (error) {
-        toast.error('Erreur lors du chargement des données');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, []);
+  }, [t]);
 
-  const loadStudentsForClass = async (classId: number) => {
-    if (students[classId]) return;
-    try {
-      const res = await api.get(`/accounts/etudiants/?classe=${classId}`);
-      setStudents(prev => ({ ...prev, [classId]: res.data.results || res.data }));
-    } catch (error) {
-      toast.error('Erreur lors du chargement des étudiants');
-    }
-  };
-
-  const createEvaluation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...evaluationForm,
-        matiere: parseInt(evaluationForm.matiere as string),
-        classe: parseInt(evaluationForm.classe as string),
-        enseignant: teacherId
-      };
-      const response = await api.post('/grades/evaluations/', payload);
-      setEvaluations(prev => [...prev, response.data]);
-      toast.success('Évaluation créée avec succès');
-      setIsCreateEvalModalOpen(false);
-      setEvaluationForm({
-        type: 'CC',
-        date: new Date().toISOString().split('T')[0],
-        heure_debut: '',
-        heure_fin: '',
-        note_max: 20,
-        matiere: '',
-        classe: '',
-      });
-    } catch (error: any) {
-      let errorMsg = 'Erreur lors de la création de l\'évaluation';
-      
-      if (error.response?.data) {
-        const data = error.response.data;
-        if (data.non_field_errors) {
-          errorMsg = data.non_field_errors[0];
-        } else if (data.detail) {
-           errorMsg = data.detail;
-         } else {
-           const keys = Object.keys(data);
-           if (keys.length > 0) {
-             const firstKey = keys[0];
-             const firstError = data[firstKey];
-             if (Array.isArray(firstError)) {
-               errorMsg = `${firstKey}: ${firstError[0]}`;
-             } else if (typeof firstError === 'string') {
-               errorMsg = firstError;
-             }
-           }
-         }
-       }
-       toast.error(errorMsg);
-     }
-   };
-
-  const openGradeModal = async (evaluation: Evaluation) => {
-    setSelectedEvaluation(evaluation);
-    await loadStudentsForClass(evaluation.classe);
+  const handleOpenGradeModal = async (evaluation: Evaluation) => {
+    setSelectedEval(evaluation);
+    setLoadingStudents(true);
     setIsGradeModalOpen(true);
-
-    // Load existing grades
     try {
-      const notesRes = await api.get(`/grades/notes/?evaluation=${evaluation.id}`);
-      const existingNotes = notesRes.data.results || notesRes.data;
-      const gradesMap: Record<number, { valeur_note: string; commentaire: string; est_absent: boolean }> = {};
+      // 1. Fetch students in the class
+      const studentsRes = await api.get(`/accounts/etudiants/?classe=${evaluation.classe}`);
+      const studentsList = studentsRes.data.results || studentsRes.data;
+      setStudents(studentsList);
 
-      existingNotes.forEach((note: Note) => {
-        gradesMap[note.etudiant] = {
-          valeur_note: note.valeur_note?.toString() || '',
-          commentaire: note.commentaire,
-          est_absent: note.est_absent,
+      // 2. Fetch existing grades for this evaluation
+      const gradesRes = await api.get(`/grades/notes/?evaluation=${evaluation.id}`);
+      const existingGrades = gradesRes.data.results || gradesRes.data;
+
+      // 3. Initialize grades state
+      const initialGrades: Record<number, { note: string; comment: string; absent: boolean }> = {};
+      studentsList.forEach((s: Student) => {
+        const existing = existingGrades.find((g: any) => g.etudiant === s.id);
+        initialGrades[s.id] = {
+          note: existing?.valeur_note?.toString() || '',
+          comment: existing?.commentaire || '',
+          absent: existing?.est_absent || false
         };
       });
-
-      setGradesData(gradesMap);
+      setGrades(initialGrades);
     } catch (error) {
-      console.error('Error loading existing grades:', error);
+      toast.error(t('teacher_notes.messages.load_students_error'));
+    } finally {
+      setLoadingStudents(false);
     }
   };
 
-  const submitGrades = async () => {
-    if (!selectedEvaluation) return;
-
+  const handleSaveGrades = async () => {
+    if (!selectedEval) return;
+    setIsActionLoading(true);
     try {
-      const promises = Object.entries(gradesData).map(async ([studentId, gradeData]) => {
-        const noteData = {
-          evaluation: selectedEvaluation.id,
+      const promises = Object.entries(grades).map(([studentId, data]) => {
+        const payload = {
+          evaluation: selectedEval.id,
           etudiant: parseInt(studentId),
-          valeur_note: gradeData.est_absent ? null : (gradeData.valeur_note ? parseFloat(gradeData.valeur_note) : null),
-          commentaire: gradeData.commentaire,
-          est_absent: gradeData.est_absent,
+          valeur_note: data.absent ? null : (data.note ? parseFloat(data.note) : null),
+          commentaire: data.comment,
+          est_absent: data.absent
         };
-
-        // Check if note already exists
-        try {
-          const existingRes = await api.get(`/grades/notes/?evaluation=${selectedEvaluation.id}&etudiant=${studentId}`);
-          const existingNotes = existingRes.data.results || existingRes.data;
-          if (existingNotes.length > 0) {
-            // Update existing note
-            return api.put(`/grades/notes/${existingNotes[0].id}/`, noteData);
-          }
-        } catch (error) {
-          // Note doesn't exist, create new one
-        }
-
-        // Create new note
-        return api.post('/grades/notes/', noteData);
+        return api.post('/grades/notes/save_grade/', payload);
       });
 
       await Promise.all(promises);
-      toast.success('Notes enregistrées avec succès');
-
-      // Refresh evaluations to update any changes
-      const evalRes = await api.get('/grades/evaluations/');
-      setEvaluations(evalRes.data.results || evalRes.data);
-
+      toast.success(t('teacher_notes.messages.save_success'));
       setIsGradeModalOpen(false);
-      setSelectedEvaluation(null);
-      setGradesData({});
-
-    } catch (error: any) {
-      let errorMsg = 'Erreur lors de l\'enregistrement des notes';
-      
-      if (error.response?.data) {
-        const data = error.response.data;
-        if (data.non_field_errors) {
-          errorMsg = data.non_field_errors[0];
-        } else if (data.detail) {
-           errorMsg = data.detail;
-         } else {
-           const keys = Object.keys(data);
-           if (keys.length > 0) {
-             const firstKey = keys[0];
-             const firstError = data[firstKey];
-             if (Array.isArray(firstError)) {
-               errorMsg = `${firstKey}: ${firstError[0]}`;
-             }
-           }
-         }
-       }
-       toast.error(errorMsg);
-     }
-   };
-
-  const deleteEvaluation = async () => {
-    if (!evalToDelete) return;
-    try {
-      setIsActionLoading(true);
-      await api.delete(`/grades/evaluations/${evalToDelete}/`);
-      setEvaluations(prev => prev.filter(e => e.id !== evalToDelete));
-      toast.success('Évaluation supprimée définitivement');
-      setIsDeleteModalOpen(false);
-      setEvalToDelete(null);
     } catch (error) {
-      toast.error('Erreur lors de la suppression');
+      toast.error(t('teacher_notes.messages.save_error'));
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  const filteredEvaluations = evaluations.filter(e => {
-    const matchClass = !classFilter || e.classe === parseInt(classFilter);
-    const matiereName = matieres.find(m => m.id === e.matiere)?.nom || '';
-    const matchSearch = !searchFilter || 
-      matiereName.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      e.type.toLowerCase().includes(searchFilter.toLowerCase());
-    return matchClass && matchSearch;
-  });
-
-  const getMatieresForTeacher = () => {
-    return matieres;
+  const handleCreateEval = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsActionLoading(true);
+    try {
+      const assignment = assignments.find(a => a.matiere === parseInt(formData.matiere) && a.classe === parseInt(formData.classe));
+      
+      const payload = {
+        ...formData,
+        matiere: parseInt(formData.matiere),
+        classe: parseInt(formData.classe),
+        periode: formData.periode ? parseInt(formData.periode) : null,
+        enseignant: assignment?.enseignant // L'API s'attend à l'ID de l'enseignant
+      };
+      
+      await api.post('/grades/evaluations/', payload);
+      toast.success(t('teacher_notes.messages.create_success'));
+      setIsCreateModalOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error(t('teacher_notes.messages.create_error'));
+    } finally {
+      setIsActionLoading(false);
+    }
   };
 
-  const getClassesForSelectedMatiere = () => {
-    if (!evaluationForm.matiere) return [];
-    const matiereId = parseInt(evaluationForm.matiere as string);
-    const relevantAssignments = assignments.filter(a => a.matiere === matiereId);
-    const classIds = relevantAssignments.map(a => a.classe);
-    return classes.filter(c => classIds.includes(c.id));
-  };
-
-  const currentClassStudents = selectedEvaluation ? students[selectedEvaluation.classe] || [] : [];
+  const filteredEvals = evaluations.filter(e => 
+    e.matiere_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.classe_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) return <div className="flex h-64 items-center justify-center"><Spinner /></div>;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gestion des Notes</h1>
-          <p className="text-slate-500 mt-1">Créez des évaluations et saisissez les notes.</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">{t('teacher_notes.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('teacher_notes.subtitle')}</p>
         </div>
-        <button
-          onClick={() => setIsCreateEvalModalOpen(true)}
-          className="px-6 py-3 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+        <button 
+          onClick={() => setIsCreateModalOpen(true)}
+          className="bg-primary text-white px-6 py-3 rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          Nouvelle Évaluation
+          {t('teacher_notes.new_evaluation')}
         </button>
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-slate-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              Évaluations
-            </h3>
-          </div>
-          
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Rechercher une évaluation..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-              />
-            </div>
-            <select
-              className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-            >
-              <option value="">Toutes les classes</option>
-              {classes.map(c => (
-                <option key={c.id} value={c.id}>{c.nom} - {c.niveau}</option>
-              ))}
-            </select>
+        <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h3 className="font-bold text-slate-900 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            {t('teacher_notes.evaluations_title')}
+          </h3>
+          <div className="relative max-w-xs w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder={t('teacher_notes.search_placeholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+            />
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-slate-50/50">
-                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Évaluation</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Type</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Matière</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Classe</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Date</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+          <Table columns={[t('evaluations_manager.table.evaluation'), t('evaluations_manager.table.class'), t('evaluations_manager.table.planning'), t('common.actions')]} isEmpty={filteredEvals.length === 0}>
+            {filteredEvals.map((evaluation) => (
+              <tr key={evaluation.id} className="hover:bg-slate-50/50 transition-colors group">
+                <Td>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900">{evaluation.matiere_name}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">{evaluation.type_display}</p>
+                    </div>
+                  </div>
+                </Td>
+                <Td>
+                  <div className="flex items-center gap-2 text-slate-600 font-bold">
+                    <Users className="w-4 h-4 text-slate-400" />
+                    <span>{evaluation.classe_name}</span>
+                  </div>
+                </Td>
+                <Td>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      {evaluation.date}
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-bold flex items-center gap-2">
+                      <Clock className="w-3 h-3" />
+                      {evaluation.heure_debut?.substring(0,5)} - {evaluation.heure_fin?.substring(0,5)}
+                    </div>
+                  </div>
+                </Td>
+                <Td>
+                  <button 
+                    onClick={() => handleOpenGradeModal(evaluation)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 hover:border-primary hover:text-primary transition-all group-hover:shadow-md"
+                  >
+                    {t('teacher_notes.enter_grades')}
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </Td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredEvaluations.length > 0 ? filteredEvaluations.map((evalItem) => (
-                <tr key={evalItem.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                        <FileSpreadsheet className="w-5 h-5" />
-                      </div>
-                      <span className="font-bold text-slate-900">
-                        Évaluation de {evalItem.matiere_name || matieres.find(m => m.id === evalItem.matiere)?.nom || `Matière #${evalItem.matiere}`}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-slate-600 font-medium">
-                    <span className="px-2 py-1 bg-slate-100 rounded text-xs font-bold">{evalItem.type}</span>
-                  </td>
-                  <td className="px-8 py-6 text-slate-500">
-                    {matieres.find(m => m.id === evalItem.matiere)?.nom || `Matière ${evalItem.matiere}`}
-                  </td>
-                  <td className="px-8 py-6 text-slate-500">
-                    {classes.find(c => c.id === evalItem.classe)?.nom || `Classe ${evalItem.classe}`}
-                  </td>
-                  <td className="px-8 py-6 text-slate-500">{evalItem.date || 'Non planifiée'}</td>
-                  <td className="px-8 py-6 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        onClick={() => openGradeModal(evalItem)}
-                        className="text-primary font-bold text-sm hover:underline flex items-center gap-1"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                        Saisir Notes
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEvalToDelete(evalItem.id);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="text-red-500 hover:text-red-700 p-1 rounded-lg hover:bg-red-50 transition-colors"
-                        title="Supprimer définitivement"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan={6} className="px-8 py-12 text-center text-slate-400 italic">
-                    Aucune évaluation trouvée.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+            ))}
+          </Table>
+          {filteredEvals.length === 0 && (
+            <div className="p-20 text-center text-slate-400 italic">
+              {t('teacher_notes.no_evaluations')}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Create Evaluation Modal */}
-      <Modal isOpen={isCreateEvalModalOpen} onClose={() => setIsCreateEvalModalOpen(false)} title="Créer une évaluation">
-        <form onSubmit={createEvaluation} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Type d'évaluation</label>
-              <select
-                value={evaluationForm.type}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                required
+      {/* Create Modal */}
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title={t('teacher_notes.new_evaluation')}>
+        <form onSubmit={handleCreateEval} className="space-y-6 py-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('teacher_notes.form.type')}</label>
+              <select 
+                value={formData.type}
+                onChange={(e) => setFormData({...formData, type: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold"
               >
-                <option value="CC">Contrôle Continu</option>
-                <option value="Examen">Examen Final</option>
-                <option value="TP">Travaux Pratiques</option>
+                <option value="CC">{t('evaluations_manager.types.CC')}</option>
+                <option value="Examen">{t('evaluations_manager.types.Examen')}</option>
+                <option value="TP">{t('evaluations_manager.types.TP')}</option>
               </select>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Date</label>
-              <input
-                type="date"
-                value={evaluationForm.date}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                required
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('evaluations_manager.form.max_note')}</label>
+              <input 
+                type="number" 
+                value={formData.note_max}
+                onChange={(e) => setFormData({...formData, note_max: parseInt(e.target.value)})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Heure de début</label>
-              <input
-                type="time"
-                value={evaluationForm.heure_debut}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, heure_debut: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Heure de fin</label>
-              <input
-                type="time"
-                value={evaluationForm.heure_fin}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, heure_fin: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Matière</label>
-              <select
-                value={evaluationForm.matiere}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, matiere: parseInt(e.target.value) || '', classe: '' }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                required
-              >
-                <option value="">Sélectionner une matière</option>
-                {getMatieresForTeacher().map((matiere) => (
-                  <option key={matiere.id} value={matiere.id}>
-                    {matiere.nom}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Classe</label>
-              <select
-                value={evaluationForm.classe}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, classe: parseInt(e.target.value) || '' }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
-                required
-                disabled={!evaluationForm.matiere}
-              >
-                <option value="">Sélectionner une classe</option>
-                {getClassesForSelectedMatiere().map((classe) => (
-                  <option key={classe.id} value={classe.id}>
-                    {classe.nom} - {classe.niveau}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Note maximale</label>
-            <input
-              type="number"
-              min="1"
-              max="100"
-              value={evaluationForm.note_max}
-              onChange={(e) => setEvaluationForm(prev => ({ ...prev, note_max: parseInt(e.target.value) }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('affectations_manager.table.subject')}</label>
+            <select 
               required
-            />
+              value={formData.matiere}
+              onChange={(e) => setFormData({...formData, matiere: e.target.value})}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold"
+            >
+              <option value="">{t('affectations_manager.select_subject')}</option>
+              {[...new Set(assignments.map(a => JSON.stringify({id: a.matiere, nom: a.matiere_name})))].map(mStr => {
+                const m = JSON.parse(mStr);
+                return <option key={m.id} value={m.id}>{m.nom}</option>;
+              })}
+            </select>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button
-              type="button"
-              onClick={() => setIsCreateEvalModalOpen(false)}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg"
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('affectations_manager.table.class')}</label>
+            <select 
+              required
+              value={formData.classe}
+              onChange={(e) => setFormData({...formData, classe: e.target.value})}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold disabled:opacity-50"
+              disabled={!formData.matiere}
             >
-              Annuler
+              <option value="">{t('affectations_manager.select_class')}</option>
+              {assignments.filter(a => a.matiere === parseInt(formData.matiere)).map(a => (
+                <option key={a.classe} value={a.classe}>{a.classe_name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('evaluations_manager.form.period')}</label>
+            <select 
+              required
+              value={formData.periode}
+              onChange={(e) => setFormData({...formData, periode: e.target.value})}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold"
+            >
+              <option value="">{t('evaluations_manager.form.select_period')}</option>
+              {periodes.map(p => <option key={p.id} value={p.id}>{p.nom}</option>)}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('teacher_notes.form.date')}</label>
+              <input 
+                type="date" 
+                value={formData.date}
+                onChange={(e) => setFormData({...formData, date: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs focus:ring-2 focus:ring-primary/20 outline-none font-bold"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('teacher_notes.form.start_time')}</label>
+              <input 
+                type="time" 
+                value={formData.heure_debut}
+                onChange={(e) => setFormData({...formData, heure_debut: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs focus:ring-2 focus:ring-primary/20 outline-none font-bold"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">{t('teacher_notes.form.end_time')}</label>
+              <input 
+                type="time" 
+                value={formData.heure_fin}
+                onChange={(e) => setFormData({...formData, heure_fin: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs focus:ring-2 focus:ring-primary/20 outline-none font-bold"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all">
+              {t('common.cancel')}
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+            <button 
+              type="submit" 
+              disabled={isActionLoading}
+              className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark shadow-lg shadow-primary/20 transition-all flex items-center gap-2"
             >
-              Créer l'évaluation
+              {isActionLoading && <Spinner className="w-4 h-4 text-white" />}
+              {t('common.add')}
             </button>
           </div>
         </form>
       </Modal>
 
       {/* Grade Entry Modal */}
-      <Modal isOpen={isGradeModalOpen} onClose={() => setIsGradeModalOpen(false)} title={`Saisie des notes - Évaluation de ${selectedEvaluation?.matiere_name || matieres.find(m => m.id === selectedEvaluation?.matiere)?.nom || ''}`}>
-        <div className="space-y-6">
-          <div className="max-h-96 overflow-y-auto">
-            <h4 className="font-bold text-slate-900 mb-4">Notes des étudiants</h4>
-            <div className="space-y-4">
-              {currentClassStudents.map((student) => (
-                <div key={student.id} className="p-4 border border-slate-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h5 className="font-medium text-slate-900">{student.first_name} {student.last_name}</h5>
-                      <p className="text-sm text-slate-500">{student.email}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={`absent-${student.id}`}
-                        checked={gradesData[student.id]?.est_absent || false}
-                        onChange={(e) => setGradesData(prev => ({
-                          ...prev,
-                          [student.id]: {
-                            ...prev[student.id],
-                            est_absent: e.target.checked,
-                            valeur_note: e.target.checked ? '' : prev[student.id]?.valeur_note || ''
-                          }
-                        }))}
-                        className="rounded border-slate-300"
-                      />
-                      <label htmlFor={`absent-${student.id}`} className="text-sm text-slate-700">Absent</label>
-                    </div>
-                  </div>
-
-                  {!gradesData[student.id]?.est_absent && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Note (/20)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="20"
-                          step="0.25"
-                          value={gradesData[student.id]?.valeur_note || ''}
-                          onChange={(e) => setGradesData(prev => ({
-                            ...prev,
-                            [student.id]: {
-                              ...prev[student.id],
-                              valeur_note: e.target.value
-                            }
-                          }))}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Commentaire</label>
-                        <input
-                          type="text"
-                          value={gradesData[student.id]?.commentaire || ''}
-                          onChange={(e) => setGradesData(prev => ({
-                            ...prev,
-                            [student.id]: {
-                              ...prev[student.id],
-                              commentaire: e.target.value
-                            }
-                          }))}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                          placeholder="Commentaire optionnel"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+      <Modal 
+        isOpen={isGradeModalOpen} 
+        onClose={() => setIsGradeModalOpen(false)} 
+        title={t('teacher_notes.grade_modal.title', { matiere: selectedEval?.matiere_name, classe: selectedEval?.classe_name })}
+        maxWidth="2xl"
+      >
+        <div className="space-y-6 py-2">
+          <div className="flex items-center justify-between bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-xl text-indigo-600 shadow-sm">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">{t('teacher_notes.grade_modal.max_note', { count: selectedEval?.note_max })}</p>
+                <p className="text-sm font-bold text-indigo-900">{selectedEval?.type_display} - {selectedEval?.date}</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button
-              type="button"
-              onClick={() => setIsGradeModalOpen(false)}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg"
-            >
-              Annuler
-            </button>
-            <button
-              type="button"
-              onClick={submitGrades}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-              Enregistrer les notes
-            </button>
+          <div className="max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+            <table className="w-full">
+              <thead className="sticky top-0 bg-white z-10">
+                <tr className="text-left border-b border-slate-100">
+                  <th className="py-4 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('teacher_notes.grade_modal.student')}</th>
+                  <th className="py-4 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-32">{t('teacher_notes.grade_modal.grade')}</th>
+                  <th className="py-4 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('teacher_notes.grade_modal.comment')}</th>
+                  <th className="py-4 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-24 text-center">{t('common.absent')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {loadingStudents ? (
+                  <tr><td colSpan={4} className="py-12 text-center"><Spinner /></td></tr>
+                ) : students.map((student) => (
+                  <tr key={student.id} className={`group transition-colors ${grades[student.id]?.absent ? 'bg-rose-50/30' : 'hover:bg-slate-50/50'}`}>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${grades[student.id]?.absent ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
+                          {student.first_name[0]}{student.last_name[0]}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900 leading-none">{student.first_name} {student.last_name}</p>
+                          <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">{student.code_apogee}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="relative">
+                        <input 
+                          type="number" 
+                          step="0.25"
+                          min="0"
+                          max={selectedEval?.note_max}
+                          disabled={grades[student.id]?.absent}
+                          value={grades[student.id]?.note || ''}
+                          onChange={(e) => setGrades(prev => ({...prev, [student.id]: {...prev[student.id], note: e.target.value}}))}
+                          className="w-24 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50 disabled:bg-slate-100"
+                        />
+                        {!grades[student.id]?.absent && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">/20</span>}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <input 
+                        type="text" 
+                        placeholder={t('teacher_notes.grade_modal.comment')}
+                        value={grades[student.id]?.comment || ''}
+                        onChange={(e) => setGrades(prev => ({...prev, [student.id]: {...prev[student.id], comment: e.target.value}}))}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      />
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <button 
+                        onClick={() => setGrades(prev => ({...prev, [student.id]: {...prev[student.id], absent: !prev[student.id].absent, note: ''}}))}
+                        className={`p-2 rounded-xl transition-all ${grades[student.id]?.absent ? 'bg-rose-500 text-white shadow-lg shadow-rose-100' : 'bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-500'}`}
+                        title={t('teacher_notes.grade_modal.absent_long')}
+                      >
+                        <UserX className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      </Modal>
 
-      {/* Confirmation Delete Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="Supprimer définitivement"
-        maxWidth="sm"
-      >
-        <div className="space-y-6">
-          <div className="bg-rose-50 text-rose-800 p-4 rounded-2xl flex items-start gap-3 border border-rose-100">
-            <Trash2 className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-            <p className="text-sm font-medium">
-              Êtes-vous sûr de vouloir supprimer cette évaluation ? Cette action supprimera également toutes les notes saisies.
-            </p>
-          </div>
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => setIsDeleteModalOpen(false)}
-              className="px-6 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-xl"
-            >
-              Annuler
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button type="button" onClick={() => setIsGradeModalOpen(false)} className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all">
+              {t('common.cancel')}
             </button>
-            <button
-              onClick={deleteEvaluation}
+            <button 
+              onClick={handleSaveGrades}
               disabled={isActionLoading}
-              className="px-6 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 flex items-center gap-2"
+              className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark shadow-lg shadow-primary/20 transition-all flex items-center gap-2"
             >
-              {isActionLoading && <Spinner className="w-4 h-4" />}
-              Supprimer
+              {isActionLoading && <Spinner className="w-4 h-4 text-white" />}
+              {t('teacher_notes.grade_modal.submit')}
             </button>
           </div>
         </div>

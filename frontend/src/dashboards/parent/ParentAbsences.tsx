@@ -4,9 +4,11 @@ import api from '../../api/axios';
 import { useAuth } from '../../hooks/useAuth';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 export default function ParentAbsences() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [children, setChildren] = useState<any[]>([]);
   const [selectedChild, setSelectedChild] = useState<any>(null);
   const [absences, setAbsences] = useState<any[]>([]);
@@ -44,13 +46,13 @@ export default function ParentAbsences() {
           }
         }
       } catch (error) {
-        toast.error('Erreur lors du chargement des enfants');
+        toast.error(t('parent_absences.messages.load_children_error'));
       } finally {
         setLoading(false);
       }
     };
     if (user?.id) fetchChildren();
-  }, [user]);
+  }, [user, t]);
 
   const fetchAbsences = async (childId: number) => {
     try {
@@ -58,7 +60,7 @@ export default function ParentAbsences() {
       const res = await api.get(`/academics/absences/?etudiant=${childId}`);
       setAbsences(res.data.results || res.data);
     } catch (error) {
-      toast.error('Erreur lors du chargement des absences');
+      toast.error(t('parent_absences.messages.load_absences_error'));
     } finally {
       setLoadingAbsences(false);
     }
@@ -88,13 +90,13 @@ export default function ParentAbsences() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Suivi des Absences</h1>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('parent_absences.title')}</h1>
       </div>
 
       {/* Child Selector & Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">Enfant sélectionné</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">{t('parent_absences.selected_child')}</label>
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <select
@@ -115,7 +117,7 @@ export default function ParentAbsences() {
           </div>
           <div>
             <p className="text-2xl font-black text-slate-900 leading-none">{unjustifiedCount}</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Non Justifiées</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{t('parent_absences.stats.unjustified')}</p>
           </div>
         </div>
 
@@ -125,7 +127,7 @@ export default function ParentAbsences() {
           </div>
           <div>
             <p className="text-2xl font-black text-slate-900 leading-none">{justifiedCount}</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Justifiées</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{t('parent_absences.stats.justified')}</p>
           </div>
         </div>
       </div>
@@ -136,7 +138,7 @@ export default function ParentAbsences() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Rechercher par matière ou enseignant..."
+            placeholder={t('parent_absences.filters.search_placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
@@ -158,7 +160,7 @@ export default function ParentAbsences() {
         <div className="p-8 border-b border-slate-100">
           <h3 className="font-bold text-slate-900 flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-rose-500" />
-            Historique détaillé pour {selectedChild?.first_name} {selectedChild?.last_name}
+            {t('parent_absences.history_title', { name: `${selectedChild?.first_name} ${selectedChild?.last_name}` })}
           </h3>
         </div>
 
@@ -170,14 +172,14 @@ export default function ParentAbsences() {
               <div key={i} className="flex flex-col md:flex-row md:items-center justify-between p-8 hover:bg-slate-50/50 transition-colors gap-6">
                 <div className="flex items-center gap-6">
                   <div className="w-14 h-14 rounded-2xl bg-slate-100 flex flex-col items-center justify-center text-slate-400 border border-slate-200 shrink-0">
-                    <span className="text-[10px] font-black uppercase tracking-tighter leading-none mb-1">Date</span>
+                    <span className="text-[10px] font-black uppercase tracking-tighter leading-none mb-1">{t('parent_absences.table.date')}</span>
                     <span className="text-sm font-black text-slate-900">{abs.date.split('-').reverse().join('/')}</span>
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <BookOpen className="w-4 h-4 text-primary" />
                       <h4 className="font-bold text-slate-900">
-                        {abs.enseignant_matiere_details?.matiere_name || 'Matière non spécifiée'}
+                        {abs.enseignant_matiere_details?.matiere_name || t('timetable_grid.unspecified')}
                       </h4>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -208,13 +210,13 @@ export default function ParentAbsences() {
                 <div className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest self-start md:self-center ${
                   abs.justifiee ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
                 }`}>
-                  {abs.justifiee ? 'Justifiée' : 'Non Justifiée'}
+                  {abs.justifiee ? t('parent_absences.table.justified') : t('parent_absences.table.unjustified')}
                 </div>
               </div>
             )) : (
               <div className="p-12 text-center text-slate-400 italic">
                 <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-10" />
-                Aucune absence enregistrée pour cet enfant.
+                {t('parent_absences.no_absences')}
               </div>
             )}
           </div>

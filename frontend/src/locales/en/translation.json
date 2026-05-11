@@ -1,0 +1,942 @@
+{
+  "navbar": {
+    "features": "Features",
+    "ecosystem": "Ecosystem",
+    "security": "Security",
+    "dashboard": "My Dashboard",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "hero": {
+    "badge": "Next Generation System",
+    "title_part1": "Digitize,",
+    "title_part2": "Automate",
+    "title_part3": ", Connect.",
+    "description": "The intelligent cloud application to rethink school administration. Connect teachers, students and parents in a real-time ecosystem.",
+    "discover": "Discover the platform",
+    "demo": "Demo Space",
+    "sync": "Synchronization",
+    "realtime": "Active Real-time",
+    "zero_defect": "Zero Defect",
+    "validation": "100% Validation"
+  },
+  "features": {
+    "badge": "The Architecture of Success",
+    "title": "Our Digital Solution",
+    "description": "Rethink your school's management with an architecture designed for speed, absolute reliability and elegance.",
+    "global_accessibility": {
+      "title": "Global Accessibility",
+      "description": "A centralized platform accessible online 24/7 from any device with an ultra-fast adaptive interface."
+    },
+    "reliable_engine": {
+      "title": "Reliable Calculation Engine",
+      "description": "Complete automation of complex calculations: averages and credits are generated instantly, without any human error."
+    },
+    "fluid_communication": {
+      "title": "Fluid Communication",
+      "description": "Total transparency, result tracking and real-time notifications for all actors thanks to our integrated messaging system."
+    }
+  },
+  "ecosystem": {
+    "title": "Connected Ecosystem",
+    "description": "A modular platform specifically designed to meet the technological requirements of each user.",
+    "tabs": {
+      "admin": "Administration",
+      "profs": "Teachers",
+      "etudiants": "Students",
+      "parents": "Parents"
+    },
+    "admin": {
+      "title": "Total Control & Supervision",
+      "description": "The administration has a powerful tool to manage the establishment: advanced configuration of curricula, data centralization and analytical dashboards.",
+      "f1": "Analytical dashboards",
+      "f2": "Fine-grained rights management",
+      "f3": "Global real-time supervision"
+    },
+    "profs": {
+      "title": "Educational Efficiency",
+      "description": "Save precious time. Enter evaluations intuitively; the intelligent engine instantly applies scales and calculates certified averages.",
+      "f1": "Customizable evaluation grids",
+      "f2": "Error-free automated calculation",
+      "f3": "Rapid generation of feedback"
+    },
+    "etudiants": {
+      "title": "Autonomy & Transparency",
+      "description": "A modern personal space to view one's path, consult digitized transcripts and interact quickly via the complaint platform.",
+      "f1": "Interactive grade reports",
+      "f2": "Progression charts",
+      "f3": "Integrated complaint hub"
+    },
+    "parents": {
+      "title": "Uninterrupted Connection",
+      "description": "A reassuring partner application to stay connected to your children's schooling, with configurable alerts and transparent access to results.",
+      "f1": "Configurable alerts",
+      "f2": "Global view of the path",
+      "f3": "Multi-child secure access"
+    },
+    "explore": "Explore the detailed solution"
+  },
+  "guarantees": {
+    "badge": "Infrastructure",
+    "main_title": "Foundations built on absolute reliability.",
+    "main_description": "We use the same security standards as the financial industry to ensure your data stays private, accurate, and always available.",
+    "auto": {
+      "title": "Strategic Automation",
+      "description": "A drastic reduction in manual tasks. Forget human errors with pre-validated scales."
+    },
+    "zero": {
+      "title": "Guaranteed Zero Defect",
+      "description": "Perfect integrity. Cascading validation flows block any detected statistical discrepancy."
+    },
+    "sec": {
+      "title": "Architectural Security",
+      "description": "A digital fortress. AES-256 encryption and RBAC architecture ensuring absolute confidentiality of your data."
+    }
+  },
+  "footer": {
+    "description": "The web application for optimizing pedagogical and administrative flows.",
+    "contact": "Contact",
+    "rights": "All rights reserved."
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "email": "Email",
+    "coming_soon": "Module in progress",
+    "section_available_soon": "This section will be available soon."
+  },    "email_placeholder": "your.email@example.com",
+      "password": "Password",
+      "password_placeholder": "••••••••",
+      "submit": "Login",
+      "loading": "Logging in...",
+      "no_account": "No account?",
+      "signup": "Sign up"
+    },
+    "signup": {
+      "title": "Sign Up",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email",
+      "password": "Password",
+      "confirm_password": "Confirm Password",
+      "role": "Role",
+      "role_student": "Student",
+      "role_teacher": "Teacher",
+      "role_parent": "Parent",
+      "submit": "Create Account",
+      "loading": "Creating...",
+      "have_account": "Already have an account?",
+      "login": "Login",
+      "password_mismatch": "Passwords do not match",
+      "password_too_short": "Password must be at least 8 characters"
+    },
+  "dashboard": {
+    "logout": "Logout",
+    "shell": {
+      "title": "Dashboard"
+    },
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "teachers": "Teachers",
+      "students": "Students",
+      "parents": "Parents",
+      "classes": "Classes",
+      "rooms": "Rooms",
+      "subjects": "Subjects",
+      "evaluations": "Evaluations",
+      "timetable": "Timetable",
+      "notifications": "Notifications",
+      "absences": "Absences",
+      "grades": "Grades",
+      "complaints": "Complaints",
+      "children": "My Children",
+      "children_grades": "Children's Grades",
+      "my_grades": "My Grades",
+      "my_absences": "My Absences",
+      "my_classes": "My Classes",
+      "grades_management": "Grades Management"
+    }
+  },
+  "roles": {
+    "admin": "Administrator",
+    "enseignant": "Teacher",
+    "parent": "Parent",
+    "etudiant": "Student"
+  },
+  "admin_dashboard": {
+    "title": "Overview",
+    "welcome": "Welcome to your EduConnect administration center.",
+    "system_online": "System Online",
+    "stats": {
+      "users": "Users",
+      "teachers": "Teachers",
+      "absences_today": "Absences Today",
+      "pending_reclamations": "Pending Complaints",
+      "trend_week": "+{{count}} this week"
+    },
+    "notifications": {
+      "title": "Recent Notifications",
+      "no_notifs": "No recent notifications to display.",
+      "new": "New"
+    },
+    "shortcuts": {
+      "title": "Shortcuts",
+      "manage_classes": "Manage Classes",
+      "manage_users": "Manage Users",
+      "students_list": "Students List",
+      "evaluations": "Evaluations"
+    },
+    "errors": {
+      "load_stats": "Error loading statistics",
+      "update_notif": "Error updating notification"
+    }
+  },
+  "common": {
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search...",
+    "all_roles": "All roles",
+    "active": "Active",
+    "inactive": "Inactive",
+    "status": "Status",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "add": "Add",
+    "no_data": "No data available",
+    "close": "Close",
+    "view": "View",
+    "remove": "Remove",
+    "absent": "Absent",
+    "all_classes": "All classes",
+    "specialty": "Specialty",
+    "name": "Name",
+    "level": "Level",
+    "email": "Email",
+    "phone": "Phone",
+    "coming_soon": "Module in progress",
+    "section_available_soon": "This section will be available soon."
+  },
+  "users_manager": {
+    "title": "Users",
+    "subtitle": "Manage teacher, student and parent accounts.",
+    "add_user": "Add user",
+    "edit_user": "Edit user",
+    "search_placeholder": "Search by name, email...",
+    "table": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role"
+    },
+    "messages": {
+      "load_error": "Error loading users",
+      "delete_success": "User successfully deleted",
+      "delete_error": "Error during deletion",
+      "save_success": "User successfully created",
+      "update_success": "User updated",
+      "save_error": "Error during save"
+    },
+    "delete_confirm": {
+      "title": "Delete user",
+      "message": "Are you sure you want to delete this user? This action is irreversible."
+    }
+  },
+  "students_manager": {
+    "title": "Student Management",
+    "subtitle": "Complete supervision of the academic and administrative path.",
+    "add_student": "Enroll a student",
+    "search_placeholder": "Search for a student...",
+    "all_classes": "All classes",
+    "tabs": {
+      "absences": "Absences",
+      "notes": "Grades",
+      "parents": "Parents"
+    },
+    "table": {
+      "code": "Code",
+      "class": "Class",
+      "apogee": "Apogee Code"
+    },
+    "details": {
+      "no_absences": "No absences recorded",
+      "no_notes": "No grades available",
+      "no_parents": "No linked parent",
+      "add_parent": "Link a parent",
+      "justify": "Justify",
+      "justified": "Justified",
+      "unjustified": "Unjustified"
+    },
+    "messages": {
+      "load_error": "Loading error",
+      "update_success": "Student updated",
+      "update_error": "Error during update",
+      "parent_link_success": "Parent successfully linked",
+      "parent_link_error": "Error during linking",
+      "absence_justify_success": "Absence justified"
+    }
+  },
+  "classes_manager": {
+    "title": "Classes",
+    "subtitle": "Manage classes and their levels.",
+    "add_class": "Add class",
+    "edit_class": "Edit class",
+    "create_class": "Create class",
+    "search_placeholder": "Search for a class...",
+    "table": {
+      "class": "Class",
+      "level": "Level",
+      "students": "Students",
+      "assignments": "Assignments"
+    },
+    "levels": {
+      "1": "1st Year",
+      "2": "2nd Year",
+      "3": "3rd Year",
+      "4": "4th Year",
+      "5": "5th Year"
+    },
+    "modals": {
+      "students_title": "Students - {{name}}",
+      "assignments_title": "Assignments - {{name}}",
+      "filter_students": "Filter students...",
+      "filter_assignments": "Filter by subject or teacher...",
+      "no_assignments": "No assignments found for this class."
+    },
+    "messages": {
+      "load_error": "Error loading classes",
+      "load_students_error": "Error loading students",
+      "load_assignments_error": "Error loading assignments",
+      "delete_success": "Class successfully deleted",
+      "update_success": "Class updated",
+      "save_success": "Class successfully created"
+    }
+  },
+  "teachers_manager": {
+    "title": "Teacher Management",
+    "subtitle": "{{count}} teacher(s) registered",
+    "search_placeholder": "Search by name, email, specialty…",
+    "specialty": "Specialty",
+    "assignments": "Assignments & Courses",
+    "add_assignments": "Add assignments",
+    "no_assignments": "No assignments.",
+    "select_subjects": "Select subjects",
+    "select_classes": "Select classes",
+    "messages": {
+      "update_success": "Teacher updated",
+      "delete_assignment_success": "Assignment deleted",
+      "add_assignments_success": "{{count}} assignment(s) added",
+      "add_assignments_error": "Some assignments already exist.",
+      "select_required": "Select at least one subject and one class."
+    }
+  },
+  "matieres_manager": {
+    "title": "Subjects",
+    "subtitle": "Manage the catalog of taught subjects.",
+    "add_subject": "Add subject",
+    "edit_subject": "Edit subject",
+    "create_subject": "Create subject",
+    "search_placeholder": "Search for a subject...",
+    "table": {
+      "subject": "Subject",
+      "coefficient": "Coefficient"
+    },
+    "messages": {
+      "load_error": "Error loading subjects",
+      "delete_success": "Subject successfully deleted",
+      "update_success": "Subject updated",
+      "save_success": "Subject successfully created"
+    }
+  },
+  "salles_manager": {
+    "title": "Rooms",
+    "subtitle": "Manage classrooms and their capacity.",
+    "add_room": "Add room",
+    "edit_room": "Edit room",
+    "create_room": "Create room",
+    "search_placeholder": "Search for a room...",
+    "table": {
+      "room": "Room",
+      "capacity": "Capacity",
+      "type": "Type"
+    },
+    "types": {
+      "cours": "Lecture",
+      "tp": "Lab / Practical",
+      "amphi": "Amphitheater"
+    },
+    "messages": {
+      "load_error": "Error loading rooms",
+      "delete_success": "Room successfully deleted",
+      "update_success": "Room updated",
+      "save_success": "Room successfully created",
+      "delete_error": "Error during deletion",
+      "save_error": "Error during save"
+    },
+    "delete_confirm": {
+      "title": "Delete room",
+      "message": "Are you sure you want to delete room \"{{name}}\" ?"
+    }
+  },
+  "parents_manager": {
+    "title": "Parent Management",
+    "subtitle": "{{count}} parent(s) registered",
+    "search_placeholder": "Search by name or email…",
+    "no_parents": "No parents found.",
+    "attached_children": "Attached children",
+    "add_child": "Add a child",
+    "attach": "Add",
+    "detach": "Remove",
+    "no_children": "No children attached.",
+    "children_not_found": "{{count}} linked child(ren) not found in the list.",
+    "edit_parent": "Edit parent information",
+    "messages": {
+      "load_error": "Error loading parents",
+      "attach_success": "Child attached to parent",
+      "attach_error": "Impossible to attach child",
+      "detach_success": "Child removed from parent",
+      "detach_error": "Impossible to remove child",
+      "update_success": "Parent information updated",
+      "update_error": "Error during update"
+    }
+  },
+  "affectations_manager": {
+    "title": "Assignments",
+    "subtitle": "Manage teacher assignments to classes and subjects.",
+    "add_assignment": "Add assignment",
+    "edit_assignment": "Edit assignment",
+    "search_placeholder": "Search for an assignment...",
+    "table": {
+      "teacher": "Teacher",
+      "subject": "Subject",
+      "class": "Class"
+    },
+    "select_teacher": "Select a teacher",
+    "select_subject": "Select a subject",
+    "select_class": "Select a class",
+    "messages": {
+      "load_error": "Error loading data",
+      "save_success": "Assignment successfully added",
+      "update_success": "Assignment successfully modified",
+      "delete_success": "Assignment deleted",
+      "delete_confirm": "Are you sure you want to delete this assignment?",
+      "save_error": "Error during save",
+      "delete_error": "Error during deletion"
+    }
+  },
+  "evaluations_manager": {
+    "title": "Evaluations Management",
+    "subtitle": "Supervise and manage all system evaluations.",
+    "add_evaluation": "Add evaluation",
+    "search_placeholder": "Search by subject or teacher...",
+    "table": {
+      "evaluation": "Evaluation",
+      "class": "Class",
+      "teacher": "Teacher",
+      "planning": "Planning"
+    },
+    "not_planned": "Not planned",
+    "view_notes": "View grades",
+    "no_notes": "No grades entered for this evaluation.",
+    "delete_forever": "Delete permanently",
+    "types": {
+      "CC": "Continuous Assessment",
+      "Examen": "Final Exam",
+      "TP": "Practical Work"
+    },
+    "form": {
+      "type": "Type",
+      "max_note": "Max Grade",
+      "period": "Period / Semester",
+      "select_period": "Select a period",
+      "planning_opt": "Planning (Optional)",
+      "room_opt": "Room (Optional)",
+      "select_room": "Select a room"
+    },
+    "messages": {
+      "load_error": "Error loading data",
+      "load_notes_error": "Error loading grades",
+      "delete_success": "Evaluation permanently deleted",
+      "save_success": "Evaluation successfully created",
+      "delete_error": "Error during deletion",
+      "save_error": "Error during creation"
+    }
+  },
+  "timetable_manager": {
+    "title": "Timetable",
+    "subtitle": "Manage course planning by class.",
+    "add_session": "Add session",
+    "select_class": "Select a class",
+    "no_class_selected": "Please select a class to view its timetable.",
+    "edit_session": "Edit session",
+    "program_course_eval": "Program a course or evaluation",
+    "normal_course": "Normal course",
+    "evaluation_exam": "Evaluation / Exam",
+    "course_and_teacher": "Course and Teacher",
+    "select_course": "Select a course",
+    "day_of_week": "Day of the week",
+    "start_time": "Start time",
+    "end_time": "End time",
+    "room": "Room",
+    "select_room_opt": "Select a room (optional)",
+    "evaluation_date": "Evaluation date",
+    "evaluation_type": "Evaluation type",
+    "max_note": "Max Grade",
+    "days": {
+      "lundi": "Monday",
+      "mardi": "Tuesday",
+      "mercredi": "Wednesday",
+      "jeudi": "Thursday",
+      "vendredi": "Friday",
+      "samedi": "Saturday",
+      "dimanche": "Sunday"
+    },
+    "messages": {
+      "load_error": "Error loading data",
+      "load_details_error": "Error loading details",
+      "invalid_assignment": "Invalid assignment",
+      "save_success": "Session successfully added",
+      "update_success": "Session successfully modified",
+      "eval_save_success": "Evaluation successfully programmed",
+      "eval_update_success": "Evaluation successfully modified",
+      "convert_success": "Session converted to evaluation",
+      "delete_session_success": "Session deleted",
+      "delete_eval_success": "Evaluation removed from timetable",
+      "delete_eval_confirm": "Do you want to remove this evaluation from the timetable? It will remain available for grade entry.",
+      "save_error": "Error during save",
+      "delete_error": "Error during deletion"
+    }
+  },
+  "student_absences": {
+    "title": "My Absences",
+    "subtitle": "Track your attendance and justify your absences by session.",
+    "stats": {
+      "unjustified": "Unjustified",
+      "justified": "Justified",
+      "presence_rate": "Presence Rate"
+    },
+    "history_title": "Detailed Absence History",
+    "table": {
+      "date": "Date",
+      "duration": "Duration: {{count}}h",
+      "justified": "Justified",
+      "unjustified": "Unjustified"
+    },
+    "messages": {
+      "load_error": "Error loading your absences",
+      "no_absences": "No absences recorded. Congratulations!"
+    }
+  },
+  "student_notes": {
+    "title": "My Report Card",
+    "subtitle": "View your detailed grades and teacher feedback.",
+    "stats": {
+      "average": "General Average",
+      "best": "Best Grade",
+      "min": "Minimum Grade",
+      "current_performance": "Current Performance",
+      "excellent": "Excellent",
+      "to_improve": "To Improve"
+    },
+    "filters": {
+      "search_placeholder": "Search by subject or comment...",
+      "all_periods": "All periods",
+      "all_types": "All types"
+    },
+    "table": {
+      "subject_type": "Subject & Type",
+      "teacher": "Teacher",
+      "grade": "Grade",
+      "comment": "Teacher Feedback",
+      "no_comment": "No specific feedback."
+    },
+    "messages": {
+      "load_error": "Error loading your grades",
+      "no_results": "No results found."
+    }
+  },
+  "student_reclamations": {
+    "title": "My Complaints",
+    "subtitle": "View your grades and make complaints.",
+    "stats": {
+      "pending": "Pending",
+      "treated": "Treated",
+      "rejected": "Rejected"
+    },
+    "notes_section": {
+      "title": "My Grades",
+      "subtitle": "Click on a grade to make a complaint",
+      "table": {
+        "evaluation": "Evaluation",
+        "type": "Type",
+        "subject": "Subject",
+        "grade": "Grade",
+        "comment": "Comment",
+        "not_graded": "Not graded"
+      },
+      "claim": "Complain"
+    },
+    "reclamations_section": {
+      "title": "My Complaints",
+      "no_reclamations": "No complaints sent.",
+      "teacher_reply": "Teacher reply:",
+      "unknown_teacher": "Unknown teacher",
+      "unknown_subject": "Unknown subject"
+    },
+    "modal": {
+      "title": "Make a Complaint",
+      "note_details": "Grade details:",
+      "evaluation": "Evaluation:",
+      "subject": "Subject:",
+      "grade": "Grade:",
+      "comment": "Comment:",
+      "your_claim": "Your complaint",
+      "placeholder": "Explain the reasons for your complaint...",
+      "submit": "Send complaint"
+    },
+    "status": {
+      "en_attente": "Pending",
+      "traitee": "Treated",
+      "rejetee": "Rejected"
+    },
+    "messages": {
+      "load_error": "Error loading data",
+      "access_denied": "Unauthorized access",
+      "profile_not_found": "Student profile not found",
+      "no_recipient": "Unable to determine the recipient of the complaint.",
+      "no_teacher": "No teacher found for this evaluation. Please contact administration.",
+      "send_success": "Complaint sent successfully",
+      "send_error": "Error sending complaint"
+    }
+  },
+  "student_timetable": {
+    "title": "My Timetable",
+    "subtitle": "View your weekly timetable.",
+    "messages": {
+      "load_error": "Error loading your profile",
+      "no_class": "You are not assigned to any class at the moment."
+    }
+  },
+  "teacher_absences": {
+    "title": "Absence Management",
+    "subtitle": "Take attendance and manage complete attendance history.",
+    "stats": {
+      "total_absences": "Total Absences",
+      "sessions_managed": "Managed Sessions",
+      "global_summary": "Global Summary",
+      "stats_desc": "Statistics on your attendance records."
+    },
+    "attendance_section": {
+      "title": "Take Attendance Today",
+      "launch_sheet": "Launch attendance sheet"
+    },
+    "history_section": {
+      "title": "Session History",
+      "count": "{{count}} session(s) found",
+      "no_history": "No history for this date.",
+      "absent_students": "Absent students"
+    },
+    "modal": {
+      "title_create": "Take Attendance",
+      "title_edit": "Edit Attendance",
+      "course_date": "Course date",
+      "session_subject": "Session / Subject",
+      "select_session": "Select a session",
+      "student_list": "Student List",
+      "present": "Present",
+      "absent": "Absent"
+    },
+    "messages": {
+      "load_error": "Error loading data",
+      "load_students_error": "Error loading students",
+      "select_session_error": "Please select a session",
+      "date_mismatch_error": "Selected date ({{date}}) is a {{day}}, but session is scheduled on {{sessionDay}}.",
+      "save_success": "Attendance sheet updated",
+      "save_error": "Error during save"
+    }
+  },
+  "teacher_classes": {
+    "title": "My Classes",
+    "subtitle": "Classes and students you teach.",
+    "search_placeholder": "Search for a class...",
+    "no_classes": "No classes found.",
+    "subjects_count": "{{count}} subject(s)",
+    "students_count": "{{count}} student(s)",
+    "students_list": "Students ({{count}})",
+    "no_students": "No students in this class.",
+    "view_profile": "View profile",
+    "student_profile": {
+      "title": "Student Profile: {{name}}",
+      "search_placeholder": "Search by subject or evaluation...",
+      "notes_title": "Grades in your subjects",
+      "absences_title": "Absences in your sessions",
+      "no_notes": "No grades found with these filters.",
+      "no_absences": "No absences found with these filters.",
+      "load_error": "Error loading profile"
+    }
+  },
+  "teacher_notes": {
+    "title": "Grade Management",
+    "subtitle": "Create evaluations and enter grades.",
+    "new_evaluation": "New Evaluation",
+    "evaluations_title": "Evaluations",
+    "search_placeholder": "Search for an evaluation...",
+    "no_evaluations": "No evaluations found.",
+    "enter_grades": "Enter Grades",
+    "form": {
+      "type": "Evaluation type",
+      "date": "Date",
+      "start_time": "Start time",
+      "end_time": "End time"
+    },
+    "grade_modal": {
+      "title": "Grade Entry - {{matiere}} ({{classe}})",
+      "max_note": "Max Grade: {{count}}",
+      "student": "Student",
+      "grade": "Grade",
+      "comment": "Comment",
+      "absent_long": "Check if student was absent",
+      "submit": "Save grades"
+    },
+    "messages": {
+      "load_error": "Error loading data",
+      "load_students_error": "Error loading students",
+      "create_success": "Evaluation successfully created",
+      "create_error": "Error creating evaluation",
+      "save_success": "Grades successfully saved",
+      "save_error": "Error saving grades"
+    }
+  },
+  "teacher_reclamations": {
+    "title": "Complaints",
+    "subtitle": "Manage student complaints and provide answers.",
+    "stats": {
+      "pending": "Pending",
+      "treated": "Treated",
+      "rejected": "Rejected"
+    },
+    "filters": {
+      "search_placeholder": "Search by student, subject or message...",
+      "all_status": "All statuses",
+      "reset": "Reset"
+    },
+    "inbox_title": "Inbox",
+    "results_count": "{{count}} RESULTS",
+    "no_reclamations": "No complaints received.",
+    "eval_details": "Evaluation details",
+    "original_comment": "Original comment",
+    "your_response": "Your Response",
+    "reply_btn": "Reply",
+    "response_modal": {
+      "title": "Reply to complaint",
+      "student_message": "Student message",
+      "decision": "Decision",
+      "treat": "Treat",
+      "reject": "Reject",
+      "detailed_response": "Your detailed response",
+      "placeholder": "Explain the reasons for your decision to the student...",
+      "cancel": "Cancel",
+      "submit_treat": "Validate treatment",
+      "submit_reject": "Confirm rejection"
+    },
+    "messages": {
+      "load_error": "Error loading complaints",
+      "reply_required": "Please enter a response",
+      "send_success": "Response successfully sent",
+      "send_error": "Error sending response"
+    }
+  },
+  "timetable_grid": {
+    "loading": "Loading timetable...",
+    "error": "Error loading timetable data",
+    "endpoint_error": "Endpoint not found. Please ensure the backend is deployed.",
+    "retry_error": "Please try again later or contact administration.",
+    "no_seance": "No session or evaluation scheduled.",
+    "seance_details": "Session Details",
+    "evaluation_details": "Evaluation Details",
+    "room": "Room",
+    "teacher": "Teacher",
+    "subject": "Subject",
+    "class": "Class",
+    "type": "Type",
+    "evaluation": "Evaluation",
+    "course": "Course",
+    "unspecified": "Unspecified",
+    "not_assigned": "Not assigned",
+    "no_class_assigned": "This child is not assigned to any class.",
+    "no_child_found": "No child found.",
+    "days": {
+      "lundi": "Monday",
+      "mardi": "Tuesday",
+      "mercredi": "Wednesday",
+      "jeudi": "Thursday",
+      "vendredi": "Friday",
+      "samedi": "Saturday",
+      "dimanche": "Sunday"
+    }
+  },
+  "parent_absences": {
+    "title": "Absence Tracking",
+    "selected_child": "Selected child",
+    "history_title": "Detailed history for {{name}}",
+    "stats": {
+      "total": "Total Absences",
+      "justified": "Justified",
+      "unjustified": "Unjustified"
+    },
+    "filters": {
+      "search_placeholder": "Search by subject or teacher...",
+      "date_placeholder": "Filter by date"
+    },
+    "table": {
+      "subject": "Subject",
+      "date": "Date",
+      "status": "Status",
+      "justified": "Justified",
+      "unjustified": "Unjustified"
+    },
+    "no_absences": "No absences found.",
+    "messages": {
+      "load_children_error": "Error loading children",
+      "load_absences_error": "Error loading absences"
+    }
+  },
+  "parent_children": {
+    "title": "My Children",
+    "subtitle": "Your children.",
+    "no_children": "No children found.",
+    "not_assigned": "Class not assigned",
+    "code": "Code",
+    "email": "Email",
+    "contact": "Contact",
+    "not_provided": "Not provided",
+    "messages": {
+      "load_error": "Error loading child profiles"
+    }
+  },
+  "parent_notes": {
+    "title": "Report Card",
+    "subtitle": "Track academic results and teacher feedback for your children.",
+    "filters": {
+      "all_periods": "All periods",
+      "all_types": "All types"
+    },
+    "table": {
+      "evaluation": "Evaluation",
+      "grade": "Grade",
+      "comment": "Teacher Feedback",
+      "absent": "Absent",
+      "no_comment": "No specific feedback."
+    },
+    "no_notes": "No grades found for this period.",
+    "messages": {
+      "load_error": "Error loading grades",
+      "change_child_error": "Error changing child"
+    }
+  },
+  "parent_reclamations": {
+    "title": "Complaints",
+    "filters": {
+      "search_placeholder": "Search by message...",
+      "all_status": "All statuses",
+      "date_placeholder": "Filter by date"
+    },
+    "table": {
+      "message": "Message",
+      "status": "Status",
+      "date": "Date",
+      "response": "Response",
+      "no_response": "No response yet"
+    },
+    "no_reclamations": "No complaints found.",
+    "messages": {
+      "load_children_error": "Error loading children",
+      "load_reclamations_error": "Error loading complaints"
+    }
+  },
+  "parent_timetable": {
+    "title": "Children's Timetable",
+    "subtitle": "Consult your children's timetable.",
+    "select_child": "Select a child",
+    "messages": {
+      "load_children_error": "Error loading your children"
+    }
+  },
+  "teacher_dashboard": {
+    "title": "Teacher Dashboard",
+    "welcome": "Welcome, {{name}}. Here is the status of your pedagogical activities.",
+    "stats": {
+      "classes": "My Classes",
+      "students": "Total Students",
+      "reclamations": "Complaints",
+      "absences": "Noted Absences",
+      "to_treat": "To treat"
+    },
+    "recent_activities": "Recent Activities",
+    "recent_evaluations": "Recent Evaluations",
+    "pending_reclamations": "Pending Complaints",
+    "no_recent_evals": "No recent evaluations.",
+    "no_pending_recs": "No pending complaints.",
+    "view_all": "View all"
+  },
+  "student_dashboard": {
+    "title": "Student Dashboard",
+    "welcome": "Welcome back, {{name}}!",
+    "stats": {
+      "average": "General Average",
+      "absences": "Total Absences",
+      "matieres": "My Subjects",
+      "not_available": "N/A"
+    },
+    "recent_notes": "Recent Grades",
+    "notifications": "Notifications",
+    "no_recent_notes": "No recent grades found for this period.",
+    "no_notifs": "No notifications.",
+    "period_selector": "Select period"
+  },
+  "parent_dashboard": {
+    "title": "Parent Dashboard",
+    "welcome": "Welcome, {{name}}!",
+    "stats": {
+      "children": "My Children",
+      "reclamations": "Active Complaints",
+      "absences": "Total Absences"
+    },
+    "recent_activities": "Recent Activities",
+    "notifications": "Notifications",
+    "no_activities": "No recent activity found.",
+    "no_notifs": "No notifications.",
+    "activity_types": {
+      "grade": "New grade for {{name}}",
+      "absence": "New absence for {{name}}",
+      "reclamation": "Response to a complaint"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Stay informed about the latest updates.",
+    "mark_all_read": "Mark all as read",
+    "no_notifs": "No notifications found.",
+    "no_notifs_title": "No notifications",
+    "messages": {
+      "load_error": "Error loading notifications",
+      "update_error": "Error updating notification",
+      "mark_all_success": "All notifications marked as read"
+    }
+  },
+  "teacher_timetable": {
+    "title": "Timetable",
+    "subtitle": "View your personal timetable or class timetables.",
+    "my_timetable": "My Schedule",
+    "class_timetable": "By Class",
+    "no_class_assigned": "No class assigned to your profile.",
+    "messages": {
+      "loading": "Loading timetable...",
+      "load_error": "Error loading data"
+    }
+  }
+}

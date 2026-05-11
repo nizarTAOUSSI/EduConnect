@@ -1,28 +1,31 @@
 import { motion } from 'framer-motion';
 import { Activity, ShieldCheck, Cpu } from 'lucide-react';
-
-const guarantees = [
-  {
-    title: 'Automatisation Stratégique',
-    description: 'Une réduction drastique des tâches manuelles. Oubliez les erreurs humaines avec des barèmes pré-validés.',
-    icon: <Cpu className="w-10 h-10 text-primary" />,
-    gradient: 'from-blue-600/20 via-indigo-500/20 to-purple-500/20'
-  },
-  {
-    title: 'Zéro Défaut Garanti',
-    description: 'Une intégrité parfaite. Les flux de validation en cascade bloquent tout écart statistique détecté.',
-    icon: <Activity className="w-10 h-10 text-emerald-500" />,
-    gradient: 'from-emerald-500/20 via-teal-500/20 to-cyan-500/20'
-  },
-  {
-    title: 'Sécurité Architecturale',
-    description: 'Une forteresse numérique. Chiffrement AES-256 et architecture RBAC assurant la confidentialité absolue de vos données.',
-    icon: <ShieldCheck className="w-10 h-10 text-rose-500" />,
-    gradient: 'from-rose-500/20 via-orange-500/20 to-amber-500/20'
-  }
-];
+import { useTranslation } from 'react-i18next';
 
 export default function Guarantees() {
+  const { t } = useTranslation();
+
+  const guarantees = [
+    {
+      title: t('guarantees.auto.title'),
+      description: t('guarantees.auto.description'),
+      icon: <Cpu className="w-10 h-10 text-primary" />,
+      gradient: 'from-blue-600/20 via-indigo-500/20 to-purple-500/20'
+    },
+    {
+      title: t('guarantees.zero.title'),
+      description: t('guarantees.zero.description'),
+      icon: <Activity className="w-10 h-10 text-emerald-500" />,
+      gradient: 'from-emerald-500/20 via-teal-500/20 to-cyan-500/20'
+    },
+    {
+      title: t('guarantees.sec.title'),
+      description: t('guarantees.sec.description'),
+      icon: <ShieldCheck className="w-10 h-10 text-rose-500" />,
+      gradient: 'from-rose-500/20 via-orange-500/20 to-amber-500/20'
+    }
+  ];
+
   return (
     <section id="securite" className="py-32 bg-slate-900 relative">
       
@@ -38,10 +41,10 @@ export default function Guarantees() {
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             <div className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-white/10 text-sm font-bold text-slate-300 tracking-widest uppercase mb-6 backdrop-blur-sm border border-white/10">
-              Infrastructure
+              {t('guarantees.badge')}
             </div>
             <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              Des fondations bâties sur la fiabilité absolue.
+              {t('guarantees.main_title')}
             </h2>
           </motion.div>
           <motion.div
@@ -51,7 +54,7 @@ export default function Guarantees() {
              transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
           >
             <p className="text-slate-400 text-xl font-medium leading-relaxed max-w-lg lg:ml-auto">
-              Nous utilisons les mêmes standards de sécurité que l'industrie financière pour garantir que vos données restent privées, précises et toujours disponibles.
+              {t('guarantees.main_description')}
             </p>
           </motion.div>
         </div>

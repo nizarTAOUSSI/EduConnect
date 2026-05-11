@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search, School } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
@@ -8,6 +9,7 @@ import Modal from '../../components/ui/Modal';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
 
 export default function SallesManager() {
+  const { t } = useTranslation();
   const [salles, setSalles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,7 +25,7 @@ export default function SallesManager() {
       const res = await api.get('/academics/salles/');
       setSalles(res.data.results || res.data);
     } catch (error) {
-      toast.error('Erreur lors du chargement des salles');
+      toast.error(t('salles_manager.messages.load_error'));
     } finally {
       setLoading(false);
     }
@@ -43,12 +45,12 @@ export default function SallesManager() {
     try {
       setIsActionLoading(true);
       await api.delete(`/academics/salles/${salleToDelete}/`);
-      toast.success('Salle supprimée avec succès');
+      toast.success(t('salles_manager.messages.delete_success'));
       setIsDeleteModalOpen(false);
       setSalleToDelete(null);
       fetchSalles();
     } catch (error) {
-      toast.error('Erreur lors de la suppression');
+      toast.error(t('salles_manager.messages.delete_error'));
     } finally {
       setIsActionLoading(false);
     }
@@ -58,20 +60,24 @@ export default function SallesManager() {
     e.preventDefault();
     setIsActionLoading(true);
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
+    const data = {
+      nom: formData.get('nom'),
+      capacite: formData.get('capacite'),
+      description: formData.get('description')
+    };
 
     try {
       if (currentSalle?.id) {
         await api.patch(`/academics/salles/${currentSalle.id}/`, data);
-        toast.success('Salle mise à jour');
+        toast.success(t('salles_manager.messages.update_success'));
       } else {
         await api.post('/academics/salles/', data);
-        toast.success('Salle créée avec succès');
+        toast.success(t('salles_manager.messages.save_success'));
       }
       setIsModalOpen(false);
       fetchSalles();
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de la sauvegarde');
+      toast.error(error.response?.data?.detail || t('salles_manager.messages.save_error'));
     } finally {
       setIsActionLoading(false);
     }
@@ -85,8 +91,8 @@ export default function SallesManager() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Salles</h1>
-          <p className="text-slate-500 mt-1">Gérez les salles de classe et leurs capacités.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('salles_manager.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('salles_manager.subtitle')}</p>
         </div>
         <button
           onClick={() => {
@@ -96,7 +102,7 @@ export default function SallesManager() {
           className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-emerald-700 transition-all duration-200 shadow-lg shadow-emerald-200 flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          Ajouter une salle
+          {t('salles_manager.add_room')}
         </button>
       </div>
 
@@ -105,7 +111,7 @@ export default function SallesManager() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
-            placeholder="Rechercher une salle..."
+            placeholder={t('salles_manager.search_placeholder')}
             className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all duration-200"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -116,7 +122,7 @@ export default function SallesManager() {
           <div className="flex justify-center py-16"><Spinner className="text-emerald-600" /></div>
         ) : (
           <div className="overflow-x-auto -mx-8">
-            <Table columns={['Salle', 'Capacité', 'Description', 'Actions']} isEmpty={filteredSalles.length === 0}>
+            <Table columns={[t('salles_manager.table.room'), t('salles_manager.table.capacity'), 'Description', t('common.actions')]} isEmpty={filteredSalles.length === 0}>
               {filteredSalles.map((s) => (
                 <tr key={s.id} className="hover:bg-slate-50/50 transition-colors group">
                   <Td>
@@ -134,14 +140,14 @@ export default function SallesManager() {
                       <button 
                         onClick={() => { setCurrentSalle(s); setIsModalOpen(true); }} 
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                        title="Modifier"
+                        title={t('common.edit')}
                       >
                         <Edit2 className="w-4.5 h-4.5" />
                       </button>
                       <button 
                         onClick={() => handleDeleteClick(s.id)} 
                         className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                        title="Supprimer"
+                        title={t('common.delete')}
                       >
                         <Trash2 className="w-4.5 h-4.5" />
                       </button>
@@ -157,12 +163,12 @@ export default function SallesManager() {
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={currentSalle?.id ? 'Modifier la salle' : 'Créer une salle'}
+        title={currentSalle?.id ? t('salles_manager.edit_room') : t('salles_manager.create_room')}
         maxWidth="sm"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Nom de la salle</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('common.name')}</label>
             <input 
               name="nom" 
               defaultValue={currentSalle?.nom} 
@@ -172,7 +178,7 @@ export default function SallesManager() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">Capacité</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('salles_manager.table.capacity')}</label>
             <input 
               type="number"
               name="capacite" 
@@ -196,7 +202,7 @@ export default function SallesManager() {
               onClick={() => setIsModalOpen(false)} 
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all duration-200"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button 
               type="submit" 
@@ -204,7 +210,7 @@ export default function SallesManager() {
               className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all duration-200 shadow-lg shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              Sauvegarder
+              {t('common.save')}
             </button>
           </div>
         </form>
@@ -214,9 +220,9 @@ export default function SallesManager() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Supprimer la salle"
-        message={`Êtes-vous sûr de vouloir supprimer la salle "${salles.find(s => s.id === salleToDelete)?.nom}" ?`}
-        confirmLabel="Supprimer"
+        title={t('salles_manager.delete_confirm.title')}
+        message={t('salles_manager.delete_confirm.message', { name: salles.find(s => s.id === salleToDelete)?.nom })}
+        confirmLabel={t('common.delete')}
         variant="danger"
         isLoading={isActionLoading}
       />

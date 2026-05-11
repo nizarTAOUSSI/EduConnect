@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, School, } from 'lucide-react';
+import { Plus, School, } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
 import Modal from '../../components/ui/Modal';
 import TimetableGrid from '../../components/TimetableGrid';
+import ConfirmationModal from '../../components/ui/ConfirmationModal';
 
 export default function TimetableManager() {
+  const { t } = useTranslation();
   const [classes, setClasses] = useState<any[]>([]);
-  // const [matieres, setMatieres] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [salles, setSalles] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | string>('');
-  // const [seances, setSeances] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -38,7 +39,6 @@ export default function TimetableManager() {
       setLoading(true);
       const [classesRes, assignmentsRes, sallesRes, userRes] = await Promise.all([
         api.get('/academics/classes/'),
-        api.get('/academics/matieres/'),
         api.get('/academics/enseignant-matieres/'),
         api.get('/academics/salles/'),
         api.get('/accounts/auth/me/'),
@@ -63,60 +63,38 @@ export default function TimetableManager() {
         setSelectedClassId(firstClass.id);
       }
     } catch (error) {
-      toast.error('Erreur lors du chargement des données');
+      toast.error(t('timetable_manager.messages.load_error'));
     } finally {
       setLoading(false);
     }
   };
 
-  // const fetchSeances = async () => {
-  //   if (!selectedClassId) return;
-  //   try {
-  //     const res = await api.get(`/academics/seances/?classe=${selectedClassId}`);
-  //     setSeances(res.data.results || res.data);
-  //   } catch (error) {
-  //     console.error('Erreur lors du chargement des séances');
-  //   }
-  // };
-
   useEffect(() => {
     fetchData();
   }, []);
-
-  // useEffect(() => {
-  //   fetchSeances();
-  // }, [selectedClassId]);
-
-  // const handleDeleteSeance = (id: number) => {
-  //   setItemToDelete({ id, isEvaluation: false });
-  //   setIsDeleteModalOpen(true);
-  // };
 
   const handleDeleteItem = async () => {
     if (!itemToDelete) return;
     setIsActionLoading(true);
     try {
       if (itemToDelete.isEvaluation) {
-        // Instead of deleting the evaluation, we just "unschedule" it
-        // by clearing the hours, so it stays available for the teacher.
         await api.patch(`/grades/evaluations/${itemToDelete.id}/`, {
           heure_debut: null,
           heure_fin: null,
           salle: null
         });
-        toast.success('Évaluation retirée de l\'emploi du temps');
+        toast.success(t('timetable_manager.messages.delete_eval_success'));
       } else {
         await api.delete(`/academics/seances/${itemToDelete.id}/`);
-        toast.success('Séance supprimée');
+        toast.success(t('timetable_manager.messages.delete_session_success'));
       }
       
       setIsDeleteModalOpen(false);
-      // Refresh the timetable grid
       const current = selectedClassId;
       setSelectedClassId('');
       setTimeout(() => setSelectedClassId(current), 10);
     } catch (error) {
-      toast.error('Erreur lors de la suppression');
+      toast.error(t('timetable_manager.messages.delete_error'));
     } finally {
       setIsActionLoading(false);
       setItemToDelete(null);
@@ -127,7 +105,6 @@ export default function TimetableManager() {
     try {
       if (item.type === 'evaluation') {
         setFormType('evaluation');
-        // Need full details of evaluation
         const res = await api.get(`/grades/evaluations/${item.id}/`);
         const fullEval = res.data;
         setEditingSeance(fullEval);
@@ -159,7 +136,7 @@ export default function TimetableManager() {
       }
       setIsModalOpen(true);
     } catch (error) {
-      toast.error('Erreur lors du chargement des détails');
+      toast.error(t('timetable_manager.messages.load_details_error'));
     }
   };
 
@@ -167,12 +144,11 @@ export default function TimetableManager() {
     e.preventDefault();
     setIsActionLoading(true);
 
-    // Find the assignment to get the matiere_id
     const assignmentId = parseInt(formData.enseignant_matiere);
     const assignment = assignments.find(a => a.id === assignmentId);
 
     if (!assignment) {
-      toast.error('Affectation invalide');
+      toast.error(t('timetable_manager.messages.invalid_assignment'));
       setIsActionLoading(false);
       return;
     }
@@ -189,15 +165,14 @@ export default function TimetableManager() {
           heure_fin: formData.heure_fin,
         };
 
-        if (editingSeance && editingSeance.jour) { // Real seance (has 'jour' field)
+        if (editingSeance && editingSeance.jour) {
           await api.patch(`/academics/seances/${editingSeance.id}/`, payload);
-          toast.success('Séance modifiée avec succès');
+          toast.success(t('timetable_manager.messages.update_success'));
         } else {
           await api.post('/academics/seances/', payload);
-          toast.success('Séance ajoutée avec succès');
+          toast.success(t('timetable_manager.messages.save_success'));
         }
       } else {
-        // Evaluation
         const payload = {
           matiere: assignment.matiere,
           classe: selectedClassId,
@@ -212,26 +187,21 @@ export default function TimetableManager() {
         
         if (editingSeance) {
           if (editingSeance.date) {
-            // Updating existing evaluation
             await api.patch(`/grades/evaluations/${editingSeance.id}/`, payload);
-            toast.success('Évaluation modifiée avec succès');
+            toast.success(t('timetable_manager.messages.eval_update_success'));
           } else if (editingSeance.jour) {
-            // Converting Séance to Evaluation
-            // First create evaluation
             await api.post('/grades/evaluations/', payload);
-            // Then delete the original seance
             await api.delete(`/academics/seances/${editingSeance.id}/`);
-            toast.success('Séance transformée en évaluation');
+            toast.success(t('timetable_manager.messages.convert_success'));
           }
         } else {
           await api.post('/grades/evaluations/', payload);
-          toast.success('Évaluation programmée avec succès');
+          toast.success(t('timetable_manager.messages.eval_save_success'));
         }
       }
 
       setIsModalOpen(false);
       setEditingSeance(null);
-      // Reset form but keep some defaults
       setFormData({
         ...formData,
         enseignant_matiere: '',
@@ -239,12 +209,11 @@ export default function TimetableManager() {
         heure_debut: '',
         heure_fin: '',
       });
-      // Refresh the timetable grid
       const current = selectedClassId;
       setSelectedClassId('');
       setTimeout(() => setSelectedClassId(current), 10);
     } catch (error: any) {
-      let errorMsg = 'Erreur lors de l\'enregistrement';
+      let errorMsg = t('timetable_manager.messages.save_error');
       
       if (error.response?.data) {
         const data = error.response.data;
@@ -255,7 +224,6 @@ export default function TimetableManager() {
         } else if (data.detail) {
           errorMsg = data.detail;
         } else {
-           // Extract first error from field errors
            const keys = Object.keys(data);
            if (keys.length > 0) {
              const firstKey = keys[0];
@@ -276,7 +244,7 @@ export default function TimetableManager() {
 
   const handleOpenAddModal = () => {
     setEditingSeance(null);
-    setFormType('seance'); // Par défaut on propose un cours normal
+    setFormType('seance');
     setFormData({
       enseignant_matiere: '',
       salle: '',
@@ -300,8 +268,8 @@ export default function TimetableManager() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Emploi du temps</h1>
-          <p className="text-slate-500 mt-1">Gérez la planification des cours par classe.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('timetable_manager.title')}</h1>
+          <p className="text-slate-500 mt-1">{t('timetable_manager.subtitle')}</p>
         </div>
         <button
           onClick={handleOpenAddModal}
@@ -309,14 +277,14 @@ export default function TimetableManager() {
           className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-emerald-700 transition-all duration-200 shadow-lg shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
         >
           <Plus className="w-5 h-5" />
-          Ajouter une séance
+          {t('timetable_manager.add_session')}
         </button>
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row items-end gap-6 mb-8">
           <div className="space-y-2 flex-1 max-w-xs">
-            <label className="text-sm font-bold text-slate-700 ml-1">Sélectionner une classe</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.select_class')}</label>
             <div className="relative">
               <School className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <select
@@ -347,7 +315,7 @@ export default function TimetableManager() {
           </div>
         ) : (
           <div className="text-center py-20 text-slate-400">
-            Veuillez sélectionner une classe pour voir son emploi du temps.
+            {t('timetable_manager.no_class_selected')}
           </div>
         )}
       </div>
@@ -358,7 +326,7 @@ export default function TimetableManager() {
           setIsModalOpen(false);
           setEditingSeance(null);
         }} 
-        title={editingSeance ? "Modifier la séance" : "Programmer un cours ou évaluation"}
+        title={editingSeance ? t('timetable_manager.edit_session') : t('timetable_manager.program_course_eval')}
         maxWidth="md"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -369,21 +337,21 @@ export default function TimetableManager() {
                 onClick={() => setFormType('seance')}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${formType === 'seance' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                Cours normal
+                {t('timetable_manager.normal_course')}
               </button>
               <button
                 type="button"
                 onClick={() => setFormType('evaluation')}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${formType === 'evaluation' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                Évaluation / Examen
+                {t('timetable_manager.evaluation_exam')}
               </button>
             </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Cours et Prof</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.course_and_teacher')}</label>
               <select 
                 name="enseignant_matiere" 
                 value={formData.enseignant_matiere}
@@ -391,7 +359,7 @@ export default function TimetableManager() {
                 required 
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all duration-200"
               >
-                <option value="">Sélectionner un cours</option>
+                <option value="">{t('timetable_manager.select_course')}</option>
                 {filteredAssignments.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.matiere_name} - {a.enseignant_name}
@@ -402,7 +370,7 @@ export default function TimetableManager() {
 
             {formType === 'seance' ? (
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Jour de la semaine</label>
+                <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.day_of_week')}</label>
                 <select 
                   name="jour" 
                   value={formData.jour}
@@ -410,18 +378,18 @@ export default function TimetableManager() {
                   required 
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all duration-200"
                 >
-                  <option value="lundi">Lundi</option>
-                  <option value="mardi">Mardi</option>
-                  <option value="mercredi">Mercredi</option>
-                  <option value="jeudi">Jeudi</option>
-                  <option value="vendredi">Vendredi</option>
-                  <option value="samedi">Samedi</option>
-                  <option value="dimanche">Dimanche</option>
+                  <option value="lundi">{t('timetable_manager.days.lundi')}</option>
+                  <option value="mardi">{t('timetable_manager.days.mardi')}</option>
+                  <option value="mercredi">{t('timetable_manager.days.mercredi')}</option>
+                  <option value="jeudi">{t('timetable_manager.days.jeudi')}</option>
+                  <option value="vendredi">{t('timetable_manager.days.vendredi')}</option>
+                  <option value="samedi">{t('timetable_manager.days.samedi')}</option>
+                  <option value="dimanche">{t('timetable_manager.days.dimanche')}</option>
                 </select>
               </div>
             ) : (
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Date de l'évaluation</label>
+                <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.evaluation_date')}</label>
                 <input 
                   type="date" 
                   name="date" 
@@ -434,7 +402,7 @@ export default function TimetableManager() {
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Heure de début</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.start_time')}</label>
               <input 
                 type="time" 
                 name="heure_debut" 
@@ -446,26 +414,26 @@ export default function TimetableManager() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Heure de fin</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.end_time')}</label>
               <input 
                 type="time" 
                 name="heure_fin" 
                 value={formData.heure_fin}
-                onChange={(e) => setFormData({ ...formData, heure_fin: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, heure_fin: e.target.value })} 
                 required 
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all duration-200" 
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Salle</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.room')}</label>
               <select 
                 name="salle" 
                 value={formData.salle}
                 onChange={(e) => setFormData({ ...formData, salle: e.target.value })}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all duration-200"
               >
-                <option value="">Sélectionner une salle (optionnel)</option>
+                <option value="">{t('timetable_manager.select_room_opt')}</option>
                 {salles.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.nom} {s.capacite ? `(${s.capacite} places)` : ''}
@@ -477,7 +445,7 @@ export default function TimetableManager() {
             {formType === 'evaluation' && (
               <>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 ml-1">Type d'évaluation</label>
+                  <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.evaluation_type')}</label>
                   <select 
                     name="type" 
                     value={formData.type}
@@ -485,13 +453,13 @@ export default function TimetableManager() {
                     required 
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-amber-600/20 focus:border-amber-600 transition-all duration-200"
                   >
-                    <option value="CC">Contrôle Continu</option>
-                    <option value="Examen">Examen Final</option>
-                    <option value="TP">Travaux Pratiques</option>
+                    <option value="CC">{t('evaluations_manager.types.CC')}</option>
+                    <option value="Examen">{t('evaluations_manager.types.Examen')}</option>
+                    <option value="TP">{t('evaluations_manager.types.TP')}</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 ml-1">Note Max</label>
+                  <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.max_note')}</label>
                   <input 
                     type="number" 
                     name="note_max" 
@@ -505,7 +473,7 @@ export default function TimetableManager() {
             )}
           </div>
 
-          <div className="pt-6 flex justify-end gap-3">
+          <div className="pt-6 flex justify-end gap-3 border-t">
             <button 
               type="button" 
               onClick={() => {
@@ -514,7 +482,7 @@ export default function TimetableManager() {
               }} 
               className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all duration-200"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button 
               type="submit" 
@@ -522,54 +490,22 @@ export default function TimetableManager() {
               className={`px-8 py-3 ${formType === 'evaluation' ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-200' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'} text-white font-bold rounded-2xl transition-all duration-200 shadow-lg flex items-center gap-2 disabled:opacity-50`}
             >
               {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              {editingSeance ? "Enregistrer" : formType === 'evaluation' ? "Programmer l'évaluation" : "Programmer le cours"}
+              {editingSeance ? t('common.save') : t('common.add')}
             </button>
           </div>
         </form>
       </Modal>
 
-      <Modal
+      <ConfirmationModal
         isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setItemToDelete(null);
-        }}
-        title="Confirmer la suppression"
-        maxWidth="sm"
-      >
-        <div className="space-y-6">
-          <div className="flex items-center gap-4 text-amber-600 bg-amber-50 p-4 rounded-2xl border border-amber-100">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-              <Trash2 className="w-6 h-6" />
-            </div>
-            <p className="text-sm font-medium">
-              {itemToDelete?.isEvaluation 
-                ? "Voulez-vous retirer cette évaluation de l'emploi du temps ? Elle restera accessible pour la saisie des notes."
-                : "Êtes-vous sûr de vouloir supprimer cette séance ? Cette action est irréversible."}
-            </p>
-          </div>
-
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => {
-                setIsDeleteModalOpen(false);
-                setItemToDelete(null);
-              }}
-              className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all"
-            >
-              Annuler
-            </button>
-            <button
-              onClick={handleDeleteItem}
-              disabled={isActionLoading}
-              className="px-8 py-3 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 flex items-center gap-2 disabled:opacity-50"
-            >
-              {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              {itemToDelete?.isEvaluation ? 'Retirer' : 'Supprimer'}
-            </button>
-          </div>
-        </div>
-      </Modal>
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteItem}
+        title={t('common.delete')}
+        message={itemToDelete?.isEvaluation ? t('timetable_manager.messages.delete_eval_confirm') : t('common.delete_confirm')}
+        confirmLabel={itemToDelete?.isEvaluation ? t('common.remove') : t('common.delete')}
+        variant="danger"
+        isLoading={isActionLoading}
+      />
     </div>
   );
 }
