@@ -24,24 +24,37 @@ class AnneeScolaireSerializer(serializers.ModelSerializer):
         return attrs
 class PeriodeSerializer(serializers.ModelSerializer):
     annee_scolaire_nom = serializers.ReadOnlyField(source='annee_scolaire.nom')
-    annee_scolaire = serializers.PrimaryKeyRelatedField(queryset=AnneeScolaire.objects.all())
+    annee_scolaire = serializers.PrimaryKeyRelatedField(queryset=AnneeScolaire.objects.all(), required=False, allow_null=True)
     class Meta:
         model = Periode
         fields = '__all__'
     def validate(self, attrs):
         if not self.instance and not attrs.get('annee_scolaire'):
             raise serializers.ValidationError({'annee_scolaire': 'Ce champ est obligatoire.'})
-        annee_scolaire = attrs.get('annee_scolaire') or (self.instance.annee_scolaire if self.instance else None)
-        date_debut = attrs.get('date_debut') or (self.instance.date_debut if self.instance else None)
-        date_fin = attrs.get('date_fin') or (self.instance.date_fin if self.instance else None)
+        
+        annee_scolaire = attrs.get('annee_scolaire')
+        if not annee_scolaire and self.instance:
+            annee_scolaire = self.instance.annee_scolaire
+        
+        date_debut = attrs.get('date_debut')
+        if date_debut is None and self.instance:
+            date_debut = self.instance.date_debut
+        
+        date_fin = attrs.get('date_fin')
+        if date_fin is None and self.instance:
+            date_fin = self.instance.date_fin
+        
         if date_debut and date_fin and date_debut > date_fin:
             raise serializers.ValidationError({'date_debut': 'La date de début doit être antérieure à la date de fin.'})
+        
         if annee_scolaire and date_debut:
             if date_debut < annee_scolaire.date_debut or date_debut > annee_scolaire.date_fin:
                 raise serializers.ValidationError({'date_debut': 'La date de début de la période doit être dans l\'intervalle de l\'année scolaire.'})
+        
         if annee_scolaire and date_fin:
             if date_fin < annee_scolaire.date_debut or date_fin > annee_scolaire.date_fin:
                 raise serializers.ValidationError({'date_fin': 'La date de fin de la période doit être dans l\'intervalle de l\'année scolaire.'})
+        
         return attrs
 class MatiereSerializer(serializers.ModelSerializer):
     class Meta:
