@@ -39,8 +39,29 @@ export default function TeacherClasses() {
     const fetchMyClasses = async () => {
       try {
         setLoading(true);
-        const res = await api.get('/academics/enseignant-classes/');
-        setClasses(res.data.results || res.data);
+        const [assignmentsRes, classesRes] = await Promise.all([
+          api.get('/academics/enseignant-matieres/'),
+          api.get('/academics/classes/')
+        ]);
+        const assignments = assignmentsRes.data.results || assignmentsRes.data;
+        const allClasses = classesRes.data.results || classesRes.data;
+
+        // Group matieres by class
+        const classeMap: Record<number, Classe> = {};
+        for (const a of assignments) {
+          if (!classeMap[a.classe]) {
+            const classeData = allClasses.find((c: any) => c.id === a.classe);
+            classeMap[a.classe] = {
+              id: a.classe,
+              nom: a.classe_name,
+              niveau: classeData?.niveau || '',
+              matieres: [],
+              student_count: classeData?.nb_etudiants || 0
+            };
+          }
+          classeMap[a.classe].matieres.push({ id: a.matiere, nom: a.matiere_name });
+        }
+        setClasses(Object.values(classeMap));
       } catch (error) {
         toast.error(t('teacher_absences.messages.load_error'));
       } finally {

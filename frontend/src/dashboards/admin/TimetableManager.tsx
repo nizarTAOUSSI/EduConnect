@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Plus, School, } from 'lucide-react';
+import { Plus, Trash2, School, } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../../components/ui/Spinner';
 import Modal from '../../components/ui/Modal';
 import TimetableGrid from '../../components/TimetableGrid';
-import ConfirmationModal from '../../components/ui/ConfirmationModal';
 
 export default function TimetableManager() {
   const { t } = useTranslation();
   const [classes, setClasses] = useState<any[]>([]);
+  // const [matieres, setMatieres] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [salles, setSalles] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | string>('');
+  // const [seances, setSeances] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -69,9 +70,28 @@ export default function TimetableManager() {
     }
   };
 
+  // const fetchSeances = async () => {
+  //   if (!selectedClassId) return;
+  //   try {
+  //     const res = await api.get(`/academics/seances/?classe=${selectedClassId}`);
+  //     setSeances(res.data.results || res.data);
+  //   } catch (error) {
+  //     console.error('Erreur lors du chargement des séances');
+  //   }
+  // };
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  // useEffect(() => {
+  //   fetchSeances();
+  // }, [selectedClassId]);
+
+  // const handleDeleteSeance = (id: number) => {
+  //   setItemToDelete({ id, isEvaluation: false });
+  //   setIsDeleteModalOpen(true);
+  // };
 
   const handleDeleteItem = async () => {
     if (!itemToDelete) return;
@@ -105,6 +125,7 @@ export default function TimetableManager() {
     try {
       if (item.type === 'evaluation') {
         setFormType('evaluation');
+        // Need full details of evaluation
         const res = await api.get(`/grades/evaluations/${item.id}/`);
         const fullEval = res.data;
         setEditingSeance(fullEval);
@@ -136,7 +157,7 @@ export default function TimetableManager() {
       }
       setIsModalOpen(true);
     } catch (error) {
-      toast.error(t('timetable_manager.messages.load_details_error'));
+        toast.error(t('timetable_manager.messages.load_details_error'));
     }
   };
 
@@ -144,6 +165,7 @@ export default function TimetableManager() {
     e.preventDefault();
     setIsActionLoading(true);
 
+    // Find the assignment to get the matiere_id
     const assignmentId = parseInt(formData.enseignant_matiere);
     const assignment = assignments.find(a => a.id === assignmentId);
 
@@ -165,7 +187,7 @@ export default function TimetableManager() {
           heure_fin: formData.heure_fin,
         };
 
-        if (editingSeance && editingSeance.jour) {
+        if (editingSeance && editingSeance.jour) { // Real seance (has 'jour' field)
           await api.patch(`/academics/seances/${editingSeance.id}/`, payload);
           toast.success(t('timetable_manager.messages.update_success'));
         } else {
@@ -173,6 +195,7 @@ export default function TimetableManager() {
           toast.success(t('timetable_manager.messages.save_success'));
         }
       } else {
+        // Evaluation
         const payload = {
           matiere: assignment.matiere,
           classe: selectedClassId,
@@ -187,10 +210,14 @@ export default function TimetableManager() {
         
         if (editingSeance) {
           if (editingSeance.date) {
+            // Updating existing evaluation
             await api.patch(`/grades/evaluations/${editingSeance.id}/`, payload);
             toast.success(t('timetable_manager.messages.eval_update_success'));
           } else if (editingSeance.jour) {
+            // Converting Séance to Evaluation
+            // First create evaluation
             await api.post('/grades/evaluations/', payload);
+            // Then delete the original seance
             await api.delete(`/academics/seances/${editingSeance.id}/`);
             toast.success(t('timetable_manager.messages.convert_success'));
           }
@@ -202,6 +229,7 @@ export default function TimetableManager() {
 
       setIsModalOpen(false);
       setEditingSeance(null);
+      // Reset form but keep some defaults
       setFormData({
         ...formData,
         enseignant_matiere: '',
@@ -209,6 +237,7 @@ export default function TimetableManager() {
         heure_debut: '',
         heure_fin: '',
       });
+      // Refresh the timetable grid
       const current = selectedClassId;
       setSelectedClassId('');
       setTimeout(() => setSelectedClassId(current), 10);
@@ -224,6 +253,7 @@ export default function TimetableManager() {
         } else if (data.detail) {
           errorMsg = data.detail;
         } else {
+           // Extract first error from field errors
            const keys = Object.keys(data);
            if (keys.length > 0) {
              const firstKey = keys[0];
@@ -244,7 +274,7 @@ export default function TimetableManager() {
 
   const handleOpenAddModal = () => {
     setEditingSeance(null);
-    setFormType('seance');
+    setFormType('seance'); // Par défaut on propose un cours normal
     setFormData({
       enseignant_matiere: '',
       salle: '',
@@ -268,8 +298,8 @@ export default function TimetableManager() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('timetable_manager.title')}</h1>
-          <p className="text-slate-500 mt-1">{t('timetable_manager.subtitle')}</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Emploi du temps</h1>
+          <p className="text-slate-500 mt-1">Gérez la planification des cours par classe.</p>
         </div>
         <button
           onClick={handleOpenAddModal}
@@ -277,14 +307,14 @@ export default function TimetableManager() {
           className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-emerald-700 transition-all duration-200 shadow-lg shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
         >
           <Plus className="w-5 h-5" />
-          {t('timetable_manager.add_session')}
+          Ajouter une séance
         </button>
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row items-end gap-6 mb-8">
           <div className="space-y-2 flex-1 max-w-xs">
-            <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.select_class')}</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">Sélectionner une classe</label>
             <div className="relative">
               <School className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <select
@@ -315,7 +345,7 @@ export default function TimetableManager() {
           </div>
         ) : (
           <div className="text-center py-20 text-slate-400">
-            {t('timetable_manager.no_class_selected')}
+            Veuillez sélectionner une classe pour voir son emploi du temps.
           </div>
         )}
       </div>
@@ -370,7 +400,7 @@ export default function TimetableManager() {
 
             {formType === 'seance' ? (
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.day_of_week')}</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">{t('timetable_manager.day_of_week')}</label>
                 <select 
                   name="jour" 
                   value={formData.jour}
@@ -419,7 +449,7 @@ export default function TimetableManager() {
                 type="time" 
                 name="heure_fin" 
                 value={formData.heure_fin}
-                onChange={(e) => setFormData({ ...formData, heure_fin: e.target.value })} 
+                onChange={(e) => setFormData({ ...formData, heure_fin: e.target.value })}
                 required 
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all duration-200" 
               />
@@ -473,7 +503,7 @@ export default function TimetableManager() {
             )}
           </div>
 
-          <div className="pt-6 flex justify-end gap-3 border-t">
+          <div className="pt-6 flex justify-end gap-3">
             <button 
               type="button" 
               onClick={() => {
@@ -496,16 +526,48 @@ export default function TimetableManager() {
         </form>
       </Modal>
 
-      <ConfirmationModal
+      <Modal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDeleteItem}
-        title={t('common.delete')}
-        message={itemToDelete?.isEvaluation ? t('timetable_manager.messages.delete_eval_confirm') : t('common.delete_confirm')}
-        confirmLabel={itemToDelete?.isEvaluation ? t('common.remove') : t('common.delete')}
-        variant="danger"
-        isLoading={isActionLoading}
-      />
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setItemToDelete(null);
+        }}
+        title={t('common.confirm')}
+        maxWidth="sm"
+      >
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 text-amber-600 bg-amber-50 p-4 rounded-2xl border border-amber-100">
+            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-medium">
+              {itemToDelete?.isEvaluation 
+                ? t('timetable_manager.messages.delete_eval_confirm')
+                : t('common.confirm')}
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setItemToDelete(null);
+              }}
+              className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              onClick={handleDeleteItem}
+              disabled={isActionLoading}
+              className="px-8 py-3 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 flex items-center gap-2 disabled:opacity-50"
+            >
+              {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {itemToDelete?.isEvaluation ? t('common.remove') : t('common.delete')}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

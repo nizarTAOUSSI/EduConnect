@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Clock, MessageSquare, Activity, BookOpen, TrendingUp,Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Clock, MessageSquare, Activity, BookOpen, TrendingUp, AlertCircle, Calendar } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api/axios';
 import Spinner from '../components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 
 interface DashboardNote {
   id: number;
@@ -80,7 +79,6 @@ export default function EtudiantDashboard() {
         const allPeriods = periodsRes.data.results || periodsRes.data;
         setPeriodes(allPeriods);
         
-        // Auto-select active period if none selected
         if (!selectedPeriode && allPeriods.length > 0) {
           const active = allPeriods.find((p: DashboardPeriode) => p.est_active);
           if (active) setSelectedPeriode(active.id.toString());
@@ -101,27 +99,39 @@ export default function EtudiantDashboard() {
         const myAbsences = allAbsences.filter((a: { etudiant_user: number }) => a.etudiant_user === user.id);
 
         const myBulletins = bulletinsRes.data.results || bulletinsRes.data;
-        const currentBulletin = myBulletins.find((b: any) => 
-          b.periode?.toString() === selectedPeriode || b.periode?.id?.toString() === selectedPeriode
-        );
+        const latestBulletin = selectedPeriode 
+          ? myBulletins.find((b: { periode: number | { id: number } }) => {
+              const bPeriodId = typeof b.periode === 'object' ? b.periode.id : b.periode;
+              return bPeriodId?.toString() === selectedPeriode;
+            })
+          : myBulletins[0];
 
-        setStats({
-          average: currentBulletin ? parseFloat(currentBulletin.moyenne) : 0,
-          absences: myAbsences.length,
-          matieres: matieresRes.data.count || matieresRes.data.length || 0
-        });
-
-        setRecentNotes(myNotes.slice(0, 5));
-        
-        // Normalize notifications
         const rawNotifs = notificationsRes.data.results || notificationsRes.data;
         const normalizedNotifs = Array.isArray(rawNotifs) ? rawNotifs.map((n: DashboardNotification) => ({
           ...n,
           is_read: n.is_read !== undefined ? n.is_read : (n.est_lu !== undefined ? n.est_lu : false),
           created_at: n.created_at || n.date_envoi || new Date().toISOString()
         })) : [];
-        
-        setRecentNotifications(normalizedNotifs.slice(0, 5));
+
+        const realAverage = latestBulletin?.moyenne_generale || (myNotes.length > 0 ? (myNotes.reduce((acc: number, n: DashboardNote) => acc + (n.valeur_note || 0), 0) / myNotes.length) : 0);
+
+        setStats({
+          average: realAverage,
+          absences: myAbsences.length,
+          matieres: matieresRes.data.count || matieresRes.data.length || 0
+        });
+
+        const sortedNotes = myNotes.sort((a: DashboardNote, b: DashboardNote) => {
+          const dateA = new Date(a.evaluation_details?.date || 0).getTime();
+          const dateB = new Date(b.evaluation_details?.date || 0).getTime();
+          if (dateA !== dateB) return dateB - dateA;
+          const createA = new Date(a.created_at || 0).getTime();
+          const createB = new Date(b.created_at || 0).getTime();
+          return createB - createA;
+        });
+
+        setRecentNotes(sortedNotes.slice(0, 4));
+        setRecentNotifications(normalizedNotifs.slice(0, 4));
 
       } catch (error) {
         console.error(error);
@@ -137,75 +147,61 @@ export default function EtudiantDashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{t('student_dashboard.title')}</h1>
-          <p className="text-slate-500 mt-1 font-medium">{t('student_dashboard.welcome', { name: user?.first_name })}</p>
+          <p className="text-slate-500 mt-1 font-medium">
+            {t('student_dashboard.welcome', { name: user?.first_name })}
+          </p>
         </div>
-        
-        <div className="relative">
-          <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+          <Calendar className="w-5 h-5 text-indigo-600 ml-2" />
           <select 
             value={selectedPeriode}
             onChange={(e) => setSelectedPeriode(e.target.value)}
-            className="pl-11 pr-10 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-primary/20 appearance-none shadow-sm transition-all"
+            className="bg-transparent border-none focus:ring-0 font-bold text-slate-700 pr-8"
           >
-            <option value="">{t('student_dashboard.period_selector')}</option>
             {periodes.map(p => (
-              <option key={p.id} value={p.id}>{p.nom}</option>
+              <option key={p.id} value={p.id}>{p.nom} ({p.code})</option>
             ))}
           </select>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard 
-          title={t('student_dashboard.stats.average')} 
-          value={stats.average > 0 ? stats.average.toFixed(2) : t('student_dashboard.stats.not_available')} 
-          icon={TrendingUp} 
-          color="bg-indigo-600" 
-          trend={stats.average >= 10 ? "Satisfaisant" : "À améliorer"}
-        />
-        <StatCard title={t('student_dashboard.stats.absences')} value={stats.absences} icon={Activity} color="bg-rose-500" />
-        <StatCard title={t('student_dashboard.stats.matieres')} value={stats.matieres} icon={BookOpen} color="bg-emerald-600" />
+        <StatCard title={t('student_dashboard.stats.average')} value={stats.average.toFixed(2)} icon={TrendingUp} color="bg-blue-600" unit="/20" />
+        <StatCard title={t('student_dashboard.stats.absences')} value={stats.absences} icon={Clock} color="bg-rose-600" trend={stats.absences > 3 ? "Attention" : "Bon état"} />
+        <StatCard title={t('student_dashboard.stats.matieres')} value={stats.matieres} icon={BookOpen} color="bg-indigo-600" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Clock className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-black text-slate-900">{t('student_dashboard.recent_notes')}</h3>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Activity className="w-6 h-6" />
             </div>
-            <Link to="/student/grades" className="text-xs font-black text-primary uppercase tracking-widest hover:underline">{t('teacher_dashboard.view_all')}</Link>
+            <h2 className="text-xl font-bold text-slate-900">{t('student_dashboard.recent_notes')}</h2>
           </div>
-
           <div className="space-y-4">
             {recentNotes.length > 0 ? recentNotes.map((note, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/30 transition-all">
+              <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-emerald-200 hover:bg-white transition-all duration-200">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
-                    <BookOpen className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-emerald-600 font-bold shadow-sm">
+                    {note.valeur_note}
                   </div>
                   <div>
                     <p className="font-bold text-slate-900 leading-none">{note.evaluation_details?.matiere_name}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{note.evaluation_details?.type_display} • {note.evaluation_details?.date}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{note.evaluation_details?.type_display} • Coeff: {note.evaluation_details?.matiere_coefficient}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  {note.est_absent ? (
-                    <span className="text-xs font-black text-rose-500 uppercase tracking-widest">{t('parent_notes.table.absent')}</span>
-                  ) : (
-                    <span className={`text-lg font-black ${note.valeur_note && note.valeur_note >= 10 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {note.valeur_note}/20
-                    </span>
-                  )}
+                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{note.evaluation_details?.date ? new Date(note.evaluation_details.date).toLocaleDateString() : ''}</span>
                 </div>
               </div>
             )) : (
-              <div className="text-center py-8 text-slate-400 italic text-sm">{t('student_dashboard.no_recent_notes')}</div>
+              <div className="text-center py-12 text-slate-400 font-medium italic">
+                {t('student_dashboard.no_recent_notes')}
+              </div>
             )}
           </div>
         </div>
@@ -213,35 +209,38 @@ export default function EtudiantDashboard() {
         <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+              <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
                 <MessageSquare className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-black text-slate-900">{t('student_dashboard.notifications')}</h3>
+              <h2 className="text-xl font-bold text-slate-900">{t('student_dashboard.notifications')}</h2>
             </div>
-            <Link to="/student/notifications" className="text-xs font-black text-primary uppercase tracking-widest hover:underline">{t('teacher_dashboard.view_all')}</Link>
           </div>
-
           <div className="space-y-4">
             {recentNotifications.length > 0 ? recentNotifications.map((notif, idx) => (
               <div 
                 key={idx} 
                 onClick={() => !notif.is_read && markAsRead(notif.id)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                className={`flex items-start gap-4 p-4 rounded-2xl border transition-all ${
                   notif.is_read 
-                    ? 'bg-slate-50 border-slate-100 opacity-60' 
-                    : 'bg-white border-amber-200 shadow-md shadow-amber-50 ring-1 ring-amber-100'
+                    ? 'bg-slate-50 border-slate-100 opacity-70' 
+                    : 'bg-white border-purple-100 shadow-sm border-l-4 border-l-purple-500 cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  {!notif.is_read && <div className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0 animate-pulse" />}
-                  <div className="flex-1">
-                    <p className={`text-xs leading-relaxed ${notif.is_read ? 'text-slate-500' : 'text-slate-900 font-bold'}`}>{notif.message}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase mt-2">{new Date(notif.created_at).toLocaleDateString()}</p>
+                <div className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center ${notif.is_read ? 'bg-slate-200 text-slate-400' : 'bg-purple-100 text-purple-600'}`}>
+                  {notif.is_read ? <Clock className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-sm leading-snug ${notif.is_read ? 'text-slate-500' : 'text-slate-900 font-bold'}`}>{notif.message}</p>
+                    {!notif.is_read && <span className="px-2 py-0.5 bg-purple-600 text-[8px] font-black text-white rounded-full uppercase animate-pulse shrink-0">Nouveau</span>}
                   </div>
+                  <p className="text-[10px] text-slate-400 mt-1 font-bold uppercase">{new Date(notif.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
             )) : (
-              <div className="text-center py-8 text-slate-400 italic text-sm">{t('student_dashboard.no_notifs')}</div>
+              <div className="text-center py-12 text-slate-400 font-medium italic">
+                {t('student_dashboard.no_notifs')}
+              </div>
             )}
           </div>
         </div>
@@ -250,23 +249,22 @@ export default function EtudiantDashboard() {
   );
 }
 
-function StatCard({ title, value, icon: Icon, color, trend }: any) {
+function StatCard({ title, value, icon: Icon, color, unit, trend }: { title: string, value: string | number, icon: any, color: string, unit?: string, trend?: string }) {
   return (
-    <div className="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group">
-      <div className="flex items-center justify-between mb-6">
-        <div className={`p-3 rounded-2xl text-white ${color} shadow-lg group-hover:scale-110 transition-transform`}>
+    <div className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group border-b-4 border-b-transparent hover:border-b-indigo-500">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white ${color} shadow-lg shadow-slate-200 group-hover:scale-110 transition-transform duration-300`}>
           <Icon className="w-6 h-6" />
         </div>
-        {trend && (
-          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-            value === "N/A" ? 'bg-slate-100 text-slate-400' : 'bg-emerald-100 text-emerald-600'
-          }`}>
-            {value === "N/A" ? "En attente" : trend}
-          </span>
-        )}
+        {trend && <span className={`text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider ${trend === 'Attention' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>{trend}</span>}
       </div>
-      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{title}</p>
-      <p className="text-4xl font-black text-slate-900 tracking-tight">{value}</p>
+      <div>
+        <div className="flex items-baseline gap-1">
+          <p className="text-2xl font-black text-slate-900 tracking-tight">{value}</p>
+          {unit && <span className="text-xs font-bold text-slate-400">{unit}</span>}
+        </div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{title}</p>
+      </div>
     </div>
   );
 }
