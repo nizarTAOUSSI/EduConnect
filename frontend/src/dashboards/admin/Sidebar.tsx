@@ -48,6 +48,7 @@ export default function Sidebar() {
     { name: t('dashboard.sidebar.classes'), path: '/dashboard/admin/classes', icon: School },
     { name: t('dashboard.sidebar.rooms'), path: '/dashboard/admin/salles', icon: School },
     { name: t('dashboard.sidebar.subjects'), path: '/dashboard/admin/matieres', icon: BookOpen },
+    { name: 'Années & Périodes', path: '/dashboard/admin/periodes', icon: Calendar },
     { name: t('dashboard.sidebar.evaluations'), path: '/dashboard/admin/evaluations', icon: FileText },
     { name: t('dashboard.sidebar.timetable'), path: '/dashboard/admin/timetable', icon: Calendar },
     { name: t('dashboard.sidebar.notifications'), path: '/dashboard/admin/notifications', icon: Bell, isNotification: true },

@@ -48,6 +48,7 @@ import ParentNotes from './dashboards/parent/ParentNotes';
 import ParentAbsences from './dashboards/parent/ParentAbsences';
 import ParentReclamations from './dashboards/parent/ParentReclamations';
 import ParentTimetable from './dashboards/parent/ParentTimetable';
+import PeriodesManager from './dashboards/admin/PeriodesManager';
 
 function App() {
   return (
@@ -94,6 +95,7 @@ function App() {
         <Route path="students" element={<StudentsManager />} />
         <Route path="parents" element={<ParentsManager />} />
         <Route path="salles" element={<SallesManager />} />
+        <Route path="periodes" element={<PeriodesManager />} />
         <Route path="timetable" element={<TimetableManager />} />
         <Route path="evaluations" element={<EvaluationsManager />} />
         <Route path="notifications" element={<Notifications />} />
