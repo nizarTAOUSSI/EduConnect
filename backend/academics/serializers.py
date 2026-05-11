@@ -9,11 +9,41 @@ class AnneeScolaireSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnneeScolaire
         fields = '__all__'
+    def validate(self, attrs):
+        if self.instance:
+            instance = self.instance
+            for field, value in attrs.items():
+                setattr(instance, field, value)
+        else:
+            instance = AnneeScolaire(**attrs)
+        try:
+            instance.full_clean()
+        except Exception as e:
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            if isinstance(e, DjangoValidationError):
+                raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else e.messages)
+            raise e
+        return attrs
 class PeriodeSerializer(serializers.ModelSerializer):
     annee_scolaire_nom = serializers.ReadOnlyField(source='annee_scolaire.nom')
     class Meta:
         model = Periode
         fields = '__all__'
+    def validate(self, attrs):
+        if self.instance:
+            instance = self.instance
+            for field, value in attrs.items():
+                setattr(instance, field, value)
+        else:
+            instance = Periode(**attrs)
+        try:
+            instance.full_clean()
+        except Exception as e:
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            if isinstance(e, DjangoValidationError):
+                raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else e.messages)
+            raise e
+        return attrs
 class MatiereSerializer(serializers.ModelSerializer):
     class Meta:
         model = Matiere
