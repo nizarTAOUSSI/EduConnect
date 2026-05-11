@@ -1,6 +1,29 @@
 from django.db import models
 from accounts.models import Enseignant
+class AnneeScolaire(models.Model):
+    nom        = models.CharField(max_length=100, verbose_name='Nom de l\'année scolaire', unique=True)
+    date_debut = models.DateField(verbose_name='Date de début de l\'année')
+    date_fin   = models.DateField(verbose_name='Date de fin de l\'année')
+    est_active = models.BooleanField(default=False, verbose_name='Année active')
+    class Meta:
+        verbose_name        = 'Année Scolaire'
+        verbose_name_plural = 'Années Scolaires'
+        ordering            = ['-date_debut']
+    def __str__(self):
+        return f'{self.nom} ({"active" if self.est_active else "inactive"})'
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.est_active:
+            other_active = AnneeScolaire.objects.filter(est_active=True)
+            if self.pk:
+                other_active = other_active.exclude(pk=self.pk)
+            if other_active.exists():
+                raise ValidationError('Il ne peut y avoir qu\'une seule année scolaire active à la fois.')
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 class Periode(models.Model):
+    annee_scolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE, related_name='periodes', verbose_name='Année scolaire', null=True, blank=True)
     nom        = models.CharField(max_length=100, verbose_name='Nom')
     date_debut = models.DateField(verbose_name='Date de début')
     date_fin   = models.DateField(verbose_name='Date de fin')
@@ -10,10 +33,18 @@ class Periode(models.Model):
         verbose_name_plural = 'Périodes'
         ordering            = ['-date_debut']
     def __str__(self):
-        return f'{self.nom} ({"active" if self.est_active else "inactive"})'
-    def get_matieres(self):
-        from .models import EnseignantMatiere
-        return EnseignantMatiere.objects.filter(periode=self).select_related('matiere')
+        return f'{self.nom} - {self.annee_scolaire.nom} ({"active" if self.est_active else "inactive"})'
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.date_debut < self.annee_scolaire.date_debut or self.date_debut > self.annee_scolaire.date_fin:
+            raise ValidationError('La date de début de la période doit être dans l\'intervalle de l\'année scolaire.')
+        if self.date_fin < self.annee_scolaire.date_debut or self.date_fin > self.annee_scolaire.date_fin:
+            raise ValidationError('La date de fin de la période doit être dans l\'intervalle de l\'année scolaire.')
+        if self.date_debut > self.date_fin:
+            raise ValidationError('La date de début doit être antérieure à la date de fin.')
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 class Matiere(models.Model):
     nom         = models.CharField(max_length=150, verbose_name='Nom de la matière')
     coefficient = models.PositiveSmallIntegerField(default=1, verbose_name='Coefficient')

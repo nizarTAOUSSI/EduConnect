@@ -1,11 +1,16 @@
 from rest_framework import serializers
-from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance, Salle
+from .models import AnneeScolaire, Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance, Salle
 from accounts.serializers import EtudiantSerializer
 class SalleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Salle
         fields = '__all__'
+class AnneeScolaireSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnneeScolaire
+        fields = '__all__'
 class PeriodeSerializer(serializers.ModelSerializer):
+    annee_scolaire_nom = serializers.ReadOnlyField(source='annee_scolaire.nom')
     class Meta:
         model = Periode
         fields = '__all__'

@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence, Salle, Seance
+from .models import AnneeScolaire, Periode, Matiere, Classe, EnseignantMatiere, Absence, Salle, Seance
+@admin.register(AnneeScolaire)
+class AnneeScolaireAdmin(admin.ModelAdmin):
+    list_display = ('nom', 'date_debut', 'date_fin', 'est_active')
+    list_filter = ('est_active',)
+    search_fields = ('nom',)
 @admin.register(Salle)
 class SalleAdmin(admin.ModelAdmin):
     list_display = ('nom', 'capacite')
@@ -11,8 +16,8 @@ class SeanceAdmin(admin.ModelAdmin):
     search_fields = ('matiere__nom', 'classe__nom', 'salle__nom')
 @admin.register(Periode)
 class PeriodeAdmin(admin.ModelAdmin):
-    list_display  = ('nom', 'date_debut', 'date_fin', 'est_active')
-    list_filter   = ('est_active',)
+    list_display  = ('nom', 'annee_scolaire', 'date_debut', 'date_fin', 'est_active')
+    list_filter   = ('annee_scolaire', 'est_active')
     search_fields = ('nom',)
 @admin.register(Matiere)
 class MatiereAdmin(admin.ModelAdmin):

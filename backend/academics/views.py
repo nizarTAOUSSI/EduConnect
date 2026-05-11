@@ -3,8 +3,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance, Salle
+from .models import AnneeScolaire, Periode, Matiere, Classe, EnseignantMatiere, Absence, Seance, Salle
 from .serializers import (
+    AnneeScolaireSerializer,
     PeriodeSerializer,
     MatiereSerializer,
     ClasseSerializer,
@@ -13,6 +14,10 @@ from .serializers import (
     SeanceSerializer,
     SalleSerializer,
 )
+class AnneeScolaireViewSet(viewsets.ModelViewSet):
+    queryset = AnneeScolaire.objects.all()
+    serializer_class = AnneeScolaireSerializer
+    permission_classes = [IsAuthenticated]
 class SalleViewSet(viewsets.ModelViewSet):
     queryset = Salle.objects.all()
     serializer_class = SalleSerializer

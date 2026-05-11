@@ -18,7 +18,7 @@ if not settings.DEBUG:
 from rest_framework.routers import DefaultRouter
 from accounts.views import UtilisateurViewSet, EnseignantViewSet, EtudiantViewSet, ParentViewSet
 from academics.views import (
-    PeriodeViewSet, MatiereViewSet, ClasseViewSet, 
+    AnneeScolaireViewSet, PeriodeViewSet, MatiereViewSet, ClasseViewSet, 
     EnseignantMatiereViewSet, AbsenceViewSet, SeanceViewSet, SalleViewSet
 )
 from grades.views import EvaluationViewSet, NoteViewSet
@@ -29,6 +29,7 @@ router.register(r'accounts/utilisateurs', UtilisateurViewSet, basename='utilisat
 router.register(r'accounts/enseignants', EnseignantViewSet, basename='enseignant')
 router.register(r'accounts/etudiants', EtudiantViewSet, basename='etudiant')
 router.register(r'accounts/parents', ParentViewSet, basename='parent')
+router.register(r'academics/annees-scolaires', AnneeScolaireViewSet, basename='anneescolaire')
 router.register(r'academics/salles', SalleViewSet, basename='salle')
 router.register(r'academics/periodes', PeriodeViewSet, basename='periode')
 router.register(r'academics/matieres', MatiereViewSet, basename='matiere')
