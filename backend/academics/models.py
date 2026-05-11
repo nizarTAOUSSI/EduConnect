@@ -23,7 +23,7 @@ class AnneeScolaire(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 class Periode(models.Model):
-    annee_scolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE, related_name='periodes', verbose_name='Année scolaire')
+    annee_scolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE, related_name='periodes', verbose_name='Année scolaire', null=True, blank=True)
     nom        = models.CharField(max_length=100, verbose_name='Nom')
     date_debut = models.DateField(verbose_name='Date de début')
     date_fin   = models.DateField(verbose_name='Date de fin')

@@ -30,6 +30,8 @@ class PeriodeSerializer(serializers.ModelSerializer):
         model = Periode
         fields = '__all__'
     def validate(self, attrs):
+        if not self.instance and not attrs.get('annee_scolaire'):
+            raise serializers.ValidationError({'annee_scolaire': 'Ce champ est obligatoire.'})
         if self.instance:
             instance = self.instance
             for field, value in attrs.items():
