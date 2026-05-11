@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Evaluation, Note
+from academics.models import Matiere
+
 class EvaluationSerializer(serializers.ModelSerializer):
     matiere_name = serializers.ReadOnlyField(source='matiere.nom')
     matiere_coefficient = serializers.ReadOnlyField(source='matiere.coefficient')
@@ -26,9 +28,24 @@ class EvaluationSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(e.message_dict if hasattr(e, 'message_dict') else e.messages)
             raise e
         return attrs
+
 class NoteSerializer(serializers.ModelSerializer):
     evaluation_details = EvaluationSerializer(source='evaluation', read_only=True)
     etudiant_user = serializers.ReadOnlyField(source='etudiant.utilisateur.id')
     class Meta:
         model = Note
         fields = '__all__'
+
+class EvaluationNoteSerializer(serializers.Serializer):
+    type = serializers.CharField(source='get_type_display')
+    note = serializers.FloatField(source='note_effective')
+
+class MatiereNotesSerializer(serializers.Serializer):
+    matiere = serializers.CharField()
+    evaluations = EvaluationNoteSerializer(many=True)
+    moyenne_matiere = serializers.FloatField()
+
+class StudentNotesDashboardSerializer(serializers.Serializer):
+    periode = serializers.CharField()
+    matieres = MatiereNotesSerializer(many=True)
+    moyenne_generale = serializers.FloatField()

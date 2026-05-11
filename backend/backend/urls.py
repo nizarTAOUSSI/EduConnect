@@ -49,4 +49,5 @@ urlpatterns = [
     path('api/redoc/', redoc_view, name='redoc'),
     path('api/', include(router.urls)),
     path('api/accounts/',       include('accounts.urls')),
+    path('api/grades/',         include('grades.urls')),
 ]
