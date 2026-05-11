@@ -64,7 +64,7 @@ class Bulletin(models.Model):
         from grades.models import Note
         notes = Note.objects.filter(
             etudiant=self.etudiant,
-            evaluation__date__range=(self.periode.date_debut, self.periode.date_fin),
+            evaluation__periode=self.periode,
             est_absent=False,
             valeur_note__isnull=False
         ).select_related('evaluation__matiere')

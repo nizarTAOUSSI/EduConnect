@@ -13,7 +13,7 @@ class EvaluationViewSet(viewsets.ModelViewSet):
     serializer_class = EvaluationSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['matiere', 'classe', 'type']
+    filterset_fields = ['matiere', 'classe', 'type', 'periode']
     def get_queryset(self):
         user = self.request.user
         if user.is_enseignant():
@@ -74,8 +74,7 @@ class StudentNotesDashboardView(APIView):
         # Get all notes for this student in the periode, with select_related to optimize
         notes = Note.objects.filter(
             etudiant=etudiant,
-            evaluation__date__gte=periode.date_debut,
-            evaluation__date__lte=periode.date_fin
+            evaluation__periode=periode
         ).select_related('evaluation', 'evaluation__matiere')
         
         # Group notes by matiere

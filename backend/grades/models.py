@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from academics.models import Matiere, Classe
+from academics.models import Matiere, Classe, Periode
 from accounts.models import Etudiant
 class Evaluation(models.Model):
     class TypeEvaluation(models.TextChoices):
@@ -27,6 +27,14 @@ class Evaluation(models.Model):
         on_delete=models.CASCADE,
         related_name='evaluations',
         verbose_name='Classe',
+    )
+    periode = models.ForeignKey(
+        Periode,
+        on_delete=models.CASCADE,
+        related_name='evaluations',
+        verbose_name='Période',
+        null=True,
+        blank=True,
     )
     enseignant = models.ForeignKey(
         'accounts.Enseignant',

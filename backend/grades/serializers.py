@@ -6,13 +6,14 @@ class EvaluationSerializer(serializers.ModelSerializer):
     matiere_name = serializers.ReadOnlyField(source='matiere.nom')
     matiere_coefficient = serializers.ReadOnlyField(source='matiere.coefficient')
     type_display = serializers.CharField(source='get_type_display', read_only=True)
+    periode_name = serializers.ReadOnlyField(source='periode.nom')
     enseignant_user = serializers.ReadOnlyField(source='enseignant.utilisateur.id')
     enseignant_name = serializers.ReadOnlyField(source='enseignant.utilisateur.get_full_name')
     classe_name = serializers.ReadOnlyField(source='classe.nom')
     salle_name = serializers.ReadOnlyField(source='salle.nom')
     class Meta:
         model = Evaluation
-        fields = ['id', 'type', 'type_display', 'date', 'heure_debut', 'heure_fin', 'note_max', 'matiere', 'matiere_name', 'matiere_coefficient', 'classe', 'classe_name', 'enseignant', 'enseignant_user', 'enseignant_name', 'salle', 'salle_name']
+        fields = ['id', 'type', 'type_display', 'date', 'heure_debut', 'heure_fin', 'note_max', 'matiere', 'matiere_name', 'matiere_coefficient', 'classe', 'classe_name', 'periode', 'periode_name', 'enseignant', 'enseignant_user', 'enseignant_name', 'salle', 'salle_name']
     def validate(self, attrs):
         if self.instance:
             instance = self.instance

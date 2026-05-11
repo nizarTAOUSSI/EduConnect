@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -21,6 +21,41 @@ class PeriodeViewSet(viewsets.ModelViewSet):
     queryset = Periode.objects.all()
     serializer_class = PeriodeSerializer
     permission_classes = [IsAuthenticated]
+    
+    @action(detail=False, methods=['get'], url_path='available-for-student')
+    def available_for_student(self, request):
+        user = request.user
+        if not user.is_etudiant():
+            return Response(
+                {"error": "Only students can access this endpoint"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Get periods that have evaluations for the student's class
+        from grades.models import Evaluation
+        student = user.profil_etudiant
+        student_class = student.classe
+        
+        # Get all periods that have at least one evaluation for the student's class
+        # OR periods that are active or have started before today
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        # First, get all periods that have evaluations for the class
+        periods_with_evaluations = Periode.objects.filter(
+            evaluations__classe=student_class
+        ).distinct()
+        
+        # Also include all periods that started before or on today (for safety)
+        all_periods = Periode.objects.filter(
+            date_debut__lte=today
+        ).distinct()
+        
+        # Combine and order by date_debut
+        available_periods = all_periods.order_by('date_debut')
+        
+        serializer = PeriodeSerializer(available_periods, many=True)
+        return Response(serializer.data)
 class MatiereViewSet(viewsets.ModelViewSet):
     queryset = Matiere.objects.all()
     serializer_class = MatiereSerializer
