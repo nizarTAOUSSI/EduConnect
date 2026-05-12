@@ -138,19 +138,35 @@ export default function StudentNotes() {
         if (filteredNotes.length > 0) {
           const values = filteredNotes.map((n: any) => n.valeur_note || 0);
           
-          // Calculate weighted average
-          const weightedSum = filteredNotes.reduce((sum: number, n: any) => {
-            const val = n.est_absent ? 0 : (n.valeur_note || 0);
-            const coeff = n.evaluation_details?.matiere_coefficient || 1;
-            return sum + (val * coeff);
-          }, 0);
+          // Calculate weighted average of MATIERES' AVERAGES (like database!)
+          const matiereGroups: Record<string, { notes: number[]; coeff: number }> = {};
           
-          const totalCoeff = filteredNotes.reduce((sum: number, n: any) => {
-            return sum + (n.evaluation_details?.matiere_coefficient || 1);
-          }, 0);
+          filteredNotes.forEach((n: any) => {
+            const matiereId = n.evaluation_details?.matiere;
+            const coeff = n.evaluation_details?.matiere_coefficient || 1;
+            const val = n.est_absent ? 0 : (n.valeur_note || 0);
+            
+            if (matiereId) {
+              if (!matiereGroups[matiereId]) {
+                matiereGroups[matiereId] = { notes: [], coeff };
+              }
+              matiereGroups[matiereId].notes.push(val);
+            }
+          });
+          
+          let totalWeightedNotes = 0;
+          let totalCoefficients = 0;
+          
+          Object.values(matiereGroups).forEach((group) => {
+            const matiereAvg = group.notes.reduce((sum, n) => sum + n, 0) / group.notes.length;
+            totalWeightedNotes += matiereAvg * group.coeff;
+            totalCoefficients += group.coeff;
+          });
+          
+          const finalAverage = totalCoefficients > 0 ? (totalWeightedNotes / totalCoefficients) : 0;
 
           setStats({
-            moyenne: Number((weightedSum / totalCoeff).toFixed(2)),
+            moyenne: Number(finalAverage.toFixed(2)),
             max: Math.max(...values),
             min: Math.min(...values)
           });

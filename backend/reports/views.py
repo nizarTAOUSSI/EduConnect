@@ -240,32 +240,18 @@ class BulletinViewSet(viewsets.ModelViewSet):
         elements.extend(student_info)
         elements.append(Spacer(1, 20))
         
-        # Get all notes for the student and periode - EXACT LIKE FRONTEND!
+        # Get all notes and calculate like database calculate_moyenne()!
         from grades.models import Note
-        all_notes = Note.objects.filter(
+        notes = Note.objects.filter(
             etudiant=instance.etudiant,
             evaluation__periode=instance.periode,
             est_absent=False,
             valeur_note__isnull=False
         ).select_related('evaluation__matiere')
         
-        # 1. Calculate moyenne_generale EXACTLY LIKE FRONTEND (weighted average of ALL NOTES!)
-        weighted_sum = 0
-        total_coeff = 0
-        for note in all_notes:
-            val = note.valeur_note
-            coeff = getattr(note.evaluation.matiere, 'coefficient', 1)
-            weighted_sum += val * coeff
-            total_coeff += coeff
-        
-        if total_coeff > 0:
-            pdf_moyenne_generale = weighted_sum / total_coeff
-        else:
-            pdf_moyenne_generale = 0
-        
-        # 2. Get matiere details for the table - EXACT SAME LOGIC as retrieve method!
+        # 1. Get matiere details and calculate their averages
         matiere_notes = {}
-        for note in all_notes:
+        for note in notes:
             m_id = note.evaluation.matiere.id
             if m_id not in matiere_notes:
                 matiere_notes[m_id] = {
@@ -279,10 +265,21 @@ class BulletinViewSet(viewsets.ModelViewSet):
             matiere_notes[m_id]['notes'].append(note.valeur_note)
         
         matieres_list = []
+        total_weighted_notes = 0
+        total_coefficients = 0
         for m_id, data in matiere_notes.items():
             data['moyenne'] = sum(data['notes']) / len(data['notes'])
             data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
             matieres_list.append(data)
+            
+            # Calculate weighted average of MATIERES' AVERAGES (like database!)
+            total_weighted_notes += data['moyenne'] * data['coefficient']
+            total_coefficients += data['coefficient']
+        
+        if total_coefficients > 0:
+            pdf_moyenne_generale = total_weighted_notes / total_coefficients
+        else:
+            pdf_moyenne_generale = 0
         
         # Create table data
         table_data = [['Matière', 'Coefficient', 'Moyenne', 'État']]
