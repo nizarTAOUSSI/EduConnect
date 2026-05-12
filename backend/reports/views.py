@@ -188,55 +188,61 @@ class BulletinViewSet(viewsets.ModelViewSet):
         from rest_framework.exceptions import APIException
         instance = self.get_object()
         
-        # Try to import weasyprint
         try:
             from weasyprint import HTML
-            WEASYPRINT_AVAILABLE = True
         except ImportError:
-            WEASYPRINT_AVAILABLE = False
+            raise APIException("PDF generation is not available. Please install weasyprint.")
         
-        if not WEASYPRINT_AVAILABLE:
-            return Response({
-                "error": "PDF generation temporarily unavailable",
-                "message": "The bulletin is still accessible in the application.",
-                "bulletin_id": instance.id
-            }, status=501)
+        # Get matiere details
+        from grades.models import Note
+        notes = Note.objects.filter(
+            etudiant=instance.etudiant,
+            evaluation__periode=instance.periode,
+            est_absent=False,
+            valeur_note__isnull=False
+        ).select_related('evaluation__matiere')
         
-        # Create the simplest possible HTML first to test
-        html_content = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Bulletin de Notes</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; padding: 40px; }}
-        h1 {{ color: #10b981; text-align: center; }}
-        .info {{ margin: 20px 0; padding: 20px; background: #f0fdf4; border-radius: 8px; }}
-    </style>
-</head>
-<body>
-    <h1>Bulletin de Notes</h1>
-    <div class="info">
-        <p><strong>Moyenne Générale:</strong> {instance.moyenne_generale:.2f}/20</p>
-        <p><strong>ID Bulletin:</strong> {instance.id}</p>
-    </div>
-</body>
-</html>
-"""
+        matiere_notes = {}
+        for note in notes:
+            m_id = note.evaluation.matiere.id
+            if m_id not in matiere_notes:
+                matiere_notes[m_id] = {
+                    'id': m_id,
+                    'nom': note.evaluation.matiere.nom,
+                    'coefficient': note.evaluation.matiere.coefficient,
+                    'notes': [],
+                    'moyenne': 0,
+                    'etat': 'Non Valide'
+                }
+            matiere_notes[m_id]['notes'].append(note.valeur_note)
+        
+        matieres_list = []
+        for m_id, data in matiere_notes.items():
+            data['moyenne'] = sum(data['notes']) / len(data['notes'])
+            data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
+            matieres_list.append(data)
+        
+        # Render HTML template
+        html_string = render_to_string('bulletin.html', {
+            'bulletin': instance,
+            'matieres': matieres_list,
+            'etudiant': instance.etudiant,
+            'periode': instance.periode,
+        })
         
         try:
-            # Generate PDF from the simple HTML
-            html = HTML(string=html_content)
+            # Generate PDF
+            html = HTML(string=html_string)
             pdf_file = html.write_pdf()
             
+            # Create response
             response = HttpResponse(pdf_file, content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="bulletin.pdf"'
-            return response
+            last_name = instance.etudiant.utilisateur.last_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else 'etudiant'
+            first_name = instance.etudiant.utilisateur.first_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else ''
+            periode_code = instance.periode.code if hasattr(instance.periode, 'code') and instance.periode.code else 'periode'
+            filename = f"bulletin_{last_name}_{first_name}_{periode_code}.pdf".replace(' ', '_')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
             
+            return response
         except Exception as e:
-            return Response({
-                "error": f"PDF generation failed: {str(e)}",
-                "message": "The bulletin is still accessible in the application.",
-                "bulletin_id": instance.id
-            }, status=500)
+            raise APIException(f"Error generating PDF: {str(e)}")

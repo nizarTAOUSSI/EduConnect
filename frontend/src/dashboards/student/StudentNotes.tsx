@@ -75,55 +75,17 @@ export default function StudentNotes() {
       const response = await api.get(`/reports/bulletins/${bulletin.id}/pdf/`, {
         responseType: 'blob'
       });
-      
-      // Check if response is an error (weasyprint not installed, etc.)
-      if (response.data.type === 'application/json') {
-        const text = await new Response(response.data).text();
-        const errorData = JSON.parse(text);
-        toast.error(errorData.detail || 'Erreur lors du téléchargement du bulletin');
-        return;
-      }
-      
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
       const link = document.createElement('a');
       link.href = url;
-      
-      // Try to get a good filename
-      let filename = 'bulletin.pdf';
-      const contentDisposition = response.headers['content-disposition'];
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch && filenameMatch[1]) {
-          filename = filenameMatch[1].replace(/['"]/g, '');
-        }
-      }
-      
-      link.setAttribute('download', filename);
+      link.setAttribute('download', `bulletin_${bulletin.etudiant}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
       toast.success('Bulletin téléchargé avec succès');
-    } catch (error: any) {
-      console.error('Download error:', error);
-      let errorMessage = 'Erreur lors du téléchargement du bulletin';
-      
-      if (error.response?.data) {
-        try {
-          // Try to parse error from blob
-          if (error.response.data instanceof Blob) {
-            const text = await error.response.data.text();
-            const errorData = JSON.parse(text);
-            errorMessage = errorData.detail || errorMessage;
-          } else if (error.response.data.detail) {
-            errorMessage = error.response.data.detail;
-          }
-        } catch {
-          // Fallback if parsing fails
-        }
-      }
-      
-      toast.error(errorMessage);
+    } catch (error) {
+      toast.error('Erreur lors du téléchargement du bulletin');
     }
   };
 
