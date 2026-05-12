@@ -57,28 +57,28 @@ class Evaluation(models.Model):
         verbose_name_plural = 'Évaluations'
         ordering            = ['-date']
     def clean(self):
-        from academics.models import Seance, EnseignantMatiere, AnneeScolaire
+        from academics.models import Seance, EnseignantMatiere, AnneeScolaire, Periode
         
         if self.date:
             # Check date is in an AnneeScolaire
-            annee_exists = AnneeScolaire.objects.filter(
+            annee = AnneeScolaire.objects.filter(
                 date_debut__lte=self.date,
                 date_fin__gte=self.date
-            ).exists()
-            if not annee_exists:
+            ).first()
+            if not annee:
                 raise ValidationError(
                     f"La date {self.date} n'appartient à aucune année scolaire."
                 )
             
-            # Check date is in a Periode
-            from academics.models import Periode
+            # Check date is in a Periode that belongs to the same AnneeScolaire
             periode_exists = Periode.objects.filter(
+                annee_scolaire=annee,
                 date_debut__lte=self.date,
                 date_fin__gte=self.date
             ).exists()
             if not periode_exists:
                 raise ValidationError(
-                    f"La date {self.date} n'appartient à aucune période (semestre)."
+                    f"La date {self.date} n'appartient à aucune période (semestre) de l'année scolaire {annee.nom}."
                 )
         
         if self.enseignant and self.matiere and self.classe:
@@ -143,7 +143,13 @@ class Evaluation(models.Model):
             raise ValidationError(f"La salle {self.salle.nom} est occupée par le cours {overlap.matiere.nom} ({overlap.classe.nom}).")
     def save(self, *args, **kwargs):
         if self.date:
-            periode = Periode.objects.get(date_debut__lte=self.date, date_fin__gte=self.date)
+            from academics.models import AnneeScolaire
+            annee = AnneeScolaire.objects.get(date_debut__lte=self.date, date_fin__gte=self.date)
+            periode = Periode.objects.get(
+                annee_scolaire=annee,
+                date_debut__lte=self.date,
+                date_fin__gte=self.date
+            )
             self.periode = periode
         self.full_clean()
         super().save(*args, **kwargs)
