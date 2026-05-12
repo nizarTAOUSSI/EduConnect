@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 from accounts.models import Enseignant
 class AnneeScolaire(models.Model):
     nom        = models.CharField(max_length=100, verbose_name='Nom de l\'année scolaire', unique=True)
@@ -20,7 +21,25 @@ class AnneeScolaire(models.Model):
             if other_active.exists():
                 raise ValidationError('Il ne peut y avoir qu\'une seule année scolaire active à la fois.')
     def save(self, *args, **kwargs):
+        today = date.today()
+        if self.date_debut <= today <= self.date_fin:
+            AnneeScolaire.objects.all().update(est_active=False)
+            self.est_active = True
+        else:
+            self.est_active = False
         super().save(*args, **kwargs)
+    @staticmethod
+    def update_active_annee():
+        today = date.today()
+        try:
+            active_annee = AnneeScolaire.objects.get(date_debut__lte=today, date_fin__gte=today)
+            AnneeScolaire.objects.all().update(est_active=False)
+            active_annee.est_active = True
+            active_annee.save(update_fields=['est_active'])
+        except AnneeScolaire.DoesNotExist:
+            pass
+        except AnneeScolaire.MultipleObjectsReturned:
+            pass
 class Periode(models.Model):
     annee_scolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE, related_name='periodes', verbose_name='Année scolaire', null=True, blank=True)
     nom        = models.CharField(max_length=100, verbose_name='Nom')
@@ -35,6 +54,28 @@ class Periode(models.Model):
     def __str__(self):
         annee = self.annee_scolaire.nom if self.annee_scolaire else 'N/A'
         return f'{self.nom} - {annee} ({"active" if self.est_active else "inactive"})'
+    def save(self, *args, **kwargs):
+        today = date.today()
+        if self.date_debut <= today <= self.date_fin:
+            if self.annee_scolaire:
+                Periode.objects.filter(annee_scolaire=self.annee_scolaire).update(est_active=False)
+            self.est_active = True
+        else:
+            self.est_active = False
+        super().save(*args, **kwargs)
+    @staticmethod
+    def update_active_periode():
+        today = date.today()
+        try:
+            active_periode = Periode.objects.get(date_debut__lte=today, date_fin__gte=today)
+            if active_periode.annee_scolaire:
+                Periode.objects.filter(annee_scolaire=active_periode.annee_scolaire).update(est_active=False)
+            active_periode.est_active = True
+            active_periode.save(update_fields=['est_active'])
+        except Periode.DoesNotExist:
+            pass
+        except Periode.MultipleObjectsReturned:
+            pass
 class Matiere(models.Model):
     nom         = models.CharField(max_length=150, verbose_name='Nom de la matière')
     coefficient = models.PositiveSmallIntegerField(default=1, verbose_name='Coefficient')

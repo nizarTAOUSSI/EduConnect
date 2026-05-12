@@ -119,6 +119,14 @@ class Evaluation(models.Model):
             overlap = seance_overlaps.filter(salle=self.salle).first()
             raise ValidationError(f"La salle {self.salle.nom} est occupée par le cours {overlap.matiere.nom} ({overlap.classe.nom}).")
     def save(self, *args, **kwargs):
+        if self.date:
+            try:
+                periode = Periode.objects.get(date_debut__lte=self.date, date_fin__gte=self.date)
+                self.periode = periode
+            except Periode.DoesNotExist:
+                pass
+            except Periode.MultipleObjectsReturned:
+                pass
         self.full_clean()
         super().save(*args, **kwargs)
     def __str__(self):
