@@ -72,9 +72,11 @@ class ClasseViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='emploi')
     def emploi(self, request, pk=None):
         from grades.models import Evaluation
+        from django.utils import timezone
+        today = timezone.now().date()
         classe = self.get_object()
         seances = Seance.objects.filter(classe=classe).select_related('matiere', 'enseignant_matiere__enseignant__utilisateur', 'salle')
-        evaluations = Evaluation.objects.filter(classe=classe).select_related('matiere', 'enseignant__utilisateur', 'salle')
+        evaluations = Evaluation.objects.filter(classe=classe, date__gte=today).select_related('matiere', 'enseignant__utilisateur', 'salle')
         days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         day_names_fr = {
             'Monday': 'lundi', 'Tuesday': 'mardi', 'Wednesday': 'mercredi', 
@@ -143,6 +145,8 @@ class SeanceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='mon-emploi')
     def mon_emploi(self, request):
         from grades.models import Evaluation
+        from django.utils import timezone
+        today = timezone.now().date()
         user = request.user
         if not user.is_enseignant():
             return Response({"detail": "Seuls les enseignants peuvent accéder à leur emploi du temps global."}, status=403)
@@ -150,7 +154,7 @@ class SeanceViewSet(viewsets.ModelViewSet):
             enseignant_matiere__enseignant__utilisateur=user
         ).select_related('matiere', 'classe', 'salle')
         evaluations = Evaluation.objects.filter(
-            enseignant__utilisateur=user
+            enseignant__utilisateur=user, date__gte=today
         ).select_related('matiere', 'classe', 'salle')
         days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
         day_names_fr = {

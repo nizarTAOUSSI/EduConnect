@@ -6,17 +6,11 @@ class SalleSerializer(serializers.ModelSerializer):
         model = Salle
         fields = '__all__'
 class AnneeScolaireSerializer(serializers.ModelSerializer):
+    est_active = serializers.BooleanField(read_only=True)
     class Meta:
         model = AnneeScolaire
         fields = '__all__'
     def validate(self, attrs):
-        est_active = attrs.get('est_active', False)
-        if est_active:
-            other_active = AnneeScolaire.objects.filter(est_active=True)
-            if self.instance:
-                other_active = other_active.exclude(pk=self.instance.pk)
-            if other_active.exists():
-                raise serializers.ValidationError({'est_active': 'Il ne peut y avoir qu\'une seule année scolaire active à la fois.'})
         date_debut = attrs.get('date_debut')
         date_fin = attrs.get('date_fin')
         if date_debut and date_fin and date_debut > date_fin:
@@ -26,6 +20,7 @@ class PeriodeSerializer(serializers.ModelSerializer):
     annee_scolaire_nom = serializers.ReadOnlyField(source='annee_scolaire.nom')
     annee_scolaire = serializers.PrimaryKeyRelatedField(queryset=AnneeScolaire.objects.all())
     code = serializers.CharField(read_only=True)
+    est_active = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Periode
