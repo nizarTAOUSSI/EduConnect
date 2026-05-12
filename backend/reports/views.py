@@ -296,26 +296,14 @@ class BulletinViewSet(viewsets.ModelViewSet):
         elements.append(table)
         elements.append(Spacer(1, 30))
         
-        # Calculate moyenne_generale EXACTLY from the shown matieres_list (weighted average)
-        total_weighted_notes = 0
-        total_coefficients = 0
-        for matiere in matieres_list:
-            total_weighted_notes += matiere['moyenne'] * matiere['coefficient']
-            total_coefficients += matiere['coefficient']
-        
-        if total_coefficients > 0:
-            pdf_moyenne_generale = total_weighted_notes / total_coefficients
-        else:
-            pdf_moyenne_generale = 0
-        
-        # Average
+        # Average - USE THE DATABASE VALUE (same as top of Mes Notes!)
         avg_style = ParagraphStyle(
             'CustomAverage',
             parent=styles['Heading2'],
             textColor=colors.HexColor('#10b981'),
             alignment=1
         )
-        elements.append(Paragraph(f'Moyenne Générale: {pdf_moyenne_generale:.2f}/20', avg_style))
+        elements.append(Paragraph(f'Moyenne Générale: {instance.moyenne_generale:.2f}/20', avg_style))
         
         # Mention if available
         if instance.mention:
