@@ -6,23 +6,51 @@ import { useAuth } from '../../hooks/useAuth';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 
+const getAnneeId = (value: any): number | null => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'object' && value !== null && 'id' in value) return value.id;
+  return null;
+};
+
 export default function StudentAbsences() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [absences, setAbsences] = useState<any[]>([]);
+  const [allAbsences, setAllAbsences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [periodes, setPeriodes] = useState<any[]>([]);
+  const [selectedPeriode, setSelectedPeriode] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchMyAbsences = async () => {
       try {
         setLoading(true);
-        const etudiantsRes = await api.get('/accounts/etudiants/');
+        const [etudiantsRes, anneeRes, periodeRes] = await Promise.all([
+          api.get('/accounts/etudiants/'),
+          api.get('/academics/annees-scolaires/'),
+          api.get('/academics/periodes/'),
+        ]);
         const etudiantsData = etudiantsRes.data.results || etudiantsRes.data;
         const myProfile = etudiantsData.find((e: any) => e.utilisateur === user?.id);
 
+        const allAnnees = anneeRes.data.results || anneeRes.data;
+        const allPeriods = periodeRes.data.results || periodeRes.data;
+
+        const activeAnnee = allAnnees.find((a: any) => a.est_active);
+        const filteredPeriodes = activeAnnee 
+          ? allPeriods.filter((p: any) => getAnneeId(p.annee_scolaire) === activeAnnee.id)
+          : allPeriods;
+        setPeriodes(filteredPeriodes);
+
+        const activePeriode = filteredPeriodes.find((p: any) => p.est_active);
+        if (activePeriode && !selectedPeriode) {
+          setSelectedPeriode(activePeriode.id.toString());
+        }
+
         if (myProfile) {
           const response = await api.get(`/academics/absences/?etudiant=${myProfile.id}`);
-          setAbsences(response.data.results || response.data);
+          setAllAbsences(response.data.results || response.data);
         }
       } catch (error) {
         toast.error(t('student_absences.messages.load_error'));
@@ -32,6 +60,34 @@ export default function StudentAbsences() {
     };
     fetchMyAbsences();
   }, [user, t]);
+
+  useEffect(() => {
+    let filtered = [...allAbsences];
+
+    if (selectedPeriode) {
+      const anneeId = getAnneeId(periodes.find((p: any) => p.id.toString() === selectedPeriode)?.annee_scolaire);
+      const periodeData = periodes.find((p: any) => p.id.toString() === selectedPeriode);
+      if (periodeData && anneeId) {
+        const periodeDebut = new Date(periodeData.date_debut);
+        const periodeFin = new Date(periodeData.date_fin);
+        filtered = filtered.filter((abs) => {
+          const absDate = new Date(abs.date);
+          return absDate >= periodeDebut && absDate <= periodeFin;
+        });
+      }
+    }
+
+    if (searchTerm) {
+      const s = searchTerm.toLowerCase();
+      filtered = filtered.filter((abs) => 
+        (abs.enseignant_matiere_details?.matiere_name || '').toLowerCase().includes(s) || 
+        (abs.motif || '').toLowerCase().includes(s) || 
+        (abs.date || '').toLowerCase().includes(s)
+      );
+    }
+
+    setAbsences(filtered);
+  }, [allAbsences, selectedPeriode, searchTerm, periodes]);
 
   const justifiedCount = absences.filter(a => a.justifiee).length;
   const unjustifiedCount = absences.length - justifiedCount;
@@ -72,11 +128,32 @@ export default function StudentAbsences() {
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-slate-100">
-          <h3 className="font-bold text-slate-900 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-rose-500" />
-            {t('student_absences.history_title')}
-          </h3>
+        <div className="p-8 border-b border-slate-100 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h3 className="font-bold text-slate-900 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-rose-500" />
+              {t('student_absences.history_title')}
+            </h3>
+          </div>
+          <div className="flex flex-col md:flex-row gap-4">
+            <select
+              value={selectedPeriode}
+              onChange={(e) => setSelectedPeriode(e.target.value)}
+              className="flex-1 px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+              required
+            >
+              {periodes.map(p => (
+                <option key={p.id} value={p.id}>{p.nom} ({p.code})</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              placeholder="Rechercher par matière, motif ou date..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
+            />
+          </div>
         </div>
         <div className="divide-y divide-slate-100">
           {absences.length > 0 ? absences.map((abs, i) => (

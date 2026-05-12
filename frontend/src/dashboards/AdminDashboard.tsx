@@ -14,7 +14,8 @@ export default function AdminDashboard() {
     matieres: 0,
     absencesToday: 0,
     pendingReclamations: 0,
-    teachers: 0
+    teachers: 0,
+    newUsersThisWeek: 0
   });
   const [loading, setLoading] = useState(true);
   const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
@@ -50,9 +51,18 @@ export default function AdminDashboard() {
         const matieresCount = matieresRes.data.count ?? matieresRes.data.length ?? 0;
         const teachersCount = teachersRes.data.count ?? teachersRes.data.length ?? 0;
         
-        const today = new Date().toISOString().split('T')[0];
-        const absencesToday = (absencesRes.data.results || absencesRes.data).filter((a: any) => a.date === today).length;
+        const today = new Date();
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(today.getDate() - 7);
+        
+        const absencesTodayDate = today.toISOString().split('T')[0];
+        const absencesToday = (absencesRes.data.results || absencesRes.data).filter((a: any) => a.date === absencesTodayDate).length;
         const pendingReclamations = (reclamationsRes.data.results || reclamationsRes.data).filter((r: any) => r.statut === 'en_attente').length;
+        
+        const newUsersThisWeek = (usersRes.data.results || usersRes.data).filter((user: any) => {
+          const joinedDate = new Date(user.date_joined);
+          return joinedDate >= oneWeekAgo;
+        }).length;
 
         setStats({
           users: usersCount,
@@ -60,7 +70,8 @@ export default function AdminDashboard() {
           matieres: matieresCount,
           teachers: teachersCount,
           absencesToday,
-          pendingReclamations
+          pendingReclamations,
+          newUsersThisWeek
         });
 
         // Normalize notifications for field transition
@@ -101,7 +112,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title={t('admin_dashboard.stats.users')} value={stats.users} icon={Users} color="bg-blue-600" trend={t('admin_dashboard.stats.trend_week', { count: 2 })} />
+        <StatCard title={t('admin_dashboard.stats.users')} value={stats.users} icon={Users} color="bg-blue-600" trend={t('admin_dashboard.stats.trend_week', { count: stats.newUsersThisWeek })} />
         <StatCard title={t('admin_dashboard.stats.teachers')} value={stats.teachers} icon={UserCheck} color="bg-indigo-600" />
         <StatCard title={t('admin_dashboard.stats.absences_today')} value={stats.absencesToday} icon={AlertCircle} color="bg-rose-600" />
         <StatCard title={t('admin_dashboard.stats.pending_reclamations')} value={stats.pendingReclamations} icon={MessageSquare} color="bg-amber-600" />

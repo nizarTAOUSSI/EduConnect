@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FileSpreadsheet, Plus, Edit2, BookOpen, Trash2, Search } from 'lucide-react';
+import { FileSpreadsheet, Plus, Edit2, Trash2, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import Spinner from '../../components/ui/Spinner';
@@ -64,6 +64,7 @@ export default function TeacherNotes() {
   const [teacherId, setTeacherId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCreateEvalModalOpen, setIsCreateEvalModalOpen] = useState(false);
+  const [isEditEvalModalOpen, setIsEditEvalModalOpen] = useState(false);
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [evalToDelete, setEvalToDelete] = useState<number | null>(null);
@@ -155,19 +156,93 @@ export default function TeacherNotes() {
     }
   };
 
-  const createEvaluation = async (e: React.FormEvent) => {
+  const openEditModal = (evalItem: Evaluation) => {
+    setSelectedEvaluation(evalItem);
+    setEvaluationForm({
+      type: evalItem.type,
+      date: evalItem.date,
+      heure_debut: evalItem.heure_debut || '',
+      heure_fin: evalItem.heure_fin || '',
+      note_max: evalItem.note_max,
+      matiere: evalItem.matiere.toString(),
+      classe: evalItem.classe.toString(),
+    });
+    setIsEditEvalModalOpen(true);
+  };
+
+  const updateEvaluation = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedEvaluation) return;
+    setIsActionLoading(true);
     try {
       const payload = {
         ...evaluationForm,
         matiere: parseInt(evaluationForm.matiere as string),
+        enseignant: teacherId,
         classe: parseInt(evaluationForm.classe as string),
-        enseignant: teacherId
+        note_max: parseFloat(evaluationForm.note_max.toString())
       };
-      const response = await api.post('/grades/evaluations/', payload);
-      setEvaluations(prev => [...prev, response.data]);
+      await api.put(`/grades/evaluations/${selectedEvaluation.id}/`, payload);
+      toast.success(t('teacher_notes.messages.update_success') || 'Évaluation mise à jour avec succès');
+      setIsEditEvalModalOpen(false);
+      // Refresh data
+      const evalRes = await api.get('/grades/evaluations/');
+      setEvaluations(evalRes.data.results || evalRes.data);
+      setEvaluationForm({
+        type: 'CC',
+        date: new Date().toISOString().split('T')[0],
+        heure_debut: '',
+        heure_fin: '',
+        note_max: 20,
+        matiere: '',
+        classe: '',
+      });
+      setSelectedEvaluation(null);
+    } catch (error: any) {
+      let errorMsg = t('teacher_notes.messages.update_error') || 'Erreur lors de la mise à jour';
+      
+      if (error.response?.data) {
+        const data = error.response.data;
+        if (data.non_field_errors) {
+          errorMsg = data.non_field_errors[0];
+        } else if (data.detail) {
+           errorMsg = data.detail;
+         } else {
+           const keys = Object.keys(data);
+           if (keys.length > 0) {
+             const firstKey = keys[0];
+             const firstError = data[firstKey];
+             if (Array.isArray(firstError)) {
+               errorMsg = `${firstKey}: ${firstError[0]}`;
+             } else if (typeof firstError === 'string') {
+               errorMsg = firstError;
+             }
+           }
+         }
+       }
+       toast.error(errorMsg);
+     } finally {
+       setIsActionLoading(false);
+     }
+  };
+
+  const createEvaluation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsActionLoading(true);
+    try {
+      const payload = {
+        ...evaluationForm,
+        matiere: parseInt(evaluationForm.matiere as string),
+        enseignant: teacherId,
+        classe: parseInt(evaluationForm.classe as string),
+        note_max: parseFloat(evaluationForm.note_max.toString())
+      };
+      await api.post('/grades/evaluations/', payload);
       toast.success(t('teacher_notes.messages.create_success'));
       setIsCreateEvalModalOpen(false);
+      // Refresh data
+      const evalRes = await api.get('/grades/evaluations/');
+      setEvaluations(evalRes.data.results || evalRes.data);
       setEvaluationForm({
         type: 'CC',
         date: new Date().toISOString().split('T')[0],
@@ -200,8 +275,10 @@ export default function TeacherNotes() {
          }
        }
        toast.error(errorMsg);
+     } finally {
+       setIsActionLoading(false);
      }
-   };
+  };
 
   const openGradeModal = async (evaluation: Evaluation) => {
     setSelectedEvaluation(evaluation);
@@ -290,7 +367,7 @@ export default function TeacherNotes() {
        }
        toast.error(errorMsg);
      }
-   };
+  };
 
   const deleteEvaluation = async () => {
     if (!evalToDelete) return;
@@ -331,11 +408,11 @@ export default function TeacherNotes() {
 
   const currentClassStudents = selectedEvaluation ? students[selectedEvaluation.classe] || [] : [];
 
-  if (loading) return <div className="flex h-64 items-center justify-center"><Spinner /></div>;
+  if (loading) return <div className="flex h-64 items-center justify-center"><Spinner className="text-indigo-600" /></div>;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('teacher_notes.title')}</h1>
           <p className="text-slate-500 mt-1">{t('teacher_notes.subtitle')}</p>
@@ -349,40 +426,31 @@ export default function TeacherNotes() {
         </button>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-slate-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              {t('teacher_notes.evaluations_title')}
-            </h3>
+      <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder={t('teacher_notes.search_placeholder')}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+            />
           </div>
-          
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder={t('teacher_notes.search_placeholder')}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-              />
-            </div>
-            <select
-              className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-            >
-              <option value="">{t('common.all_classes')}</option>
-              {classes.map(c => (
-                <option key={c.id} value={c.id}>{c.nom} - {c.niveau}</option>
-              ))}
-            </select>
-          </div>
+          <select
+            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+          >
+            <option value="">{t('common.all_classes')}</option>
+            {classes.map(c => (
+              <option key={c.id} value={c.id}>{c.nom} - {c.niveau}</option>
+            ))}
+          </select>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-8">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-50/50">
@@ -420,10 +488,18 @@ export default function TeacherNotes() {
                   <td className="px-8 py-6 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <button
+                        onClick={() => openEditModal(evalItem)}
+                        className="text-blue-600 font-bold text-sm hover:underline flex items-center gap-1"
+                        title="Modifier"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        Modifier
+                      </button>
+                      <button
                         onClick={() => openGradeModal(evalItem)}
                         className="text-primary font-bold text-sm hover:underline flex items-center gap-1"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <FileSpreadsheet className="w-4 h-4" />
                         {t('teacher_notes.enter_grades')}
                       </button>
                       <button
@@ -470,57 +546,37 @@ export default function TeacherNotes() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">{t('teacher_notes.form.date')}</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t('evaluations_manager.form.max_note')}</label>
               <input
-                type="date"
-                value={evaluationForm.date}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, date: e.target.value }))}
+                type="number"
+                min="1"
+                max="100"
+                value={evaluationForm.note_max}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, note_max: parseInt(e.target.value) }))}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 required
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">{t('teacher_notes.form.start_time')}</label>
-              <input
-                type="time"
-                value={evaluationForm.heure_debut}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, heure_debut: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">{t('teacher_notes.form.end_time')}</label>
-              <input
-                type="time"
-                value={evaluationForm.heure_fin}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, heure_fin: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">{t('affectations_manager.table.subject')}</label>
+            <select
+              value={evaluationForm.matiere}
+              onChange={(e) => setEvaluationForm(prev => ({ ...prev, matiere: parseInt(e.target.value) || '', classe: '' }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              required
+            >
+              <option value="">{t('affectations_manager.select_subject')}</option>
+              {getMatieresForTeacher().map((matiere) => (
+                <option key={matiere.id} value={matiere.id}>
+                  {matiere.nom}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">{t('affectations_manager.table.subject')}</label>
-              <select
-                value={evaluationForm.matiere}
-                onChange={(e) => setEvaluationForm(prev => ({ ...prev, matiere: parseInt(e.target.value) || '', classe: '' }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                required
-              >
-                <option value="">{t('affectations_manager.select_subject')}</option>
-                {getMatieresForTeacher().map((matiere) => (
-                  <option key={matiere.id} value={matiere.id}>
-                    {matiere.nom}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">{t('affectations_manager.table.class')}</label>
               <select
@@ -532,58 +588,192 @@ export default function TeacherNotes() {
               >
                 <option value="">{t('affectations_manager.select_class')}</option>
                 {getClassesForSelectedMatiere().map((classe) => (
-                  <option key={classe.id} value={classe.id}>
-                    {classe.nom} - {classe.niveau}
-                  </option>
+                  <option key={classe.id} value={classe.id}>{classe.nom}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">{t('evaluations_manager.form.max_note')}</label>
-            <input
-              type="number"
-              min="1"
-              max="100"
-              value={evaluationForm.note_max}
-              onChange={(e) => setEvaluationForm(prev => ({ ...prev, note_max: parseInt(e.target.value) }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              required
-            />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">{t('evaluations_manager.form.planning_opt')}</label>
+            <div className="grid grid-cols-3 gap-3">
+              <input
+                type="date"
+                value={evaluationForm.date}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, date: e.target.value }))}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+              />
+              <input
+                type="time"
+                value={evaluationForm.heure_debut}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, heure_debut: e.target.value }))}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+              />
+              <input
+                type="time"
+                value={evaluationForm.heure_fin}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, heure_fin: e.target.value }))}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button
-              type="button"
-              onClick={() => setIsCreateEvalModalOpen(false)}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg"
+          <div className="pt-6 flex justify-end gap-3 border-t">
+            <button 
+              type="button" 
+              onClick={() => setIsCreateEvalModalOpen(false)} 
+              className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all"
             >
               {t('common.cancel')}
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+            <button 
+              type="submit" 
+              disabled={isActionLoading}
+              className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 shadow-lg shadow-primary/100 flex items-center gap-2 disabled:opacity-50"
             >
+              {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {t('common.add')}
             </button>
           </div>
         </form>
       </Modal>
 
+      {/* Edit Evaluation Modal */}
+      <Modal isOpen={isEditEvalModalOpen} onClose={() => setIsEditEvalModalOpen(false)} title="Modifier l'évaluation">
+        <form onSubmit={updateEvaluation} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t('teacher_notes.form.type')}</label>
+              <select
+                value={evaluationForm.type}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, type: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                required
+              >
+                <option value="CC">{t('evaluations_manager.types.CC')}</option>
+                <option value="Examen">{t('evaluations_manager.types.Examen')}</option>
+                <option value="TP">{t('evaluations_manager.types.TP')}</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t('evaluations_manager.form.max_note')}</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={evaluationForm.note_max}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, note_max: parseInt(e.target.value) }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">{t('affectations_manager.table.subject')}</label>
+            <select
+              value={evaluationForm.matiere}
+              onChange={(e) => setEvaluationForm(prev => ({ ...prev, matiere: parseInt(e.target.value) || '', classe: '' }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              required
+            >
+              <option value="">{t('affectations_manager.select_subject')}</option>
+              {getMatieresForTeacher().map((matiere) => (
+                <option key={matiere.id} value={matiere.id}>
+                  {matiere.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t('affectations_manager.table.class')}</label>
+              <select
+                value={evaluationForm.classe}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, classe: parseInt(e.target.value) || '' }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
+                required
+                disabled={!evaluationForm.matiere}
+              >
+                <option value="">{t('affectations_manager.select_class')}</option>
+                {getClassesForSelectedMatiere().map((classe) => (
+                  <option key={classe.id} value={classe.id}>{classe.nom}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">{t('evaluations_manager.form.planning_opt')}</label>
+            <div className="grid grid-cols-3 gap-3">
+              <input
+                type="date"
+                value={evaluationForm.date}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, date: e.target.value }))}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+              />
+              <input
+                type="time"
+                value={evaluationForm.heure_debut}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, heure_debut: e.target.value }))}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+              />
+              <input
+                type="time"
+                value={evaluationForm.heure_fin}
+                onChange={(e) => setEvaluationForm(prev => ({ ...prev, heure_fin: e.target.value }))}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="pt-6 flex justify-end gap-3 border-t">
+            <button 
+              type="button" 
+              onClick={() => setIsEditEvalModalOpen(false)} 
+              className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all"
+            >
+              {t('common.cancel')}
+            </button>
+            <button 
+              type="submit" 
+              disabled={isActionLoading}
+              className="px-8 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-100 flex items-center gap-2 disabled:opacity-50"
+            >
+              {isActionLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {t('common.save')}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
       {/* Grade Entry Modal */}
-      <Modal isOpen={isGradeModalOpen} onClose={() => setIsGradeModalOpen(false)} title={t('teacher_notes.grade_modal.title', { matiere: selectedEvaluation?.matiere_name || matieres.find(m => m.id === selectedEvaluation?.matiere)?.nom || '', classe: '' })}>
+      <Modal
+        isOpen={isGradeModalOpen}
+        onClose={() => setIsGradeModalOpen(false)}
+        title={t('teacher_notes.grade_modal.title', { matiere: selectedEvaluation?.matiere_name || matieres.find(m => m.id === selectedEvaluation?.matiere)?.nom || '', classe: '' })}
+        maxWidth="2xl"
+      >
         <div className="space-y-6">
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto pr-2 custom-scrollbar">
             <h4 className="font-bold text-slate-900 mb-4">{t('teacher_notes.grade_modal.student')}s</h4>
             <div className="space-y-4">
               {currentClassStudents.map((student) => (
-                <div key={student.id} className="p-4 border border-slate-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h5 className="font-medium text-slate-900">{student.first_name} {student.last_name}</h5>
-                      <p className="text-sm text-slate-500">{student.email}</p>
+                <div key={student.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700 uppercase">
+                      {(student.first_name?.[0] || 'E')}
                     </div>
+                    <div>
+                      <p className="font-bold text-slate-900 leading-tight">
+                        {student.first_name} {student.last_name}
+                      </p>
+                      <p className="text-xs text-slate-400">{student.email || 'Email non disponible'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -602,9 +792,8 @@ export default function TeacherNotes() {
                       <label htmlFor={`absent-${student.id}`} className="text-sm text-slate-700">{t('common.absent')}</label>
                     </div>
                   </div>
-
                   {!gradesData[student.id]?.est_absent && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">{t('teacher_notes.grade_modal.grade')}</label>
                         <input
@@ -646,19 +835,16 @@ export default function TeacherNotes() {
               ))}
             </div>
           </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end pt-4">
             <button
-              type="button"
               onClick={() => setIsGradeModalOpen(false)}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg"
+              className="px-8 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all uppercase tracking-widest text-xs"
             >
-              {t('common.cancel')}
+              {t('common.close')}
             </button>
             <button
-              type="button"
               onClick={submitGrades}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className="px-8 py-3 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all ml-3"
             >
               {t('teacher_notes.grade_modal.submit')}
             </button>

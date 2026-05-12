@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Clock, AlertCircle, CheckCircle2, Calendar, Search, User, XCircle, BookOpen } from 'lucide-react';
+import { Clock, AlertCircle, CheckCircle2, Search, User, XCircle, BookOpen } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../hooks/useAuth';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+
+const getAnneeId = (value: any): number | null => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'object' && value !== null && 'id' in value) return value.id;
+  return null;
+};
 
 export default function ParentAbsences() {
   const { user } = useAuth();
@@ -12,23 +18,43 @@ export default function ParentAbsences() {
   const [children, setChildren] = useState<any[]>([]);
   const [selectedChild, setSelectedChild] = useState<any>(null);
   const [absences, setAbsences] = useState<any[]>([]);
+  const [allAbsences, setAllAbsences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingAbsences, setLoadingAbsences] = useState(false);
+  const [periodes, setPeriodes] = useState<any[]>([]);
+  const [selectedPeriode, setSelectedPeriode] = useState<string>('');
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
 
   useEffect(() => {
     const fetchChildren = async () => {
       try {
         setLoading(true);
-        const parentsRes = await api.get('/accounts/parents/');
+        const [parentsRes, anneeRes, periodeRes] = await Promise.all([
+          api.get('/accounts/parents/'),
+          api.get('/academics/annees-scolaires/'),
+          api.get('/academics/periodes/'),
+        ]);
         const parentsData = Array.isArray(parentsRes.data) ? parentsRes.data : (parentsRes.data.results || [parentsRes.data]);
         const myProfile = parentsData.find((p: any) => 
           p.utilisateur === user?.id || 
           (p.utilisateur && p.utilisateur.id === user?.id)
         );
+
+        const allAnnees = anneeRes.data.results || anneeRes.data;
+        const allPeriods = periodeRes.data.results || periodeRes.data;
+
+        const activeAnnee = allAnnees.find((a: any) => a.est_active);
+        const filteredPeriodes = activeAnnee 
+          ? allPeriods.filter((p: any) => getAnneeId(p.annee_scolaire) === activeAnnee.id)
+          : allPeriods;
+        setPeriodes(filteredPeriodes);
+
+        const activePeriode = filteredPeriodes.find((p: any) => p.est_active);
+        if (activePeriode && !selectedPeriode) {
+          setSelectedPeriode(activePeriode.id.toString());
+        }
 
         if (myProfile) {
           let childrenList = [];
@@ -58,13 +84,42 @@ export default function ParentAbsences() {
     try {
       setLoadingAbsences(true);
       const res = await api.get(`/academics/absences/?etudiant=${childId}`);
-      setAbsences(res.data.results || res.data);
+      setAllAbsences(res.data.results || res.data);
     } catch (error) {
       toast.error(t('parent_absences.messages.load_absences_error'));
     } finally {
       setLoadingAbsences(false);
     }
   };
+
+  useEffect(() => {
+    let filtered = [...allAbsences];
+
+    if (selectedPeriode) {
+      const anneeId = getAnneeId(periodes.find((p: any) => p.id.toString() === selectedPeriode)?.annee_scolaire);
+      const periodeData = periodes.find((p: any) => p.id.toString() === selectedPeriode);
+      if (periodeData && anneeId) {
+        const periodeDebut = new Date(periodeData.date_debut);
+        const periodeFin = new Date(periodeData.date_fin);
+        filtered = filtered.filter((abs) => {
+          const absDate = new Date(abs.date);
+          return absDate >= periodeDebut && absDate <= periodeFin;
+        });
+      }
+    }
+
+    if (searchTerm) {
+      const s = searchTerm.toLowerCase();
+      filtered = filtered.filter((abs) => 
+        (abs.enseignant_matiere_details?.matiere_name || '').toLowerCase().includes(s) || 
+        (abs.motif || '').toLowerCase().includes(s) || 
+        (abs.date || '').toLowerCase().includes(s) ||
+        (abs.enseignant_matiere_details?.enseignant_name || '').toLowerCase().includes(s)
+      );
+    }
+
+    setAbsences(filtered);
+  }, [allAbsences, selectedPeriode, searchTerm, periodes]);
 
   const handleChildChange = async (childId: string) => {
     const child = children.find(c => c.id === Number(childId));
@@ -73,14 +128,6 @@ export default function ParentAbsences() {
       await fetchAbsences(child.id);
     }
   };
-
-  const filteredAbsences = absences.filter(abs => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchesText = (abs.enseignant_matiere_details?.matiere_name || '').toLowerCase().includes(searchLower) ||
-                        (abs.enseignant_matiere_details?.enseignant_name || '').toLowerCase().includes(searchLower);
-    const matchesDate = !dateFilter || abs.date === dateFilter;
-    return matchesText && matchesDate;
-  });
 
   const justifiedCount = absences.filter(a => a.justifiee).length;
   const unjustifiedCount = absences.length - justifiedCount;
@@ -134,6 +181,18 @@ export default function ParentAbsences() {
 
       {/* Filters */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <select
+            value={selectedPeriode}
+            onChange={(e) => setSelectedPeriode(e.target.value)}
+            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+            required
+          >
+            {periodes.map(p => (
+              <option key={p.id} value={p.id}>{p.nom} ({p.code})</option>
+            ))}
+          </select>
+        </div>
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -142,15 +201,6 @@ export default function ParentAbsences() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-          />
-        </div>
-        <div className="relative w-full md:w-64">
-          <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none font-bold text-slate-700"
           />
         </div>
       </div>
@@ -168,7 +218,7 @@ export default function ParentAbsences() {
           <div className="py-20 flex justify-center"><Spinner /></div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {filteredAbsences.length > 0 ? filteredAbsences.map((abs, i) => (
+            {absences.length > 0 ? absences.map((abs, i) => (
               <div key={i} className="flex flex-col md:flex-row md:items-center justify-between p-8 hover:bg-slate-50/50 transition-colors gap-6">
                 <div className="flex items-center gap-6">
                   <div className="w-14 h-14 rounded-2xl bg-slate-100 flex flex-col items-center justify-center text-slate-400 border border-slate-200 shrink-0">

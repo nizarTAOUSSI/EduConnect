@@ -63,7 +63,6 @@ export default function PeriodesManager() {
       nom: formData.get('nom'),
       date_debut: formData.get('date_debut'),
       date_fin: formData.get('date_fin'),
-      est_active: formData.get('est_active') === 'on',
     };
 
     try {
@@ -120,7 +119,6 @@ export default function PeriodesManager() {
       nom: formData.get('nom'),
       date_debut: formData.get('date_debut'),
       date_fin: formData.get('date_fin'),
-      est_active: formData.get('est_active') === 'on',
     };
 
     try {
@@ -400,16 +398,6 @@ export default function PeriodesManager() {
               />
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <input
-              id="est_active_annee"
-              name="est_active"
-              type="checkbox"
-              defaultChecked={currentAnnee?.est_active}
-              className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
-            />
-            <label htmlFor="est_active_annee" className="text-sm font-bold text-slate-700">Année active</label>
-          </div>
           <div className="pt-6 flex justify-end gap-3">
             <button
               type="button"
@@ -485,16 +473,6 @@ export default function PeriodesManager() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
               />
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <input
-              id="est_active_periode"
-              name="est_active"
-              type="checkbox"
-              defaultChecked={currentPeriode?.est_active}
-              className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
-            />
-            <label htmlFor="est_active_periode" className="text-sm font-bold text-slate-700">Période active</label>
           </div>
           <div className="pt-6 flex justify-end gap-3">
             <button

@@ -6,6 +6,12 @@ import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
+const getAnneeId = (value: any): number | null => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'object' && value !== null && 'id' in value) return value.id;
+  return null;
+};
+
 export default function ParentNotes() {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -14,23 +20,52 @@ export default function ParentNotes() {
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [periodes, setPeriodes] = useState<any[]>([]);
-  const [selectedPeriode, setSelectedPeriode] = useState<string>('all');
+  const [selectedPeriode, setSelectedPeriode] = useState<string>('');
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
 
+  const loadChildNotes = async (childId: number, currentSelectedPeriode: string) => {
+    try {
+      const notesRes = await api.get(`/grades/notes/?etudiant=${childId}`);
+      let childNotes = notesRes.data.results || notesRes.data;
+      
+      if (currentSelectedPeriode) {
+        childNotes = childNotes.filter((n: any) => 
+          n.evaluation_details?.periode?.toString() === currentSelectedPeriode || 
+          n.evaluation_details?.periode?.id?.toString() === currentSelectedPeriode
+        );
+      }
+      setNotes(childNotes);
+    } catch (error) {
+      toast.error(t('parent_notes.messages.change_child_error'));
+    }
+  };
+
   useEffect(() => {
     const fetchEnfantsNotes = async () => {
       try {
         setLoading(true);
-        const [parentsRes, periodsRes] = await Promise.all([
+        const [parentsRes, periodsRes, anneeRes] = await Promise.all([
           api.get('/accounts/parents/'),
-          api.get('/academics/periodes/')
+          api.get('/academics/periodes/'),
+          api.get('/academics/annees-scolaires/'),
         ]);
         
         const periodsData = periodsRes.data.results || periodsRes.data;
-        setPeriodes(periodsData);
+        const anneeData = anneeRes.data.results || anneeRes.data;
+
+        const activeAnnee = anneeData.find((a: any) => a.est_active);
+        const filteredPeriods = activeAnnee 
+          ? periodsData.filter((p: any) => getAnneeId(p.annee_scolaire) === activeAnnee.id)
+          : periodsData;
+        setPeriodes(filteredPeriods);
+
+        const activePeriode = filteredPeriods.find((p: any) => p.est_active);
+        if (activePeriode && !selectedPeriode) {
+          setSelectedPeriode(activePeriode.id.toString());
+        }
 
         const parentsData = Array.isArray(parentsRes.data) ? parentsRes.data : (parentsRes.data.results || [parentsRes.data]);
         
@@ -54,9 +89,9 @@ export default function ParentNotes() {
         if (childrenData.length > 0) {
           setChildren(childrenData);
           setSelectedChild(childrenData[0]);
-
-          const notesRes = await api.get(`/grades/notes/?etudiant=${childrenData[0].id}`);
-          setNotes(notesRes.data.results || notesRes.data);
+          
+          const newSelectedPeriode = activePeriode ? activePeriode.id.toString() : selectedPeriode;
+          await loadChildNotes(childrenData[0].id, newSelectedPeriode);
         }
       } catch (error) {
         toast.error(t('parent_notes.messages.load_error'));
@@ -69,11 +104,13 @@ export default function ParentNotes() {
 
   const handleChildChange = async (child: any) => {
     setSelectedChild(child);
-    try {
-      const notesRes = await api.get(`/grades/notes/?etudiant=${child.id}`);
-      setNotes(notesRes.data.results || notesRes.data);
-    } catch (error) {
-      toast.error(t('parent_notes.messages.change_child_error'));
+    await loadChildNotes(child.id, selectedPeriode);
+  };
+
+  const handlePeriodeChange = async (newPeriode: string) => {
+    setSelectedPeriode(newPeriode);
+    if (selectedChild) {
+      await loadChildNotes(selectedChild.id, newPeriode);
     }
   };
 
@@ -84,8 +121,7 @@ export default function ParentNotes() {
     const matchesText = (n.evaluation_details?.matiere_name || '').toLowerCase().includes(s) || 
                         (n.commentaire || '').toLowerCase().includes(s);
     const matchesType = typeFilter === 'all' || n.evaluation_details?.type === typeFilter;
-    const matchesPeriod = selectedPeriode === 'all' || n.evaluation_details?.periode?.toString() === selectedPeriode || n.evaluation_details?.periode?.id?.toString() === selectedPeriode;
-    return matchesText && matchesType && matchesPeriod;
+    return matchesText && matchesType;
   });
 
   return (
@@ -137,12 +173,12 @@ export default function ParentNotes() {
 
         <select
           value={selectedPeriode}
-          onChange={(e) => setSelectedPeriode(e.target.value)}
+          onChange={(e) => handlePeriodeChange(e.target.value)}
           className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none font-bold text-slate-700"
+          required
         >
-          <option value="all">{t('parent_notes.filters.all_periods')}</option>
           {periodes.map(p => (
-            <option key={p.id} value={p.id}>{p.nom}</option>
+            <option key={p.id} value={p.id}>{p.nom} ({p.code})</option>
           ))}
         </select>
       </div>

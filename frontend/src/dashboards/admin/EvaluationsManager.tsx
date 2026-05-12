@@ -60,7 +60,6 @@ export default function EvaluationsManager() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [matieres, setMatieres] = useState<any[]>([]);
   const [salles, setSalles] = useState<any[]>([]);
-  const [periodes, setPeriodes] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -91,8 +90,7 @@ export default function EvaluationsManager() {
     matiere: '',
     enseignant: '',
     classe: '',
-    salle: '',
-    periode: ''
+    salle: ''
   });
 
   useEffect(() => {
@@ -102,14 +100,13 @@ export default function EvaluationsManager() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [evalRes, classRes, teacherRes, matRes, salleRes, assignRes, periodRes] = await Promise.all([
+      const [evalRes, classRes, teacherRes, matRes, salleRes, assignRes] = await Promise.all([
         api.get('/grades/evaluations/'),
         api.get('/academics/classes/'),
         api.get('/accounts/enseignants/'),
         api.get('/academics/matieres/'),
         api.get('/academics/salles/'),
         api.get('/academics/enseignant-matieres/'),
-        api.get('/academics/periodes/'),
       ]);
       
       const evalData = evalRes.data.results !== undefined ? evalRes.data.results : evalRes.data;
@@ -118,7 +115,6 @@ export default function EvaluationsManager() {
       const matData = matRes.data.results !== undefined ? matRes.data.results : matRes.data;
       const salleData = salleRes.data.results !== undefined ? salleRes.data.results : salleRes.data;
       const assignData = assignRes.data.results !== undefined ? assignRes.data.results : assignRes.data;
-      const periodData = periodRes.data.results !== undefined ? periodRes.data.results : periodRes.data;
       
       setEvaluations(Array.isArray(evalData) ? evalData : []);
       setClasses(Array.isArray(classData) ? classData : []);
@@ -126,7 +122,6 @@ export default function EvaluationsManager() {
       setMatieres(Array.isArray(matData) ? matData : []);
       setSalles(Array.isArray(salleData) ? salleData : []);
       setAssignments(Array.isArray(assignData) ? assignData : []);
-      setPeriodes(Array.isArray(periodData) ? periodData : []);
     } catch (error) {
       toast.error(t('evaluations_manager.messages.load_error'));
     } finally {
@@ -179,7 +174,6 @@ export default function EvaluationsManager() {
         enseignant: parseInt(formData.enseignant),
         classe: parseInt(formData.classe),
         salle: formData.salle ? parseInt(formData.salle) : null,
-        periode: formData.periode ? parseInt(formData.periode) : null,
         note_max: parseFloat(formData.note_max.toString())
       };
       await api.post('/grades/evaluations/', payload);
@@ -195,8 +189,7 @@ export default function EvaluationsManager() {
         matiere: '',
         enseignant: '',
         classe: '',
-        salle: '',
-        periode: ''
+        salle: ''
       });
     } catch (error: any) {
       toast.error(error.response?.data?.detail || error.response?.data?.non_field_errors?.[0] || t('evaluations_manager.messages.save_error'));
@@ -402,21 +395,6 @@ export default function EvaluationsManager() {
             >
               <option value="">{t('affectations_manager.select_subject')}</option>
               {matieres.map(m => <option key={m.id} value={m.id}>{m.nom}</option>)}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 ml-1">{t('evaluations_manager.form.period')}</label>
-            <select
-              required
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all duration-200"
-              value={formData.periode}
-              onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
-            >
-              <option value="">{t('evaluations_manager.form.select_period')}</option>
-              {periodes.map(p => (
-                <option key={p.id} value={p.id}>{p.nom} ({p.code})</option>
-              ))}
             </select>
           </div>
 

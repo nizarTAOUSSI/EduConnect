@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import Spinner from './ui/Spinner';
 import Modal from './ui/Modal';
-import { Clock, User, BookOpen, Trash2, Edit2, School, AlertCircle } from 'lucide-react';
+import { Clock, User, BookOpen, Trash2, Edit2, School, AlertCircle, Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface Seance {
@@ -193,9 +193,17 @@ export default function TimetableGrid({
                           )}
                         </div>
                         <h4 className="font-bold text-slate-900 text-sm leading-tight mb-1">{seance.matiere}</h4>
-                        <div className="flex items-center gap-1.5 text-slate-400">
-                          <Clock className="w-3 h-3" />
-                          <span className="text-[10px] font-bold">{seance.heure_debut.substring(0, 5)} - {seance.heure_fin.substring(0, 5)}</span>
+                        <div className="flex flex-col gap-1 text-slate-400">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-[10px] font-bold">{seance.heure_debut.substring(0, 5)} - {seance.heure_fin.substring(0, 5)}</span>
+                          </div>
+                          {seance.date && (
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-3 h-3" />
+                              <span className="text-[10px] font-bold">{seance.date}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
