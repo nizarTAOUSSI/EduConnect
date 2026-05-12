@@ -240,7 +240,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
         elements.extend(student_info)
         elements.append(Spacer(1, 20))
         
-        # Get matiere details
+        # Get matiere details - EXACT SAME LOGIC as retrieve method!
         from grades.models import Note
         notes = Note.objects.filter(
             etudiant=instance.etudiant,
@@ -251,28 +251,23 @@ class BulletinViewSet(viewsets.ModelViewSet):
         
         matiere_notes = {}
         for note in notes:
-            try:
-                m_id = note.evaluation.matiere.id
-                if m_id not in matiere_notes:
-                    matiere_notes[m_id] = {
-                        'nom': getattr(note.evaluation.matiere, 'nom', 'Matière'),
-                        'coefficient': getattr(note.evaluation.matiere, 'coefficient', 1),
-                        'notes': [],
-                        'moyenne': 0,
-                        'etat': 'Non Valide'
-                    }
-                matiere_notes[m_id]['notes'].append(note.valeur_note)
-            except:
-                continue
+            m_id = note.evaluation.matiere.id
+            if m_id not in matiere_notes:
+                matiere_notes[m_id] = {
+                    'id': m_id,
+                    'nom': note.evaluation.matiere.nom,
+                    'coefficient': note.evaluation.matiere.coefficient,
+                    'notes': [],
+                    'moyenne': 0,
+                    'etat': 'Non Valide'
+                }
+            matiere_notes[m_id]['notes'].append(note.valeur_note)
         
         matieres_list = []
         for m_id, data in matiere_notes.items():
-            try:
-                data['moyenne'] = sum(data['notes']) / len(data['notes']) if data['notes'] else 0
-                data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
-                matieres_list.append(data)
-            except:
-                continue
+            data['moyenne'] = sum(data['notes']) / len(data['notes'])
+            data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
+            matieres_list.append(data)
         
         # Create table data
         table_data = [['Matière', 'Coefficient', 'Moyenne', 'État']]
