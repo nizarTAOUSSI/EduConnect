@@ -57,7 +57,30 @@ class Evaluation(models.Model):
         verbose_name_plural = 'Évaluations'
         ordering            = ['-date']
     def clean(self):
-        from academics.models import Seance, EnseignantMatiere
+        from academics.models import Seance, EnseignantMatiere, AnneeScolaire
+        
+        if self.date:
+            # Check date is in an AnneeScolaire
+            annee_exists = AnneeScolaire.objects.filter(
+                date_debut__lte=self.date,
+                date_fin__gte=self.date
+            ).exists()
+            if not annee_exists:
+                raise ValidationError(
+                    f"La date {self.date} n'appartient à aucune année scolaire."
+                )
+            
+            # Check date is in a Periode
+            from academics.models import Periode
+            periode_exists = Periode.objects.filter(
+                date_debut__lte=self.date,
+                date_fin__gte=self.date
+            ).exists()
+            if not periode_exists:
+                raise ValidationError(
+                    f"La date {self.date} n'appartient à aucune période (semestre)."
+                )
+        
         if self.enseignant and self.matiere and self.classe:
             if not EnseignantMatiere.objects.filter(
                 enseignant=self.enseignant,

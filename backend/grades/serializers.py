@@ -6,6 +6,7 @@ class EvaluationSerializer(serializers.ModelSerializer):
     matiere_name = serializers.ReadOnlyField(source='matiere.nom')
     matiere_coefficient = serializers.ReadOnlyField(source='matiere.coefficient')
     type_display = serializers.CharField(source='get_type_display', read_only=True)
+    periode = serializers.PrimaryKeyRelatedField(read_only=True)
     periode_name = serializers.ReadOnlyField(source='periode.nom')
     enseignant_user = serializers.ReadOnlyField(source='enseignant.utilisateur.id')
     enseignant_name = serializers.ReadOnlyField(source='enseignant.utilisateur.get_full_name')
