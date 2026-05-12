@@ -368,7 +368,7 @@ export default function StudentNotes() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-2xl border border-indigo-200">
                       <h4 className="font-bold text-indigo-900 mb-2">Moyenne Générale</h4>
-                      <p className="text-4xl font-black text-indigo-600">{bulletin.moyenne_generale.toFixed(2)} <span className="text-lg font-normal opacity-70">/20</span></p>
+                      <p className="text-4xl font-black text-indigo-600">{stats.moyenne.toFixed(2)} <span className="text-lg font-normal opacity-70">/20</span></p>
                       {bulletin.mention && (
                         <p className="text-indigo-700 font-bold mt-2">Mention : {bulletin.get_mention_display || bulletin.mention}</p>
                       )}
