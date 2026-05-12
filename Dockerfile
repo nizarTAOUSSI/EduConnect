@@ -1,8 +1,13 @@
-FROM python:3.13-slim
+FROM ubuntu:22.04
 
-# Install system dependencies for weasyprint and MySQL
+# Set non-interactive mode
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update and install basic packages
 RUN apt-get update && apt-get install -y \
-    build-essential \
+    python3 \
+    python3-pip \
+    python3-venv \
     libcairo2 \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
@@ -11,22 +16,23 @@ RUN apt-get update && apt-get install -y \
     shared-mime-info \
     libmariadb-dev \
     pkg-config \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Copy requirements
 COPY backend/requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy the entire backend
+# Copy application
 COPY backend/ .
 
-# Expose the port Railway expects
+# Expose port
 EXPOSE 8080
 
-# Run the application
+# Run the app
 CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8080"]
