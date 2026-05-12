@@ -4,6 +4,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
+    initial = True
+
     dependencies = [
         ('academics', '0001_initial'),
         ('accounts', '0001_initial'),

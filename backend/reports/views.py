@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from weasyprint import HTML
 from .models import Bulletin
 from .serializers import BulletinSerializer
 from grades.models import Evaluation, Note
@@ -167,6 +166,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='pdf')
     def pdf(self, request, pk=None):
+        from weasyprint import HTML
         instance = self.get_object()
         
         # Get matiere details
