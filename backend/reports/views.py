@@ -240,17 +240,32 @@ class BulletinViewSet(viewsets.ModelViewSet):
         elements.extend(student_info)
         elements.append(Spacer(1, 20))
         
-        # Get matiere details - EXACT SAME LOGIC as retrieve method!
+        # Get all notes for the student and periode - EXACT LIKE FRONTEND!
         from grades.models import Note
-        notes = Note.objects.filter(
+        all_notes = Note.objects.filter(
             etudiant=instance.etudiant,
             evaluation__periode=instance.periode,
             est_absent=False,
             valeur_note__isnull=False
         ).select_related('evaluation__matiere')
         
+        # 1. Calculate moyenne_generale EXACTLY LIKE FRONTEND (weighted average of ALL NOTES!)
+        weighted_sum = 0
+        total_coeff = 0
+        for note in all_notes:
+            val = note.valeur_note
+            coeff = getattr(note.evaluation.matiere, 'coefficient', 1)
+            weighted_sum += val * coeff
+            total_coeff += coeff
+        
+        if total_coeff > 0:
+            pdf_moyenne_generale = weighted_sum / total_coeff
+        else:
+            pdf_moyenne_generale = 0
+        
+        # 2. Get matiere details for the table - EXACT SAME LOGIC as retrieve method!
         matiere_notes = {}
-        for note in notes:
+        for note in all_notes:
             m_id = note.evaluation.matiere.id
             if m_id not in matiere_notes:
                 matiere_notes[m_id] = {
@@ -296,14 +311,14 @@ class BulletinViewSet(viewsets.ModelViewSet):
         elements.append(table)
         elements.append(Spacer(1, 30))
         
-        # Average - USE THE DATABASE VALUE (same as top of Mes Notes!)
+        # Average - EXACTLY LIKE THE FRONTEND TOP STATS!
         avg_style = ParagraphStyle(
             'CustomAverage',
             parent=styles['Heading2'],
             textColor=colors.HexColor('#10b981'),
             alignment=1
         )
-        elements.append(Paragraph(f'Moyenne Générale: {instance.moyenne_generale:.2f}/20', avg_style))
+        elements.append(Paragraph(f'Moyenne Générale: {pdf_moyenne_generale:.2f}/20', avg_style))
         
         # Mention if available
         if instance.mention:
