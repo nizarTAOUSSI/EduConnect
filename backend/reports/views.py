@@ -2,6 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
 from .models import Bulletin
 from .serializers import BulletinSerializer
 from grades.models import Evaluation, Note
@@ -123,3 +126,92 @@ class BulletinViewSet(viewsets.ModelViewSet):
         # If all checks pass, save and calculate average
         bulletin = serializer.save()
         bulletin.calculate_moyenne()
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        
+        # Get matiere details with moyenne and etat
+        from grades.models import Note
+        notes = Note.objects.filter(
+            etudiant=instance.etudiant,
+            evaluation__periode=instance.periode,
+            est_absent=False,
+            valeur_note__isnull=False
+        ).select_related('evaluation__matiere')
+        
+        matiere_notes = {}
+        for note in notes:
+            m_id = note.evaluation.matiere.id
+            if m_id not in matiere_notes:
+                matiere_notes[m_id] = {
+                    'id': m_id,
+                    'nom': note.evaluation.matiere.nom,
+                    'coefficient': note.evaluation.matiere.coefficient,
+                    'notes': [],
+                    'moyenne': 0,
+                    'etat': 'Non Valide'
+                }
+            matiere_notes[m_id]['notes'].append(note.valeur_note)
+        
+        matieres_list = []
+        for m_id, data in matiere_notes.items():
+            data['moyenne'] = sum(data['notes']) / len(data['notes'])
+            data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
+            matieres_list.append(data)
+        
+        return Response({
+            **serializer.data,
+            'matieres': matieres_list
+        })
+    
+    @action(detail=True, methods=['get'], url_path='pdf')
+    def pdf(self, request, pk=None):
+        instance = self.get_object()
+        
+        # Get matiere details
+        from grades.models import Note
+        notes = Note.objects.filter(
+            etudiant=instance.etudiant,
+            evaluation__periode=instance.periode,
+            est_absent=False,
+            valeur_note__isnull=False
+        ).select_related('evaluation__matiere')
+        
+        matiere_notes = {}
+        for note in notes:
+            m_id = note.evaluation.matiere.id
+            if m_id not in matiere_notes:
+                matiere_notes[m_id] = {
+                    'id': m_id,
+                    'nom': note.evaluation.matiere.nom,
+                    'coefficient': note.evaluation.matiere.coefficient,
+                    'notes': [],
+                    'moyenne': 0,
+                    'etat': 'Non Valide'
+                }
+            matiere_notes[m_id]['notes'].append(note.valeur_note)
+        
+        matieres_list = []
+        for m_id, data in matiere_notes.items():
+            data['moyenne'] = sum(data['notes']) / len(data['notes'])
+            data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
+            matieres_list.append(data)
+        
+        # Render HTML template
+        html_string = render_to_string('bulletin.html', {
+            'bulletin': instance,
+            'matieres': matieres_list,
+            'etudiant': instance.etudiant,
+            'periode': instance.periode,
+        })
+        
+        # Generate PDF
+        html = HTML(string=html_string)
+        pdf_file = html.write_pdf()
+        
+        # Create response
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="bulletin_{instance.etudiant.utilisateur.last_name}_{instance.etudiant.utilisateur.first_name}_{instance.periode.code}.pdf"'
+        
+        return response

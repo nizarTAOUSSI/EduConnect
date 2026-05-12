@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bulletin de Notes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            color: #10b981;
+            margin-bottom: 0.5rem;
+        }
+        .student-info {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: bold;
+        }
+        .valide {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .non-valide {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Bulletin de Notes</h1>
+        <p>Période : {{ periode.nom }} ({{ periode.code }})</p>
+    </div>
+
+    <div class="student-info">
+        <h2>Informations de l'étudiant</h2>
+        <p>Nom : {{ etudiant.utilisateur.last_name }}</p>
+        <p>Prénom : {{ etudiant.utilisateur.first_name }}</p>
+        <p>Classe : {{ etudiant.classe.nom }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Matière</th>
+                <th>Coefficient</th>
+                <th>Moyenne</th>
+                <th>État</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for matiere in matieres %}
+            <tr>
+                <td>{{ matiere.nom }}</td>
+                <td>{{ matiere.coefficient }}</td>
+                <td>{{ matiere.moyenne|floatformat:2 }}</td>
+                <td class="{% if matiere.etat == 'Valide' %}valide{% else %}non-valide{% endif %}">
+                    {{ matiere.etat }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <h3>Moyenne Générale : {{ bulletin.moyenne_generale|floatformat:2 }}</h3>
+        {% if bulletin.mention %}
+        <p>Mention : {{ bulletin.get_mention_display }}</p>
+        {% endif %}
+        <p>Date de génération : {{ bulletin.date_generation|date:"d/m/Y H:i" }}</p>
+    </div>
+</body>
+</html>
