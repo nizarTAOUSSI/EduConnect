@@ -1,34 +1,22 @@
-FROM ubuntu:22.04
-
-# Set non-interactive mode
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Update and install basic packages
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-venv \
-    libcairo2 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    libffi-dev \
-    shared-mime-info \
-    libmariadb-dev \
-    pkg-config \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+FROM python:3.13-slim
 
 # Set working directory
 WORKDIR /app
+
+# Install system dependencies for MySQL and basic functionality
+RUN apt-get update && apt-get install -y \
+    gcc \
+    pkg-config \
+    libmariadb-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
 COPY backend/requirements.txt .
 
 # Install Python dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy application code
 COPY backend/ .
 
 # Expose port

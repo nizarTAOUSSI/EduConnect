@@ -188,10 +188,19 @@ class BulletinViewSet(viewsets.ModelViewSet):
         from rest_framework.exceptions import APIException
         instance = self.get_object()
         
+        # Try to import weasyprint
         try:
             from weasyprint import HTML
+            WEASYPRINT_AVAILABLE = True
         except ImportError:
-            raise APIException("PDF generation not available: weasyprint is not installed")
+            WEASYPRINT_AVAILABLE = False
+        
+        if not WEASYPRINT_AVAILABLE:
+            return Response({
+                "error": "PDF generation temporarily unavailable",
+                "message": "The bulletin is still accessible in the application.",
+                "bulletin_id": instance.id
+            }, status=501)
         
         # Create the simplest possible HTML first to test
         html_content = f"""
@@ -226,4 +235,8 @@ class BulletinViewSet(viewsets.ModelViewSet):
             return response
             
         except Exception as e:
-            raise APIException(f"PDF generation failed: {str(e)}")
+            return Response({
+                "error": f"PDF generation failed: {str(e)}",
+                "message": "The bulletin is still accessible in the application.",
+                "bulletin_id": instance.id
+            }, status=500)
