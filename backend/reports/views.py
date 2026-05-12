@@ -224,14 +224,18 @@ class BulletinViewSet(viewsets.ModelViewSet):
             last_name = instance.etudiant.utilisateur.last_name if hasattr(instance.etudiant, 'utilisateur') else 'N/A'
             first_name = instance.etudiant.utilisateur.first_name if hasattr(instance.etudiant, 'utilisateur') else 'N/A'
             classe = instance.etudiant.classe.nom if hasattr(instance.etudiant, 'classe') and instance.etudiant.classe else 'N/A'
+            niveau = instance.etudiant.classe.niveau if hasattr(instance.etudiant, 'classe') and instance.etudiant.classe else 'N/A'
             periode = instance.periode.nom if hasattr(instance.periode, 'nom') else 'N/A'
+            annee_scolaire = instance.periode.annee_scolaire.nom if hasattr(instance.periode, 'annee_scolaire') and instance.periode.annee_scolaire else 'N/A'
         except:
-            last_name = first_name = classe = periode = 'N/A'
+            last_name = first_name = classe = niveau = periode = annee_scolaire = 'N/A'
         
         student_info.append(Paragraph(f'<b>Nom:</b> {last_name}', info_style))
         student_info.append(Paragraph(f'<b>Prénom:</b> {first_name}', info_style))
         student_info.append(Paragraph(f'<b>Classe:</b> {classe}', info_style))
+        student_info.append(Paragraph(f'<b>Niveau:</b> {niveau}', info_style))
         student_info.append(Paragraph(f'<b>Période:</b> {periode}', info_style))
+        student_info.append(Paragraph(f'<b>Année Scolaire:</b> {annee_scolaire}', info_style))
         
         elements.extend(student_info)
         elements.append(Spacer(1, 20))
