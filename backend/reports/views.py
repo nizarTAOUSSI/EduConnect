@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.http import HttpResponse
-from django.template.loader import render_to_string
 from .models import Bulletin
 from .serializers import BulletinSerializer
 from grades.models import Evaluation, Note
@@ -185,13 +184,57 @@ class BulletinViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='pdf')
     def pdf(self, request, pk=None):
-        from rest_framework.exceptions import APIException
+        from io import BytesIO
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.units import inch
+        
         instance = self.get_object()
         
+        # Create a buffer to receive the PDF data
+        buffer = BytesIO()
+        
+        # Create the PDF document
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Title
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            textColor=colors.HexColor('#10b981'),
+            alignment=1,
+            spaceAfter=30
+        )
+        elements.append(Paragraph('Bulletin de Notes', title_style))
+        
+        # Student Info
+        info_style = ParagraphStyle(
+            'CustomInfo',
+            parent=styles['Normal'],
+            fontSize=12,
+            spaceAfter=20
+        )
+        
+        student_info = []
         try:
-            from weasyprint import HTML
-        except ImportError:
-            raise APIException("PDF generation is not available. Please install weasyprint.")
+            last_name = instance.etudiant.utilisateur.last_name if hasattr(instance.etudiant, 'utilisateur') else 'N/A'
+            first_name = instance.etudiant.utilisateur.first_name if hasattr(instance.etudiant, 'utilisateur') else 'N/A'
+            classe = instance.etudiant.classe.nom if hasattr(instance.etudiant, 'classe') and instance.etudiant.classe else 'N/A'
+            periode = instance.periode.nom if hasattr(instance.periode, 'nom') else 'N/A'
+        except:
+            last_name = first_name = classe = periode = 'N/A'
+        
+        student_info.append(Paragraph(f'<b>Nom:</b> {last_name}', info_style))
+        student_info.append(Paragraph(f'<b>Prénom:</b> {first_name}', info_style))
+        student_info.append(Paragraph(f'<b>Classe:</b> {classe}', info_style))
+        student_info.append(Paragraph(f'<b>Période:</b> {periode}', info_style))
+        
+        elements.extend(student_info)
+        elements.append(Spacer(1, 20))
         
         # Get matiere details
         from grades.models import Note
@@ -204,45 +247,97 @@ class BulletinViewSet(viewsets.ModelViewSet):
         
         matiere_notes = {}
         for note in notes:
-            m_id = note.evaluation.matiere.id
-            if m_id not in matiere_notes:
-                matiere_notes[m_id] = {
-                    'id': m_id,
-                    'nom': note.evaluation.matiere.nom,
-                    'coefficient': note.evaluation.matiere.coefficient,
-                    'notes': [],
-                    'moyenne': 0,
-                    'etat': 'Non Valide'
-                }
-            matiere_notes[m_id]['notes'].append(note.valeur_note)
+            try:
+                m_id = note.evaluation.matiere.id
+                if m_id not in matiere_notes:
+                    matiere_notes[m_id] = {
+                        'nom': getattr(note.evaluation.matiere, 'nom', 'Matière'),
+                        'coefficient': getattr(note.evaluation.matiere, 'coefficient', 1),
+                        'notes': [],
+                        'moyenne': 0,
+                        'etat': 'Non Valide'
+                    }
+                matiere_notes[m_id]['notes'].append(note.valeur_note)
+            except:
+                continue
         
         matieres_list = []
         for m_id, data in matiere_notes.items():
-            data['moyenne'] = sum(data['notes']) / len(data['notes'])
-            data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
-            matieres_list.append(data)
+            try:
+                data['moyenne'] = sum(data['notes']) / len(data['notes']) if data['notes'] else 0
+                data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
+                matieres_list.append(data)
+            except:
+                continue
         
-        # Render HTML template
-        html_string = render_to_string('bulletin.html', {
-            'bulletin': instance,
-            'matieres': matieres_list,
-            'etudiant': instance.etudiant,
-            'periode': instance.periode,
-        })
+        # Create table data
+        table_data = [['Matière', 'Coefficient', 'Moyenne', 'État']]
+        for matiere in matieres_list:
+            table_data.append([
+                matiere['nom'],
+                str(matiere['coefficient']),
+                f"{matiere['moyenne']:.2f}/20",
+                matiere['etat']
+            ])
         
+        # Create table
+        table = Table(table_data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#374151')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')])
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 30))
+        
+        # Average
+        avg_style = ParagraphStyle(
+            'CustomAverage',
+            parent=styles['Heading2'],
+            textColor=colors.HexColor('#10b981'),
+            alignment=1
+        )
+        elements.append(Paragraph(f'Moyenne Générale: {instance.moyenne_generale:.2f}/20', avg_style))
+        
+        # Mention if available
+        if instance.mention:
+            mention_style = ParagraphStyle(
+                'CustomMention',
+                parent=styles['Normal'],
+                textColor=colors.HexColor('#4f46e5'),
+                alignment=1,
+                fontSize=14
+            )
+            try:
+                mention_display = instance.get_mention_display_label() if hasattr(instance, 'get_mention_display_label') else instance.get_mention_display()
+            except:
+                mention_display = instance.mention
+            elements.append(Paragraph(f'Mention: {mention_display}', mention_style))
+        
+        # Build the PDF
+        doc.build(elements)
+        
+        # Get the PDF from the buffer
+        buffer.seek(0)
+        pdf_data = buffer.getvalue()
+        buffer.close()
+        
+        # Create response
+        response = HttpResponse(pdf_data, content_type='application/pdf')
         try:
-            # Generate PDF
-            html = HTML(string=html_string)
-            pdf_file = html.write_pdf()
-            
-            # Create response
-            response = HttpResponse(pdf_file, content_type='application/pdf')
             last_name = instance.etudiant.utilisateur.last_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else 'etudiant'
             first_name = instance.etudiant.utilisateur.first_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else ''
             periode_code = instance.periode.code if hasattr(instance.periode, 'code') and instance.periode.code else 'periode'
             filename = f"bulletin_{last_name}_{first_name}_{periode_code}.pdf".replace(' ', '_')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            
-            return response
-        except Exception as e:
-            raise APIException(f"Error generating PDF: {str(e)}")
+        except:
+            filename = "bulletin.pdf"
+        
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
