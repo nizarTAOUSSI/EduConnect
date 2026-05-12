@@ -191,58 +191,39 @@ class BulletinViewSet(viewsets.ModelViewSet):
         try:
             from weasyprint import HTML
         except ImportError:
-            raise APIException("PDF generation is not available. Please install weasyprint.")
+            raise APIException("PDF generation not available: weasyprint is not installed")
         
-        # Get matiere details
-        from grades.models import Note
-        notes = Note.objects.filter(
-            etudiant=instance.etudiant,
-            evaluation__periode=instance.periode,
-            est_absent=False,
-            valeur_note__isnull=False
-        ).select_related('evaluation__matiere')
-        
-        matiere_notes = {}
-        for note in notes:
-            m_id = note.evaluation.matiere.id
-            if m_id not in matiere_notes:
-                matiere_notes[m_id] = {
-                    'id': m_id,
-                    'nom': note.evaluation.matiere.nom,
-                    'coefficient': note.evaluation.matiere.coefficient,
-                    'notes': [],
-                    'moyenne': 0,
-                    'etat': 'Non Valide'
-                }
-            matiere_notes[m_id]['notes'].append(note.valeur_note)
-        
-        matieres_list = []
-        for m_id, data in matiere_notes.items():
-            data['moyenne'] = sum(data['notes']) / len(data['notes'])
-            data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
-            matieres_list.append(data)
-        
-        # Render HTML template
-        html_string = render_to_string('bulletin.html', {
-            'bulletin': instance,
-            'matieres': matieres_list,
-            'etudiant': instance.etudiant,
-            'periode': instance.periode,
-        })
+        # Create the simplest possible HTML first to test
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bulletin de Notes</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; padding: 40px; }}
+        h1 {{ color: #10b981; text-align: center; }}
+        .info {{ margin: 20px 0; padding: 20px; background: #f0fdf4; border-radius: 8px; }}
+    </style>
+</head>
+<body>
+    <h1>Bulletin de Notes</h1>
+    <div class="info">
+        <p><strong>Moyenne Générale:</strong> {instance.moyenne_generale:.2f}/20</p>
+        <p><strong>ID Bulletin:</strong> {instance.id}</p>
+    </div>
+</body>
+</html>
+"""
         
         try:
-            # Generate PDF
-            html = HTML(string=html_string)
+            # Generate PDF from the simple HTML
+            html = HTML(string=html_content)
             pdf_file = html.write_pdf()
             
-            # Create response
             response = HttpResponse(pdf_file, content_type='application/pdf')
-            last_name = instance.etudiant.utilisateur.last_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else 'etudiant'
-            first_name = instance.etudiant.utilisateur.first_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else ''
-            periode_code = instance.periode.code if hasattr(instance.periode, 'code') and instance.periode.code else 'periode'
-            filename = f"bulletin_{last_name}_{first_name}_{periode_code}.pdf".replace(' ', '_')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            
+            response['Content-Disposition'] = 'attachment; filename="bulletin.pdf"'
             return response
+            
         except Exception as e:
-            raise APIException(f"Error generating PDF: {str(e)}")
+            raise APIException(f"PDF generation failed: {str(e)}")
