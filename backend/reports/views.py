@@ -185,8 +185,13 @@ class BulletinViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='pdf')
     def pdf(self, request, pk=None):
-        from weasyprint import HTML
+        from rest_framework.exceptions import APIException
         instance = self.get_object()
+        
+        try:
+            from weasyprint import HTML
+        except ImportError:
+            raise APIException("PDF generation is not available. Please install weasyprint.")
         
         # Get matiere details
         from grades.models import Note
@@ -225,12 +230,19 @@ class BulletinViewSet(viewsets.ModelViewSet):
             'periode': instance.periode,
         })
         
-        # Generate PDF
-        html = HTML(string=html_string)
-        pdf_file = html.write_pdf()
-        
-        # Create response
-        response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="bulletin_{instance.etudiant.utilisateur.last_name}_{instance.etudiant.utilisateur.first_name}_{instance.periode.code}.pdf"'
-        
-        return response
+        try:
+            # Generate PDF
+            html = HTML(string=html_string)
+            pdf_file = html.write_pdf()
+            
+            # Create response
+            response = HttpResponse(pdf_file, content_type='application/pdf')
+            last_name = instance.etudiant.utilisateur.last_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else 'etudiant'
+            first_name = instance.etudiant.utilisateur.first_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else ''
+            periode_code = instance.periode.code if hasattr(instance.periode, 'code') and instance.periode.code else 'periode'
+            filename = f"bulletin_{last_name}_{first_name}_{periode_code}.pdf".replace(' ', '_')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            return response
+        except Exception as e:
+            raise APIException(f"Error generating PDF: {str(e)}")
