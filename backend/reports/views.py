@@ -18,6 +18,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
     def check_evaluations_complete(self, request):
         classe_id = request.query_params.get('classe_id')
         periode_id = request.query_params.get('periode_id')
+        etudiant_id = request.query_params.get('etudiant_id')
         
         if not classe_id or not periode_id:
             return Response(
@@ -46,16 +47,28 @@ class BulletinViewSet(viewsets.ModelViewSet):
                 "message": "No evaluations found for this class and periode"
             })
         
-        # Get all students in the class
-        students = classe.get_etudiants()
+        # Determine which students to check
+        if etudiant_id:
+            # Check a single student
+            try:
+                from accounts.models import Etudiant
+                student = Etudiant.objects.get(id=etudiant_id)
+                students = [student]
+            except Etudiant.DoesNotExist:
+                return Response(
+                    {"error": "Student not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            # Check all students in the class
+            students = classe.get_etudiants()
+            if not students.exists():
+                return Response({
+                    "complete": False,
+                    "message": "No students in this class"
+                })
         
-        if not students.exists():
-            return Response({
-                "complete": False,
-                "message": "No students in this class"
-            })
-        
-        # Check if every evaluation has a note for every student
+        # Check if every evaluation has a note for the student(s)
         missing_notes = []
         for evaluation in evaluations:
             for student in students:
@@ -79,10 +92,16 @@ class BulletinViewSet(viewsets.ModelViewSet):
                 "message": "Some notes are missing"
             })
         
-        return Response({
-            "complete": True,
-            "message": "All evaluations have notes for all students"
-        })
+        if etudiant_id:
+            return Response({
+                "complete": True,
+                "message": "All evaluations have notes for this student"
+            })
+        else:
+            return Response({
+                "complete": True,
+                "message": "All evaluations have notes for all students"
+            })
     
     def perform_create(self, serializer):
         from rest_framework.exceptions import ValidationError
@@ -99,7 +118,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
         # Get all matieres for the class
         matieres = student_class.get_matieres()
         
-        # Check if all matieres have at least one evaluation with notes for the periode
+        # Check if all matieres have at least one evaluation for the periode
         for matiere in matieres:
             # Get evaluations for this matiere, class, and periode
             evaluations = Evaluation.objects.filter(
@@ -111,7 +130,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
             if not evaluations.exists():
                 raise ValidationError(f"No evaluations found for {matiere.nom} in this periode")
             
-            # Check if all evaluations have notes for the student
+            # Check if this student has notes for ALL evaluations in this matiere
             for evaluation in evaluations:
                 note_exists = Note.objects.filter(
                     evaluation=evaluation,
