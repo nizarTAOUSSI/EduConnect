@@ -1,311 +1,425 @@
 import { useEffect, useState } from 'react';
-import { MessageSquare, Send, Clock, CheckCircle2, XCircle, Info } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { MessageSquare, Send, FileText, AlertCircle } from 'lucide-react';
 import api from '../../api/axios';
-import { useAuth } from '../../hooks/useAuth';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 import Modal from '../../components/ui/Modal';
-import Table, { Td } from '../../components/ui/Table';
+
+interface Evaluation {
+  id: number;
+  type: string;
+  type_display?: string;
+  date: string;
+  note_max: number;
+  matiere: number;
+  classe: number;
+  matiere_name?: string;
+  classe_name?: string;
+  enseignant_user?: number;
+  enseignant_name?: string;
+}
 
 interface Note {
   id: number;
+  evaluation: number;
+  etudiant: number;
   valeur_note: number | null;
   commentaire: string;
   est_absent: boolean;
-  evaluation_details: {
-    id: number;
-    type_display: string;
-    matiere_name: string;
-    date: string;
-    enseignant_name: string;
-    enseignant_id: number;
-    matiere_id: number;
-  };
+  evaluation_details?: Evaluation;
 }
 
 interface Reclamation {
   id: number;
-  objet: string;
+  expediteur: number;
+  destinataire: number;
   message: string;
-  reponse_enseignant: string;
   statut: 'en_attente' | 'traitee' | 'rejetee';
   date_creation: string;
-  evaluation_details?: {
-    type_display: string;
-    matiere_name: string;
-  };
+  reponse: string | null;
+  note?: number;
+  note_details?: Note;
 }
 
 export default function StudentReclamations() {
-  const { t } = useTranslation();
-  const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [reclamations, setReclamations] = useState<Reclamation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [studentProfile, setStudentProfile] = useState<any>(null);
+  const [isReclamationModalOpen, setIsReclamationModalOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const etudiantsRes = await api.get('/accounts/etudiants/');
-      const etudiantsData = etudiantsRes.data.results || etudiantsRes.data;
-      const myProfile = etudiantsData.find((e: any) => e.utilisateur === user?.id);
-
-      if (!myProfile) {
-        toast.error(t('student_reclamations.messages.profile_not_found'));
-        return;
-      }
-
-      const [notesRes, reclamRes] = await Promise.all([
-        api.get(`/grades/notes/?etudiant=${myProfile.id}`),
-        api.get(`/communication/reclamations/?expediteur=${myProfile.utilisateur}`)
-      ]);
-
-      setNotes(notesRes.data.results || notesRes.data);
-      setReclamations(reclamRes.data.results || reclamRes.data);
-    } catch (error) {
-      toast.error(t('student_reclamations.messages.load_error'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [reclamationForm, setReclamationForm] = useState({
+    message: '',
+  });
 
   useEffect(() => {
-    fetchData();
-  }, [user, t]);
+    const fetchData = async () => {
+      try {
+        // Get current user
+        const userRes = await api.get('/accounts/auth/me/');
+        const user = userRes.data;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+        if (user.role !== 'etudiant') {
+          toast.error('Accès non autorisé');
+          return;
+        }
+
+        const studentRes = await api.get(`/accounts/etudiants/?utilisateur=${user.id}`);
+        const studentData = studentRes.data.results || studentRes.data;
+        const student = Array.isArray(studentData) ? studentData[0] : studentData;
+
+        if (!student) {
+          toast.error('Profil étudiant non trouvé');
+          return;
+        }
+
+        // Get student's notes with evaluation details
+        const notesRes = await api.get(`/grades/notes/?etudiant=${student.id}`);
+        const notesData = notesRes.data.results || notesRes.data;
+
+        // Get evaluation details for each note
+        const notesWithDetails = await Promise.all(
+          notesData.map(async (note: Note) => {
+            try {
+              const evalRes = await api.get(`/grades/evaluations/${note.evaluation}/`);
+              return { ...note, evaluation_details: evalRes.data };
+            } catch (error) {
+              return note;
+            }
+          })
+        );
+
+        setNotes(notesWithDetails);
+        setStudentProfile(student);
+
+        // Get student's reclamations
+        const reclamationsRes = await api.get(`/communication/reclamations/?expediteur=${student.utilisateur}`);
+        setReclamations(reclamationsRes.data.results || reclamationsRes.data);
+
+      } catch (error) {
+        toast.error('Erreur lors du chargement des données');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const openReclamationModal = (note: Note) => {
+    setSelectedNote(note);
+    setReclamationForm({ message: '' });
+    setIsReclamationModalOpen(true);
+  };
+
+  const submitReclamation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedNote) return;
 
-    const enseignantId = selectedNote.evaluation_details.enseignant_id;
-    if (!enseignantId) {
-      toast.error(t('student_reclamations.messages.no_teacher'));
-      return;
-    }
-
     try {
-      setIsSubmitting(true);
-      await api.post('/grades/reclamations/', {
-        evaluation: selectedNote.evaluation_details.id,
-        enseignant: enseignantId,
-        objet: `Réclamation : ${selectedNote.evaluation_details.matiere_name} - ${selectedNote.evaluation_details.type_display}`,
-        message: message
-      });
+      const evaluation = selectedNote.evaluation_details;
+      if (!evaluation) {
+        toast.error('Impossible de déterminer le destinataire de la réclamation.');
+        return;
+      }
 
-      toast.success(t('student_reclamations.messages.send_success'));
-      setIsModalOpen(false);
-      setMessage('');
-      fetchData();
+      let destinataireId = evaluation.enseignant_user;
+
+      // Fallback for older evaluations without explicit teacher
+      if (!destinataireId) {
+        const assignmentRes = await api.get(`/academics/enseignant-matieres/?classe=${evaluation.classe}&matiere=${evaluation.matiere}`);
+        const assignmentData = assignmentRes.data.results || assignmentRes.data;
+        const assignment = Array.isArray(assignmentData) ? assignmentData[0] : assignmentData;
+        destinataireId = assignment?.enseignant_user;
+      }
+
+      if (!destinataireId) {
+        toast.error('Aucun enseignant trouvé pour cette évaluation. Veuillez contacter l\'administration.');
+        return;
+      }
+
+      const reclamationData = {
+        expediteur: studentProfile?.utilisateur ?? selectedNote.etudiant,
+        destinataire: destinataireId,
+        note: selectedNote.id,
+        message: reclamationForm.message,
+        statut: 'en_attente',
+      };
+
+      await api.post('/communication/reclamations/', reclamationData);
+
+      toast.success('Réclamation envoyée avec succès');
+      setIsReclamationModalOpen(false);
+      setSelectedNote(null);
+      setReclamationForm({ message: '' });
+
+      // Refresh reclamations
+      const userRes = await api.get('/accounts/auth/me/');
+      const user = userRes.data;
+      const studentRes = await api.get(`/accounts/etudiants/?utilisateur=${user.id}`);
+      const studentData = studentRes.data.results || studentRes.data;
+      const student = Array.isArray(studentData) ? studentData[0] : studentData;
+
+      const reclamationsRes = await api.get(`/communication/reclamations/?expediteur=${student.utilisateur}`);
+      setReclamations(reclamationsRes.data.results || reclamationsRes.data);
+
     } catch (error) {
-      toast.error(t('student_reclamations.messages.send_error'));
-    } finally {
-      setIsSubmitting(false);
+      toast.error('Erreur lors de l\'envoi de la réclamation');
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'en_attente': return <Clock className="w-4 h-4 text-amber-500" />;
-      case 'traitee': return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
-      case 'rejetee': return <XCircle className="w-4 h-4 text-rose-500" />;
-      default: return <Info className="w-4 h-4 text-slate-400" />;
+  const getStatusColor = (statut: string) => {
+    switch (statut) {
+      case 'en_attente': return 'bg-yellow-100 text-yellow-600';
+      case 'traitee': return 'bg-green-100 text-green-600';
+      case 'rejetee': return 'bg-red-100 text-red-600';
+      default: return 'bg-slate-100 text-slate-600';
     }
   };
 
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'en_attente': return 'bg-amber-50 text-amber-700 border-amber-100';
-      case 'traitee': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-      case 'rejetee': return 'bg-rose-50 text-rose-700 border-rose-100';
-      default: return 'bg-slate-50 text-slate-700 border-slate-100';
+  const getStatusText = (statut: string) => {
+    switch (statut) {
+      case 'en_attente': return 'En attente';
+      case 'traitee': return 'Traitée';
+      case 'rejetee': return 'Rejetée';
+      default: return statut;
     }
   };
+
+  const pendingCount = reclamations.filter(r => r.statut === 'en_attente').length;
+  const treatedCount = reclamations.filter(r => r.statut === 'traitee').length;
+  const rejectedCount = reclamations.filter(r => r.statut === 'rejetee').length;
 
   if (loading) return <div className="flex h-64 items-center justify-center"><Spinner /></div>;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('student_reclamations.title')}</h1>
-        <p className="text-slate-500 mt-1">{t('student_reclamations.subtitle')}</p>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Mes Réclamations</h1>
+          <p className="text-slate-500 mt-1">Consultez vos notes et faites des réclamations.</p>
+        </div>
       </div>
 
+      {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-            <Clock className="w-6 h-6" />
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-yellow-50 text-yellow-500 flex items-center justify-center mb-4">
+            <AlertCircle className="w-8 h-8" />
           </div>
-          <div>
-            <p className="text-2xl font-black text-slate-900">{reclamations.filter(r => r.statut === 'en_attente').length}</p>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('student_reclamations.stats.pending')}</p>
-          </div>
+          <p className="text-3xl font-black text-slate-900">{pendingCount}</p>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">En attente</p>
         </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-            <CheckCircle2 className="w-6 h-6" />
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-green-50 text-green-500 flex items-center justify-center mb-4">
+            <MessageSquare className="w-8 h-8" />
           </div>
-          <div>
-            <p className="text-2xl font-black text-slate-900">{reclamations.filter(r => r.statut === 'traitee').length}</p>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('student_reclamations.stats.treated')}</p>
-          </div>
+          <p className="text-3xl font-black text-slate-900">{treatedCount}</p>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Traitées</p>
         </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600">
-            <XCircle className="w-6 h-6" />
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-4">
+            <FileText className="w-8 h-8" />
           </div>
-          <div>
-            <p className="text-2xl font-black text-slate-900">{reclamations.filter(r => r.statut === 'rejetee').length}</p>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('student_reclamations.stats.rejected')}</p>
-          </div>
+          <p className="text-3xl font-black text-slate-900">{rejectedCount}</p>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Rejetées</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="p-6 border-b border-slate-100">
-            <h3 className="font-bold text-slate-900">{t('student_reclamations.notes_section.title')}</h3>
-            <p className="text-xs text-slate-500 mt-1">{t('student_reclamations.notes_section.subtitle')}</p>
-          </div>
-          <div className="overflow-x-auto">
-            <Table columns={[t('student_reclamations.notes_section.table.evaluation'), t('student_reclamations.notes_section.table.grade'), t('common.actions')]} isEmpty={notes.length === 0}>
-              {notes.map((note) => (
-                <tr key={note.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <Td>
-                    <div>
-                      <p className="font-bold text-slate-900 leading-none mb-1">{note.evaluation_details.matiere_name}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">{note.evaluation_details.type_display} • {note.evaluation_details.date}</p>
-                    </div>
-                  </Td>
-                  <Td>
-                    <span className={`font-black ${note.est_absent ? 'text-rose-500' : 'text-indigo-600'}`}>
-                      {note.est_absent ? t('common.absent') : (note.valeur_note !== null ? `${note.valeur_note}/20` : t('student_reclamations.notes_section.table.not_graded'))}
-                    </span>
-                  </Td>
-                  <Td>
-                    <button
-                      onClick={() => { setSelectedNote(note); setIsModalOpen(true); }}
-                      className="p-2 text-primary hover:bg-primary/10 rounded-xl transition-colors"
-                      title={t('student_reclamations.notes_section.claim')}
-                    >
-                      <MessageSquare className="w-4.5 h-4.5" />
-                    </button>
-                  </Td>
-                </tr>
-              ))}
-            </Table>
-          </div>
+      {/* My Notes */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-100">
+          <h3 className="font-bold text-slate-900 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            Mes Notes
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">Cliquez sur une note pour faire une réclamation</p>
         </div>
 
-        {}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100">
-            <h3 className="font-bold text-slate-900">{t('student_reclamations.reclamations_section.title')}</h3>
-          </div>
-          <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
-            {reclamations.length > 0 ? reclamations.map((rec) => (
-              <div key={rec.id} className="p-6 hover:bg-slate-50/50 transition-colors">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl border ${getStatusClass(rec.statut)}`}>
-                      {getStatusIcon(rec.statut)}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Évaluation</th>
+                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Type</th>
+                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Matière</th>
+                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Note</th>
+                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Commentaire</th>
+                <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {notes.length > 0 ? notes.map((note) => (
+                <tr key={note.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <span className="font-bold text-slate-900">
+                        {note.evaluation_details?.matiere_name || `Éval #${note.evaluation}`}
+                      </span>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900 leading-none mb-1">{rec.objet}</h4>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{rec.date_creation}</p>
+                  </td>
+                  <td className="px-8 py-6 text-slate-600 font-medium">
+                    <span className="px-2 py-1 bg-slate-100 rounded text-xs font-bold">
+                      {note.evaluation_details?.type_display || note.evaluation_details?.type || 'N/A'}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6 text-slate-500">
+                    {note.evaluation_details?.matiere_name || `Matière ${note.evaluation_details?.matiere || 'N/A'}`}
+                  </td>
+                  <td className="px-8 py-6">
+                    {note.est_absent ? (
+                      <span className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs font-bold">Absent</span>
+                    ) : (
+                      <span className="text-lg font-bold text-slate-900">
+                        {note.valeur_note !== null ? `${note.valeur_note}/20` : 'Non noté'}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-8 py-6 text-slate-500 max-w-xs truncate">
+                    {note.commentaire || 'Aucun commentaire'}
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <button
+                      onClick={() => openReclamationModal(note)}
+                      className="text-primary font-bold text-sm hover:underline flex items-center gap-1"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Réclamer
+                    </button>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={6} className="px-8 py-12 text-center text-slate-400 italic">
+                    Aucune note disponible.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* My Reclamations */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-100">
+          <h3 className="font-bold text-slate-900 flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            Mes Réclamations
+          </h3>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {reclamations.length > 0 ? reclamations.map((reclamation) => (
+            <div key={reclamation.id} className="p-8 hover:bg-slate-50/50 transition-colors">
+              <div className="flex items-start justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded-lg text-xs font-bold ${getStatusColor(reclamation.statut)}`}>
+                        {getStatusText(reclamation.statut)}
+                      </span>
+                      <p className="text-sm font-bold text-slate-900">
+                        {reclamation.note_details?.evaluation_details?.enseignant_name ? (
+                          `Prof: ${reclamation.note_details.evaluation_details.enseignant_name}`
+                        ) : 'Enseignant inconnu'}
+                        <span className="mx-2 text-slate-300">|</span>
+                        {reclamation.note_details?.evaluation_details?.matiere_name || 'Matière inconnue'}
+                      </p>
                     </div>
+                    <p className="text-xs text-slate-500">
+                      {new Date(reclamation.date_creation).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${getStatusClass(rec.statut)}`}>
-                    {t(`student_reclamations.status.${rec.statut}`)}
+
+                  <div className="bg-slate-50 rounded-lg p-4 mb-4">
+                    <p className="text-slate-700">{reclamation.message}</p>
+                  </div>
+
+                  {reclamation.reponse && (
+                    <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
+                      <p className="text-green-800 font-medium mb-1">Réponse de l'enseignant :</p>
+                      <p className="text-green-700">{reclamation.reponse}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )) : (
+            <div className="p-12 text-center text-slate-400 italic">
+              Aucune réclamation envoyée.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Reclamation Modal */}
+      <Modal isOpen={isReclamationModalOpen} onClose={() => setIsReclamationModalOpen(false)} title="Faire une réclamation">
+        <form onSubmit={submitReclamation} className="space-y-6">
+          {selectedNote && (
+            <div className="bg-slate-50 rounded-lg p-4">
+              <h4 className="font-bold text-slate-900 mb-2">Détails de la note :</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-slate-700">Évaluation :</span>
+                  <span className="ml-2 text-slate-600">
+                    {selectedNote.evaluation_details?.type_display || selectedNote.evaluation_details?.type || 'N/A'}
                   </span>
                 </div>
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                  <p className="text-sm text-slate-600 leading-relaxed">{rec.message}</p>
+                <div>
+                  <span className="font-medium text-slate-700">Matière :</span>
+                  <span className="ml-2 text-slate-600">{selectedNote.evaluation_details?.matiere_name || 'N/A'}</span>
                 </div>
-                {rec.reponse_enseignant && (
-                  <div className="mt-3 bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100">
-                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">{t('student_reclamations.reclamations_section.teacher_reply')}</p>
-                    <p className="text-sm text-emerald-700 italic">{rec.reponse_enseignant}</p>
-                  </div>
-                )}
+                <div>
+                  <span className="font-medium text-slate-700">Note :</span>
+                  <span className="ml-2 text-slate-600">
+                    {selectedNote.est_absent ? 'Absent' : (selectedNote.valeur_note !== null ? `${selectedNote.valeur_note}/20` : 'Non noté')}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium text-slate-700">Commentaire :</span>
+                  <span className="ml-2 text-slate-600">{selectedNote.commentaire || 'Aucun'}</span>
+                </div>
               </div>
-            )) : (
-              <div className="p-12 text-center text-slate-400 italic">
-                <Send className="w-12 h-12 mx-auto mb-4 opacity-10" />
-                {t('student_reclamations.reclamations_section.no_reclamations')}
-              </div>
-            )}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Votre réclamation</label>
+            <textarea
+              value={reclamationForm.message}
+              onChange={(e) => setReclamationForm(prev => ({ ...prev, message: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              rows={6}
+              placeholder="Expliquez les raisons de votre réclamation..."
+              required
+            />
           </div>
-        </div>
-      </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={t('student_reclamations.modal.title')}
-        maxWidth="md"
-      >
-        {selectedNote && (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/60">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{t('student_reclamations.modal.note_details')}</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">{t('student_reclamations.modal.evaluation')}</p>
-                  <p className="text-sm font-bold text-slate-900">{selectedNote.evaluation_details.type_display}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">{t('student_reclamations.modal.subject')}</p>
-                  <p className="text-sm font-bold text-slate-900">{selectedNote.evaluation_details.matiere_name}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">{t('student_reclamations.modal.grade')}</p>
-                  <p className="text-sm font-bold text-indigo-600">{selectedNote.valeur_note}/20</p>
-                </div>
-                {selectedNote.commentaire && (
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase">{t('student_reclamations.modal.comment')}</p>
-                    <p className="text-sm text-slate-600 italic">"{selectedNote.commentaire}"</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">{t('student_reclamations.modal.your_claim')}</label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                required
-                placeholder={t('student_reclamations.modal.placeholder')}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none min-h-[120px]"
-              />
-            </div>
-
-            <div className="pt-4 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || !message.trim()}
-                className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
-              >
-                {isSubmitting ? <Spinner className="w-4 h-4 text-white" /> : <Send className="w-4 h-4" />}
-                {t('student_reclamations.modal.submit')}
-              </button>
-            </div>
-          </form>
-        )}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={() => setIsReclamationModalOpen(false)}
+              className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Envoyer la réclamation
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

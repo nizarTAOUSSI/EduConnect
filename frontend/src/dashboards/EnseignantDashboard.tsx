@@ -104,7 +104,7 @@ export default function EnseignantDashboard() {
               </div>
               <h3 className="text-xl font-black text-slate-900">{t('teacher_dashboard.recent_evaluations')}</h3>
             </div>
-            <Link to="/teacher/notes" className="text-xs font-black text-primary uppercase tracking-widest hover:underline">{t('teacher_dashboard.view_all')}</Link>
+            <Link to="/dashboard/enseignant/notes" className="text-xs font-black text-primary uppercase tracking-widest hover:underline">{t('teacher_dashboard.view_all')}</Link>
           </div>
 
           <div className="space-y-4">
@@ -138,7 +138,7 @@ export default function EnseignantDashboard() {
               </div>
               <h3 className="text-xl font-black text-slate-900">{t('teacher_dashboard.pending_reclamations')}</h3>
             </div>
-            <Link to="/teacher/reclamations" className="text-xs font-black text-primary uppercase tracking-widest hover:underline">{t('teacher_dashboard.view_all')}</Link>
+            <Link to="/dashboard/enseignant/reclamations" className="text-xs font-black text-primary uppercase tracking-widest hover:underline">{t('teacher_dashboard.view_all')}</Link>
           </div>
 
           <div className="space-y-4">
