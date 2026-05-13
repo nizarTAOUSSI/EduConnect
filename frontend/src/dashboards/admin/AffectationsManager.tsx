@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, UserCheck, BookOpen, School, Edit2, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
@@ -7,24 +7,54 @@ import Spinner from '../../components/ui/Spinner';
 import Table, { Td } from '../../components/ui/Table';
 import Modal from '../../components/ui/Modal';
 
+interface Teacher {
+  id: number;
+  first_name: string;
+  last_name: string;
+}
+
+interface Matiere {
+  id: number;
+  nom: string;
+}
+
+interface Classe {
+  id: number;
+  nom: string;
+  niveau: string;
+}
+
+interface Assignment {
+  id: number;
+  enseignant: number;
+  matiere: number;
+  classe: number;
+}
+
+interface FormData {
+  enseignant: string;
+  matiere: string;
+  classe: string;
+}
+
 export default function AffectationsManager() {
   const { t } = useTranslation();
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [classes, setClasses] = useState<any[]>([]);
-  const [matieres, setMatieres] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [classes, setClasses] = useState<Classe[]>([]);
+  const [matieres, setMatieres] = useState<Matiere[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [editingAssignment, setEditingAssignment] = useState<any>(null);
+  const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     enseignant: '',
     matiere: '',
     classe: '',
   });
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [assignmentsRes, teachersRes, classesRes, matieresRes] = await Promise.all([
@@ -37,18 +67,18 @@ export default function AffectationsManager() {
       setTeachers(teachersRes.data.results || teachersRes.data);
       setClasses(classesRes.data.results || classesRes.data);
       setMatieres(matieresRes.data.results || matieresRes.data);
-    } catch (error) {
+    } catch {
       toast.error(t('affectations_manager.messages.load_error'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsActionLoading(true);
     try {
@@ -68,14 +98,14 @@ export default function AffectationsManager() {
       setEditingAssignment(null);
       setFormData({ enseignant: '', matiere: '', classe: '' });
       fetchData();
-    } catch (error: any) {
+    } catch {
       toast.error(t('affectations_manager.messages.save_error'));
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  const handleEdit = (assignment: any) => {
+  const handleEdit = (assignment: Assignment) => {
     setEditingAssignment(assignment);
     setFormData({
       enseignant: assignment.enseignant.toString(),
@@ -91,7 +121,7 @@ export default function AffectationsManager() {
       await api.delete(`/academics/enseignant-matieres/${id}/`);
       toast.success(t('affectations_manager.messages.delete_success'));
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error(t('affectations_manager.messages.delete_error'));
     }
   };

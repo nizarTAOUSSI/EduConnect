@@ -109,9 +109,9 @@ export default function Ecosystem() {
               </div>
             </div>
 
-            {/* Content Area */}
+            {}
             <div className="w-full lg:w-[65%] p-8 lg:p-16 relative flex items-center bg-white z-0">
-              {/* Decorative graphic background */}
+              {}
               <div className="absolute right-0 bottom-0 w-64 h-64 bg-slate-50 rounded-tl-[100px] -z-10" />
               
               <AnimatePresence mode="wait">

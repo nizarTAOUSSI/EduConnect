@@ -34,6 +34,8 @@ class EvaluationSerializer(serializers.ModelSerializer):
 class NoteSerializer(serializers.ModelSerializer):
     evaluation_details = EvaluationSerializer(source='evaluation', read_only=True)
     etudiant_user = serializers.ReadOnlyField(source='etudiant.utilisateur.id')
+    etudiant_name = serializers.ReadOnlyField(source='etudiant.utilisateur.get_full_name')
+    etudiant_email = serializers.ReadOnlyField(source='etudiant.utilisateur.email')
     class Meta:
         model = Note
         fields = '__all__'

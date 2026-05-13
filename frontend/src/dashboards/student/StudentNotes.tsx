@@ -26,7 +26,7 @@ export default function StudentNotes() {
   const [bulletin, setBulletin] = useState<any>(null);
   const [loadingBulletin, setLoadingBulletin] = useState(false);
 
-  // Filters
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setStatusFilter] = useState('all');
 
@@ -52,11 +52,11 @@ export default function StudentNotes() {
         const details = await api.get(`/reports/bulletins/${bulletins[0].id}/`);
         setBulletin(details.data);
       } else {
-        // No bulletin exists, create it automatically
+        
         const createRes = await api.post('/reports/bulletins/', {
           etudiant: etudiantId,
           periode: parseInt(selectedPeriode),
-          moyenne_generale: 0 // Will be calculated automatically
+          moyenne_generale: 0 
         });
         const details = await api.get(`/reports/bulletins/${createRes.data.id}/`);
         setBulletin(details.data);
@@ -138,7 +138,7 @@ export default function StudentNotes() {
         if (filteredNotes.length > 0) {
           const values = filteredNotes.map((n: any) => n.valeur_note || 0);
           
-          // Calculate weighted average of MATIERES' AVERAGES (like database!)
+          
           const matiereGroups: Record<string, { notes: number[]; coeff: number }> = {};
           
           filteredNotes.forEach((n: any) => {
@@ -234,7 +234,7 @@ export default function StudentNotes() {
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -332,27 +332,27 @@ export default function StudentNotes() {
         </div>
       </div>
 
-      {/* Bulletin Section */}
+      {}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-slate-100">
           <h3 className="font-bold text-slate-900 flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-            Bulletin de Notes
+            {t('student_notes.bulletin.title')}
           </h3>
         </div>
         <div className="p-8">
           {evaluationsComplete === null && (
             <div className="text-center py-8 text-slate-500">
               <Spinner className="mx-auto mb-4" />
-              Vérification des évaluations...
+              {t('student_notes.bulletin.checking_evaluations')}
             </div>
           )}
           {evaluationsComplete === false && (
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-6 flex items-center gap-4">
               <AlertCircle className="w-10 h-10 text-amber-500 shrink-0" />
               <div>
-                <h4 className="font-bold text-amber-900">Évaluations incomplètes</h4>
-                <p className="text-amber-700 text-sm">Certaines notes ne sont pas encore renseignées, le bulletin n'est pas disponible.</p>
+                <h4 className="font-bold text-amber-900">{t('student_notes.bulletin.evaluations_incomplete')}</h4>
+                <p className="text-amber-700 text-sm">{t('student_notes.bulletin.evaluations_incomplete_desc')}</p>
               </div>
             </div>
           )}
@@ -361,16 +361,16 @@ export default function StudentNotes() {
               {loadingBulletin ? (
                 <div className="text-center py-8 text-slate-500">
                   <Spinner className="mx-auto mb-4" />
-                  Chargement du bulletin...
+                  {t('student_notes.bulletin.loading_bulletin')}
                 </div>
               ) : bulletin ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-2xl border border-indigo-200">
-                      <h4 className="font-bold text-indigo-900 mb-2">Moyenne Générale</h4>
+                      <h4 className="font-bold text-indigo-900 mb-2">{t('student_notes.bulletin.general_average')}</h4>
                       <p className="text-4xl font-black text-indigo-600">{stats.moyenne.toFixed(2)} <span className="text-lg font-normal opacity-70">/20</span></p>
                       {bulletin.mention && (
-                        <p className="text-indigo-700 font-bold mt-2">Mention : {bulletin.get_mention_display || bulletin.mention}</p>
+                        <p className="text-indigo-700 font-bold mt-2">{t('student_notes.bulletin.mention')} {bulletin.get_mention_display || bulletin.mention}</p>
                       )}
                     </div>
                     <div className="flex items-center justify-end">
@@ -379,7 +379,7 @@ export default function StudentNotes() {
                         className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2"
                       >
                         <Download className="w-5 h-5" />
-                        Télécharger le Bulletin
+                        {t('student_notes.bulletin.download_bulletin')}
                       </button>
                     </div>
                   </div>
@@ -387,10 +387,10 @@ export default function StudentNotes() {
                     <table className="w-full text-left">
                       <thead className="bg-slate-50">
                         <tr>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Matière</th>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Coefficient</th>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Moyenne</th>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">État</th>
+                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">{t('student_notes.bulletin.subject')}</th>
+                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">{t('student_notes.bulletin.coefficient')}</th>
+                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">{t('student_notes.bulletin.average')}</th>
+                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">{t('student_notes.bulletin.status')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -408,12 +408,12 @@ export default function StudentNotes() {
                                 {matiere.etat === 'Valide' ? (
                                   <span className="flex items-center gap-1">
                                     <CheckCircle2 className="w-3 h-3" />
-                                    Valide
+                                    {t('student_notes.bulletin.valid')}
                                   </span>
                                 ) : (
                                   <span className="flex items-center gap-1">
                                     <AlertCircle className="w-3 h-3" />
-                                    Non Valide
+                                    {t('student_notes.bulletin.not_valid')}
                                   </span>
                                 )}
                               </span>
@@ -427,8 +427,8 @@ export default function StudentNotes() {
               ) : (
                 <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-8 text-center">
                   <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-emerald-500" />
-                  <p className="text-slate-600 font-bold">Toutes les notes sont renseignées, mais le bulletin n'a pas été généré</p>
-                  <p className="text-sm text-slate-500 mt-2">Contactez votre administrateur pour générer le bulletin</p>
+                  <p className="text-slate-600 font-bold">{t('student_notes.bulletin.all_grades_entered')}</p>
+                  <p className="text-sm text-slate-500 mt-2">{t('student_notes.bulletin.contact_admin')}</p>
                 </div>
               )}
             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, Trash2, FileText, Calendar, BookOpen, GraduationCap, User, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
@@ -7,6 +7,29 @@ import Spinner from '../../components/ui/Spinner';
 import Modal from '../../components/ui/Modal';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import Table, { Td } from '../../components/ui/Table';
+
+interface Teacher {
+  id: number;
+  first_name: string;
+  last_name: string;
+}
+
+interface Matiere {
+  id: number;
+  nom: string;
+}
+
+interface Classe {
+  id: number;
+  nom: string;
+  niveau: string;
+}
+
+interface Salle {
+  id: number;
+  nom: string;
+  capacite: number;
+}
 
 interface Evaluation {
   id: number;
@@ -53,13 +76,25 @@ interface Assignment {
   classe_name?: string;
 }
 
+interface FormData {
+  type: string;
+  date: string;
+  heure_debut: string;
+  heure_fin: string;
+  note_max: number;
+  matiere: string;
+  enseignant: string;
+  classe: string;
+  salle: string;
+}
+
 export default function EvaluationsManager() {
   const { t } = useTranslation();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
-  const [classes, setClasses] = useState<any[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [matieres, setMatieres] = useState<any[]>([]);
-  const [salles, setSalles] = useState<any[]>([]);
+  const [classes, setClasses] = useState<Classe[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [matieres, setMatieres] = useState<Matiere[]>([]);
+  const [salles, setSalles] = useState<Salle[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -81,7 +116,7 @@ export default function EvaluationsManager() {
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     type: 'CC',
     date: new Date().toISOString().split('T')[0],
     heure_debut: '',
@@ -93,11 +128,7 @@ export default function EvaluationsManager() {
     salle: ''
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [evalRes, classRes, teacherRes, matRes, salleRes, assignRes] = await Promise.all([
@@ -122,12 +153,16 @@ export default function EvaluationsManager() {
       setMatieres(Array.isArray(matData) ? matData : []);
       setSalles(Array.isArray(salleData) ? salleData : []);
       setAssignments(Array.isArray(assignData) ? assignData : []);
-    } catch (error) {
+    } catch {
       toast.error(t('evaluations_manager.messages.load_error'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const fetchNotes = async (evaluation: Evaluation) => {
     try {
@@ -136,7 +171,7 @@ export default function EvaluationsManager() {
       setIsNotesModalOpen(true);
       const res = await api.get(`/grades/notes/?evaluation=${evaluation.id}`);
       setNotes(res.data.results || res.data);
-    } catch (error) {
+    } catch {
       toast.error(t('evaluations_manager.messages.load_notes_error'));
     } finally {
       setNotesLoading(false);
@@ -157,14 +192,14 @@ export default function EvaluationsManager() {
       setIsDeleteModalOpen(false);
       setEvalToDelete(null);
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error(t('evaluations_manager.messages.delete_error'));
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsActionLoading(true);
     try {
@@ -351,7 +386,7 @@ export default function EvaluationsManager() {
         </div>
       </div>
 
-      {/* Create Evaluation Modal */}
+      {}
       <Modal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
@@ -483,7 +518,7 @@ export default function EvaluationsManager() {
         </form>
       </Modal>
 
-      {/* Notes Modal */}
+      {}
       <Modal
         isOpen={isNotesModalOpen}
         onClose={() => setIsNotesModalOpen(false)}

@@ -16,7 +16,7 @@ interface Seance {
   salle_id?: number;
   heure_debut: string;
   heure_fin: string;
-  date?: string; // For evaluations
+  date?: string; 
   classe?: string;
 }
 
@@ -110,7 +110,7 @@ export default function TimetableGrid({
     };
 
     fetchTimetable();
-  }, [classeId, isTeacherGlobal, onDelete, onEdit, t]); // Refresh if actions happen
+  }, [classeId, isTeacherGlobal, onDelete, onEdit, t]); 
 
   if (loading) {
     return (

@@ -166,7 +166,7 @@ export default function StudentReclamations() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Notes Table */}
+        {}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-100">
             <h3 className="font-bold text-slate-900">{t('student_reclamations.notes_section.title')}</h3>
@@ -202,7 +202,7 @@ export default function StudentReclamations() {
           </div>
         </div>
 
-        {/* Reclamations List */}
+        {}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100">
             <h3 className="font-bold text-slate-900">{t('student_reclamations.reclamations_section.title')}</h3>

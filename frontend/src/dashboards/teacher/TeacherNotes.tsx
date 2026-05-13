@@ -70,7 +70,7 @@ export default function TeacherNotes() {
   const [evalToDelete, setEvalToDelete] = useState<number | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
   
-  // Filters
+  
   const [classFilter, setClassFilter] = useState<string>('');
   const [searchFilter, setSearchFilter] = useState<string>('');
 
@@ -97,7 +97,7 @@ export default function TeacherNotes() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Get current user and teacher profile
+    
         const userRes = await api.get('/accounts/auth/me/');
         const user = userRes.data;
 
@@ -118,12 +118,12 @@ export default function TeacherNotes() {
         const teacherId = teacher.id;
         setTeacherId(teacherId);
 
-        // Get teacher's assignments
+ 
         const assignRes = await api.get(`/academics/enseignant-matieres/?enseignant=${teacherId}`);
         const assigns = assignRes.data.results || assignRes.data;
         setAssignments(assigns);
 
-        // Get unique classes and matieres
+      
         const classIds = [...new Set(assigns.map((a: Assignment) => a.classe))];
         const matiereIds = [...new Set(assigns.map((a: Assignment) => a.matiere))];
 
@@ -185,7 +185,7 @@ export default function TeacherNotes() {
       await api.put(`/grades/evaluations/${selectedEvaluation.id}/`, payload);
       toast.success(t('teacher_notes.messages.update_success') || 'Évaluation mise à jour avec succès');
       setIsEditEvalModalOpen(false);
-      // Refresh data
+     
       const evalRes = await api.get('/grades/evaluations/');
       setEvaluations(evalRes.data.results || evalRes.data);
       setEvaluationForm({
@@ -240,7 +240,7 @@ export default function TeacherNotes() {
       await api.post('/grades/evaluations/', payload);
       toast.success(t('teacher_notes.messages.create_success'));
       setIsCreateEvalModalOpen(false);
-      // Refresh data
+     
       const evalRes = await api.get('/grades/evaluations/');
       setEvaluations(evalRes.data.results || evalRes.data);
       setEvaluationForm({
@@ -285,7 +285,7 @@ export default function TeacherNotes() {
     await loadStudentsForClass(evaluation.classe);
     setIsGradeModalOpen(true);
 
-    // Load existing grades
+
     try {
       const notesRes = await api.get(`/grades/notes/?evaluation=${evaluation.id}`);
       const existingNotes = notesRes.data.results || notesRes.data;
@@ -318,26 +318,26 @@ export default function TeacherNotes() {
           est_absent: gradeData.est_absent,
         };
 
-        // Check if note already exists
+        
         try {
           const existingRes = await api.get(`/grades/notes/?evaluation=${selectedEvaluation.id}&etudiant=${studentId}`);
           const existingNotes = existingRes.data.results || existingRes.data;
           if (existingNotes.length > 0) {
-            // Update existing note
+            
             return api.put(`/grades/notes/${existingNotes[0].id}/`, noteData);
           }
         } catch (error) {
-          // Note doesn't exist, create new one
+         
         }
 
-        // Create new note
+   
         return api.post('/grades/notes/', noteData);
       });
 
       await Promise.all(promises);
       toast.success(t('teacher_notes.messages.save_success'));
 
-      // Refresh evaluations to update any changes
+  
       const evalRes = await api.get('/grades/evaluations/');
       setEvaluations(evalRes.data.results || evalRes.data);
 
@@ -527,7 +527,7 @@ export default function TeacherNotes() {
         </div>
       </div>
 
-      {/* Create Evaluation Modal */}
+      {}
       <Modal isOpen={isCreateEvalModalOpen} onClose={() => setIsCreateEvalModalOpen(false)} title={t('teacher_notes.new_evaluation')}>
         <form onSubmit={createEvaluation} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -638,7 +638,7 @@ export default function TeacherNotes() {
         </form>
       </Modal>
 
-      {/* Edit Evaluation Modal */}
+      {}
       <Modal isOpen={isEditEvalModalOpen} onClose={() => setIsEditEvalModalOpen(false)} title="Modifier l'évaluation">
         <form onSubmit={updateEvaluation} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -749,7 +749,7 @@ export default function TeacherNotes() {
         </form>
       </Modal>
 
-      {/* Grade Entry Modal */}
+      {}
       <Modal
         isOpen={isGradeModalOpen}
         onClose={() => setIsGradeModalOpen(false)}
@@ -852,7 +852,7 @@ export default function TeacherNotes() {
         </div>
       </Modal>
 
-      {/* Confirmation Delete Modal */}
+      {}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

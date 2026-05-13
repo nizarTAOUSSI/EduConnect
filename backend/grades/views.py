@@ -54,14 +54,14 @@ class StudentNotesDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, periode_id):
-        # Check if user is a student
+        
         if not request.user.is_etudiant():
             return Response(
                 {"error": "Only students can access this endpoint"},
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Get the student and periode
+        
         etudiant = request.user.profil_etudiant
         try:
             periode = Periode.objects.get(id=periode_id)
@@ -71,13 +71,13 @@ class StudentNotesDashboardView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        # Get all notes for this student in the periode, with select_related to optimize
+        
         notes = Note.objects.filter(
             etudiant=etudiant,
             evaluation__periode=periode
         ).select_related('evaluation', 'evaluation__matiere')
         
-        # Group notes by matiere
+        
         matieres_dict = {}
         for note in notes:
             matiere_nom = note.evaluation.matiere.nom
@@ -87,20 +87,20 @@ class StudentNotesDashboardView(APIView):
                     'evaluations': [],
                     'notes_values': []
                 }
-            # Determine the note value: if absent, it's 0
+           
             if note.est_absent:
                 note_value = 0.0
             else:
                 note_value = note.note_effective if note.note_effective is not None else 0.0
             
-            # Add the evaluation and note
+            
             matieres_dict[matiere_nom]['evaluations'].append({
                 'type': note.evaluation.get_type_display(),
                 'note': note_value
             })
             matieres_dict[matiere_nom]['notes_values'].append(note_value)
         
-        # Calculate averages per matiere and prepare matieres list
+        
         matieres_list = []
         all_matiere_averages = []
         for matiere_data in matieres_dict.values():
@@ -113,13 +113,13 @@ class StudentNotesDashboardView(APIView):
                 })
                 all_matiere_averages.append(moyenne_matiere)
         
-        # Calculate general average
+    
         moyenne_generale = 0
         if len(all_matiere_averages) > 0:
             moyenne_generale = sum(all_matiere_averages) / len(all_matiere_averages)
             moyenne_generale = round(moyenne_generale, 2)
         
-        # Prepare and return response data
+
         return Response({
             'periode': periode.nom,
             'matieres': matieres_list,

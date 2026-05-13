@@ -46,7 +46,7 @@ export default function TeacherClasses() {
         const assignments = assignmentsRes.data.results || assignmentsRes.data;
         const allClasses = classesRes.data.results || classesRes.data;
 
-        // Group matieres by class
+        
         const classeMap: Record<number, Classe> = {};
         for (const a of assignments) {
           if (!classeMap[a.classe]) {
@@ -138,7 +138,7 @@ export default function TeacherClasses() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Notes */}
+            {}
             <div className="space-y-6">
               <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-indigo-500" />
@@ -162,7 +162,7 @@ export default function TeacherClasses() {
               </div>
             </div>
 
-            {/* Absences */}
+            {}
             <div className="space-y-6">
               <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-rose-500" />

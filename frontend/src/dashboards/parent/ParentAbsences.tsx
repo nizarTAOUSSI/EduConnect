@@ -24,7 +24,7 @@ export default function ParentAbsences() {
   const [periodes, setPeriodes] = useState<any[]>([]);
   const [selectedPeriode, setSelectedPeriode] = useState<string>('');
 
-  // Filters
+  
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -140,7 +140,7 @@ export default function ParentAbsences() {
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t('parent_absences.title')}</h1>
       </div>
 
-      {/* Child Selector & Stats */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">{t('parent_absences.selected_child')}</label>
@@ -179,7 +179,7 @@ export default function ParentAbsences() {
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <select
@@ -205,7 +205,7 @@ export default function ParentAbsences() {
         </div>
       </div>
 
-      {/* Absences List (Student Style) */}
+      {}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-slate-100">
           <h3 className="font-bold text-slate-900 flex items-center gap-2">

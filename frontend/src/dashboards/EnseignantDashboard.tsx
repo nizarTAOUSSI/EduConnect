@@ -37,7 +37,7 @@ export default function EnseignantDashboard() {
         const assignments = assignRes.data.results || assignRes.data;
         const uniqueClassIds = [...new Set(assignments.map((a: any) => a.classe))];
         
-        // Fetch each class to get the nb_etudiants
+        
         const classPromises = uniqueClassIds.map(id => api.get(`/academics/classes/${id}/`));
         const classResponses = await Promise.all(classPromises);
         const totalStudents = classResponses.reduce((sum, res) => sum + (res.data.nb_etudiants || 0), 0);
@@ -51,7 +51,7 @@ export default function EnseignantDashboard() {
           (a: any) => assignments.some((as: any) => as.id === a.enseignant_matiere)
         );
 
-        // Fetch recent activities
+        
         const [evalsRes] = await Promise.all([
           api.get(`/grades/evaluations/?enseignant=${teacher.id}`),
         ]);

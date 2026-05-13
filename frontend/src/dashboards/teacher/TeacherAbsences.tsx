@@ -86,7 +86,7 @@ export default function TeacherAbsences() {
   const [attendanceData, setAttendanceData] = useState<Record<number, { absent: boolean; absence_id?: number }>>({});
   const [isActionLoading, setIsActionLoading] = useState(false);
   
-  // History states
+  
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
@@ -112,7 +112,7 @@ export default function TeacherAbsences() {
         setSeances(teacherSeances);
         setAbsences(allAbsences);
 
-        // Extract unique classes from seances
+      
         const uniqueClassesMap = new Map();
         teacherSeances.forEach((s: Seance) => {
           if (!uniqueClassesMap.has(s.classe)) {
@@ -179,7 +179,7 @@ export default function TeacherAbsences() {
     const seance = seances.find(s => s.id === selectedSeance);
     if (!seance) return;
 
-    // Validation locale de la date
+    
     const daysMap: Record<number, string> = {
       0: 'dimanche',
       1: 'lundi',
@@ -205,14 +205,13 @@ export default function TeacherAbsences() {
       
       const promises: Promise<any>[] = [];
 
-      // 1. Process deletions (students marked as present but were absent before)
       currentSessionAbsences.forEach(oldAbs => {
         if (!attendanceData[oldAbs.etudiant]?.absent) {
           promises.push(api.delete(`/academics/absences/${oldAbs.id}/`));
         }
       });
 
-      // 2. Process additions (students newly marked as absent)
+      
       Object.entries(attendanceData).forEach(([studentId, data]) => {
         if (data.absent && !data.absence_id) {
           promises.push(api.post('/academics/absences/', {
@@ -228,7 +227,7 @@ export default function TeacherAbsences() {
 
       await Promise.all(promises);
       toast.success(t('teacher_absences.messages.save_success'));
-      // On recharge les données pour mettre à jour l'historique
+   
       const [newSeancesRes, newAbsRes] = await Promise.all([
         api.get('/academics/seances/'),
         api.get('/academics/absences/'),
@@ -307,7 +306,7 @@ export default function TeacherAbsences() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* Active Classes for Attendance */}
+          {}
           <section className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
             <div className="p-8 border-b border-slate-100/50">
               <h3 className="font-bold text-slate-900 flex items-center gap-2.5">
@@ -339,7 +338,7 @@ export default function TeacherAbsences() {
             </div>
           </section>
 
-          {/* History of Sessions */}
+          {}
           <section className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
             <div className="p-8 border-b border-slate-100/50 flex items-center justify-between">
               <h3 className="font-bold text-slate-900 flex items-center gap-2.5">

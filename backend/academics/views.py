@@ -36,27 +36,26 @@ class PeriodeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Get periods that have evaluations for the student's class
+      
         from grades.models import Evaluation
         student = user.profil_etudiant
         student_class = student.classe
         
-        # Get all periods that have at least one evaluation for the student's class
-        # OR periods that are active or have started before today
+   
         from django.utils import timezone
         today = timezone.now().date()
         
-        # First, get all periods that have evaluations for the class
+       
         periods_with_evaluations = Periode.objects.filter(
             evaluations__classe=student_class
         ).distinct()
         
-        # Also include all periods that started before or on today (for safety)
+      
         all_periods = Periode.objects.filter(
             date_debut__lte=today
         ).distinct()
         
-        # Combine and order by date_debut
+     
         available_periods = all_periods.order_by('date_debut')
         
         serializer = PeriodeSerializer(available_periods, many=True)

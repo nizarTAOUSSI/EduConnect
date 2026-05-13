@@ -34,7 +34,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        # Get all evaluations for the class and periode
+    
         evaluations = Evaluation.objects.filter(
             classe=classe,
             periode=periode
@@ -46,9 +46,9 @@ class BulletinViewSet(viewsets.ModelViewSet):
                 "message": "No evaluations found for this class and periode"
             })
         
-        # Determine which students to check
+    
         if etudiant_id:
-            # Check a single student
+            
             try:
                 from accounts.models import Etudiant
                 student = Etudiant.objects.get(id=etudiant_id)
@@ -59,7 +59,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND
                 )
         else:
-            # Check all students in the class
+        
             students = classe.get_etudiants()
             if not students.exists():
                 return Response({
@@ -67,7 +67,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
                     "message": "No students in this class"
                 })
         
-        # Check if every evaluation has a note for the student(s)
+        
         missing_notes = []
         for evaluation in evaluations:
             for student in students:
@@ -105,21 +105,21 @@ class BulletinViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         from rest_framework.exceptions import ValidationError
         
-        # Get the bulletin data
+
         etudiant = serializer.validated_data.get('etudiant')
         periode = serializer.validated_data.get('periode')
         
-        # Get all matieres for the student's class
+    
         student_class = etudiant.classe
         if not student_class:
             raise ValidationError("Student is not assigned to any class")
         
-        # Get all matieres for the class
+        
         matieres = student_class.get_matieres()
         
-        # Check if all matieres have at least one evaluation for the periode
+        
         for matiere in matieres:
-            # Get evaluations for this matiere, class, and periode
+            
             evaluations = Evaluation.objects.filter(
                 matiere=matiere,
                 classe=student_class,
@@ -129,7 +129,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
             if not evaluations.exists():
                 raise ValidationError(f"No evaluations found for {matiere.nom} in this periode")
             
-            # Check if this student has notes for ALL evaluations in this matiere
+            
             for evaluation in evaluations:
                 note_exists = Note.objects.filter(
                     evaluation=evaluation,
@@ -140,7 +140,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
                         f"Missing note for {evaluation.get_type_display()} in {matiere.nom}"
                     )
         
-        # If all checks pass, save and calculate average
+        
         bulletin = serializer.save()
         bulletin.calculate_moyenne()
 
@@ -148,7 +148,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         
-        # Get matiere details with moyenne and etat
+    
         from grades.models import Note
         notes = Note.objects.filter(
             etudiant=instance.etudiant,
@@ -193,15 +193,15 @@ class BulletinViewSet(viewsets.ModelViewSet):
         
         instance = self.get_object()
         
-        # Create a buffer to receive the PDF data
+        
         buffer = BytesIO()
         
-        # Create the PDF document
+ 
         doc = SimpleDocTemplate(buffer, pagesize=letter)
         elements = []
         styles = getSampleStyleSheet()
         
-        # Title
+      
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
@@ -211,7 +211,6 @@ class BulletinViewSet(viewsets.ModelViewSet):
         )
         elements.append(Paragraph('Bulletin de Notes', title_style))
         
-        # Student Info
         info_style = ParagraphStyle(
             'CustomInfo',
             parent=styles['Normal'],
@@ -240,7 +239,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
         elements.extend(student_info)
         elements.append(Spacer(1, 20))
         
-        # Get all notes and calculate like database calculate_moyenne()!
+    
         from grades.models import Note
         notes = Note.objects.filter(
             etudiant=instance.etudiant,
@@ -249,7 +248,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
             valeur_note__isnull=False
         ).select_related('evaluation__matiere')
         
-        # 1. Get matiere details and calculate their averages
+    
         matiere_notes = {}
         for note in notes:
             m_id = note.evaluation.matiere.id
@@ -272,7 +271,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
             data['etat'] = 'Valide' if data['moyenne'] >= 10 else 'Non Valide'
             matieres_list.append(data)
             
-            # Calculate weighted average of MATIERES' AVERAGES (like database!)
+
             total_weighted_notes += data['moyenne'] * data['coefficient']
             total_coefficients += data['coefficient']
         
@@ -281,7 +280,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
         else:
             pdf_moyenne_generale = 0
         
-        # Create table data
+    
         table_data = [['Matière', 'Coefficient', 'Moyenne', 'État']]
         for matiere in matieres_list:
             table_data.append([
@@ -291,7 +290,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
                 matiere['etat']
             ])
         
-        # Create table
+      
         table = Table(table_data)
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),
@@ -308,7 +307,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
         elements.append(table)
         elements.append(Spacer(1, 30))
         
-        # Average - EXACTLY LIKE THE FRONTEND TOP STATS!
+  
         avg_style = ParagraphStyle(
             'CustomAverage',
             parent=styles['Heading2'],
@@ -317,7 +316,7 @@ class BulletinViewSet(viewsets.ModelViewSet):
         )
         elements.append(Paragraph(f'Moyenne Générale: {pdf_moyenne_generale:.2f}/20', avg_style))
         
-        # Mention if available
+     
         if instance.mention:
             mention_style = ParagraphStyle(
                 'CustomMention',
@@ -332,15 +331,15 @@ class BulletinViewSet(viewsets.ModelViewSet):
                 mention_display = instance.mention
             elements.append(Paragraph(f'Mention: {mention_display}', mention_style))
         
-        # Build the PDF
+    
         doc.build(elements)
         
-        # Get the PDF from the buffer
+      
         buffer.seek(0)
         pdf_data = buffer.getvalue()
         buffer.close()
         
-        # Create response
+       
         response = HttpResponse(pdf_data, content_type='application/pdf')
         try:
             last_name = instance.etudiant.utilisateur.last_name if hasattr(instance.etudiant, 'utilisateur') and instance.etudiant.utilisateur else 'etudiant'

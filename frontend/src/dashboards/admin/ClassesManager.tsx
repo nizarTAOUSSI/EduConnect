@@ -278,7 +278,7 @@ export default function ClassesManager() {
         isLoading={isActionLoading}
       />
 
-      {/* Student List Modal */}
+      {}
       <Modal
         isOpen={isStudentsModalOpen}
         onClose={() => setIsStudentsModalOpen(false)}
@@ -355,7 +355,7 @@ export default function ClassesManager() {
         </div>
       </Modal>
 
-      {/* Assignments Modal (Teachers & Subjects) */}
+      {}
       <Modal
         isOpen={isAssignmentsModalOpen}
         onClose={() => setIsAssignmentsModalOpen(false)}

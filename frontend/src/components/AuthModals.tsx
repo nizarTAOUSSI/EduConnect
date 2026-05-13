@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 export function LoginModal({
   isOpen,
   onClose,
-  // onSwitchToSignup,
+  
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -43,7 +43,7 @@ export function LoginModal({
           break;
       }
     } catch {
-      // Error is handled by context
+      
     }
   };
 
@@ -153,18 +153,7 @@ export function LoginModal({
               </button>
             </form>
 
-            {/* <p className="text-center text-sm text-slate-600 mt-6">
-              {t('auth.login.no_account')}{' '}
-              <button
-                onClick={() => {
-                  handleClose();
-                  onSwitchToSignup();
-                }}
-                className="font-semibold text-primary hover:text-primary/80 transition-colors"
-              >
-                {t('auth.login.signup')}
-              </button>
-            </p> */}
+            {}
           </motion.div>
         </motion.div>
       )}

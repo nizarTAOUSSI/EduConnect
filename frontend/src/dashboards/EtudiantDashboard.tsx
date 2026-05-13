@@ -55,7 +55,7 @@ export default function EtudiantDashboard() {
       setRecentNotifications(prev => prev.map(notif =>
         notif.id === notificationId ? { ...notif, is_read: true } : notif
       ));
-      // Dispatch event to update sidebar counts
+      
       window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la notification', error);
@@ -67,29 +67,45 @@ export default function EtudiantDashboard() {
       try {
         if (!user) return;
         
-        const [notesRes, absencesRes, matieresRes, notificationsRes, bulletinsRes, periodsRes] = await Promise.all([
+        const [notesRes, absencesRes, matieresRes, notificationsRes, bulletinsRes, periodsRes, anneeRes] = await Promise.all([
           api.get('/grades/notes/'),
           api.get('/academics/absences/'),
           api.get('/academics/matieres/'),
           api.get('/communication/notifications/'),
           api.get('/reports/bulletins/'),
-          api.get('/academics/periodes/')
+          api.get('/academics/periodes/'),
+          api.get('/academics/annees-scolaires/')
         ]);
 
         const allPeriods = periodsRes.data.results || periodsRes.data;
-        setPeriodes(allPeriods);
+        const allNotes = notesRes.data.results || notesRes.data;
+        const allBulletins = bulletinsRes.data.results || bulletinsRes.data;
+        const allAnnees = anneeRes.data.results || anneeRes.data;
         
-        if (!selectedPeriode && allPeriods.length > 0) {
-          const active = allPeriods.find((p: DashboardPeriode) => p.est_active);
+       
+        const activeAnnee = allAnnees.find((a: any) => a.est_active);
+        
+        const getAnneeId = (value: any): number | null => {
+          if (typeof value === 'number') return value;
+          if (typeof value === 'object' && value !== null && 'id' in value) return value.id;
+          return null;
+        };
+        
+        const filteredPeriodes = activeAnnee 
+          ? allPeriods.filter((p: any) => getAnneeId(p.annee_scolaire) === activeAnnee.id)
+          : allPeriods;
+        setPeriodes(filteredPeriodes);
+        
+        if (!selectedPeriode && filteredPeriodes.length > 0) {
+          const active = filteredPeriodes.find((p: DashboardPeriode) => p.est_active);
           if (active) setSelectedPeriode(active.id.toString());
-          else setSelectedPeriode(allPeriods[0].id.toString());
+          else setSelectedPeriode(filteredPeriodes[0].id.toString());
         }
 
-        const allNotes = notesRes.data.results || notesRes.data;
-        let myNotes = allNotes.filter((n: DashboardNote & { etudiant_user: number }) => n.etudiant_user === user.id);
+        let myNotesFiltered = allNotes.filter((n: DashboardNote & { etudiant_user: number }) => n.etudiant_user === user.id);
         
         if (selectedPeriode) {
-          myNotes = myNotes.filter((n: DashboardNote) => {
+          myNotesFiltered = myNotesFiltered.filter((n: DashboardNote) => {
             const periodId = n.evaluation_details?.periode;
             return periodId?.toString() === selectedPeriode;
           });
@@ -98,7 +114,7 @@ export default function EtudiantDashboard() {
         const allAbsences = absencesRes.data.results || absencesRes.data;
         const myAbsences = allAbsences.filter((a: { etudiant_user: number }) => a.etudiant_user === user.id);
 
-        const myBulletins = bulletinsRes.data.results || bulletinsRes.data;
+        const myBulletins = allBulletins;
         const latestBulletin = selectedPeriode 
           ? myBulletins.find((b: { periode: number | { id: number } }) => {
               const bPeriodId = typeof b.periode === 'object' ? b.periode.id : b.periode;
@@ -113,7 +129,34 @@ export default function EtudiantDashboard() {
           created_at: n.created_at || n.date_envoi || new Date().toISOString()
         })) : [];
 
-        const realAverage = latestBulletin?.moyenne_generale || (myNotes.length > 0 ? (myNotes.reduce((acc: number, n: DashboardNote) => acc + (n.valeur_note || 0), 0) / myNotes.length) : 0);
+      
+        let realAverage = 0;
+        
+        if (myNotesFiltered.length > 0) {
+          const matiereGroups: Record<string, { notes: number[]; coeff: number }> = {};
+          
+          myNotesFiltered.forEach((n: DashboardNote) => {
+            const matiereName = n.evaluation_details?.matiere_name || 'Matière';
+            const coeff = n.evaluation_details?.matiere_coefficient || 1;
+            const val = n.est_absent ? 0 : (n.valeur_note || 0);
+            
+            if (!matiereGroups[matiereName]) {
+              matiereGroups[matiereName] = { notes: [], coeff };
+            }
+            matiereGroups[matiereName].notes.push(val);
+          });
+          
+          let totalWeightedNotes = 0;
+          let totalCoefficients = 0;
+          
+          Object.values(matiereGroups).forEach((group) => {
+            const matiereAvg = group.notes.reduce((sum, n) => sum + n, 0) / group.notes.length;
+            totalWeightedNotes += matiereAvg * group.coeff;
+            totalCoefficients += group.coeff;
+          });
+          
+          realAverage = totalCoefficients > 0 ? (totalWeightedNotes / totalCoefficients) : 0;
+        }
 
         setStats({
           average: realAverage,
@@ -121,7 +164,7 @@ export default function EtudiantDashboard() {
           matieres: matieresRes.data.count || matieresRes.data.length || 0
         });
 
-        const sortedNotes = myNotes.sort((a: DashboardNote, b: DashboardNote) => {
+        const sortedNotes = myNotesFiltered.sort((a: DashboardNote, b: DashboardNote) => {
           const dateA = new Date(a.evaluation_details?.date || 0).getTime();
           const dateB = new Date(b.evaluation_details?.date || 0).getTime();
           if (dateA !== dateB) return dateB - dateA;

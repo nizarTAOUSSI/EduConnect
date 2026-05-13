@@ -48,7 +48,7 @@ export default function Sidebar() {
     { name: t('dashboard.sidebar.classes'), path: '/dashboard/admin/classes', icon: School },
     { name: t('dashboard.sidebar.rooms'), path: '/dashboard/admin/salles', icon: School },
     { name: t('dashboard.sidebar.subjects'), path: '/dashboard/admin/matieres', icon: BookOpen },
-    { name: 'Années & Périodes', path: '/dashboard/admin/periodes', icon: Calendar },
+    { name: t('dashboard.sidebar.periodes'), path: '/dashboard/admin/periodes', icon: Calendar },
     { name: t('dashboard.sidebar.evaluations'), path: '/dashboard/admin/evaluations', icon: FileText },
     { name: t('dashboard.sidebar.timetable'), path: '/dashboard/admin/timetable', icon: Calendar },
     { name: t('dashboard.sidebar.notifications'), path: '/dashboard/admin/notifications', icon: Bell, isNotification: true },
@@ -156,7 +156,7 @@ export default function Sidebar() {
           className={`flex cursor-pointer items-center gap-3 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium ${isCollapsed ? 'w-10 h-10 justify-center' : 'w-full px-3'}`}
         >
           <LogOut className="w-5 h-5" />
-          {/* {!isCollapsed && <span>{t('dashboard.logout')}</span>} */}
+          {}
         </button>
       </div>
     </aside>

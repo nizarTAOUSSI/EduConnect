@@ -23,7 +23,7 @@ export default function TeacherTimetable() {
       try {
         setLoading(true);
         
-        // Fetch teacher profile
+        
         const teacherRes = await api.get(`/accounts/enseignants/?utilisateur=${user.id}`);
         const teacherData = teacherRes.data.results || teacherRes.data;
         const teacher = Array.isArray(teacherData) ? teacherData[0] : teacherData;
@@ -31,7 +31,7 @@ export default function TeacherTimetable() {
         if (teacher) {
           setTeacherId(teacher.id);
           
-          // Fetch assignments to get classes
+          
           const assignRes = await api.get(`/academics/enseignant-matieres/?enseignant=${teacher.id}`);
           const assignments = assignRes.data.results || assignRes.data;
           

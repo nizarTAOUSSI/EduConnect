@@ -69,7 +69,7 @@ export default function ParentNotes() {
 
         const parentsData = Array.isArray(parentsRes.data) ? parentsRes.data : (parentsRes.data.results || [parentsRes.data]);
         
-        // Find the specific profile for the current user
+        
         const myProfile = parentsData.find((p: any) => 
           p.utilisateur === user?.id || 
           (p.utilisateur && p.utilisateur.id === user?.id)
@@ -131,7 +131,7 @@ export default function ParentNotes() {
         <p className="text-slate-500 mt-1">{t('parent_notes.subtitle')}</p>
       </div>
 
-      {/* Child Selector & Filters */}
+      {}
       <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="relative w-full md:w-64">
           <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

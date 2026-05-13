@@ -25,7 +25,7 @@ export default function Notifications() {
       try {
         const response = await api.get('/communication/notifications/');
         const data = response.data.results || response.data;
-        // Handle field transition and ensure boolean
+        
         const normalizedData = Array.isArray(data) ? data.map((n: any) => ({
           ...n,
           is_read: n.is_read !== undefined ? n.is_read : (n.est_lu !== undefined ? n.est_lu : false)
@@ -46,7 +46,7 @@ export default function Notifications() {
       setNotifications(prev => prev.map(notif =>
         notif.id === notificationId ? { ...notif, is_read: true } : notif
       ));
-      // Dispatch event to update sidebar counts
+      
       window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
       toast.error(t('notifications.messages.update_error'));
@@ -59,7 +59,7 @@ export default function Notifications() {
       await Promise.all(unreadIds.map(id => api.patch(`/communication/notifications/${id}/`, { is_read: true })));
       setNotifications(prev => prev.map(notif => ({ ...notif, is_read: true })));
       toast.success(t('notifications.messages.mark_all_success'));
-      // Dispatch event to update sidebar counts
+    
       window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
       toast.error(t('notifications.messages.update_error'));
@@ -108,7 +108,7 @@ export default function Notifications() {
         )}
       </div>
 
-      {/* Notifications List */}
+      {}
       <div className="space-y-4">
         {notifications.length > 0 ? notifications.map((notification) => (
           <div
@@ -186,7 +186,7 @@ export default function Notifications() {
         )}
       </div>
 
-      {/* Statistics */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center text-center">
           <div className="w-16 h-16 rounded-full bg-slate-50 text-slate-500 flex items-center justify-center mb-4">

@@ -62,7 +62,7 @@ export default function StudentSidebar() {
 
     fetchUnreadCount();
     
-    // Listen for notification updates from other components
+    
     window.addEventListener('notification-updated', fetchUnreadCount);
     
     const interval = setInterval(fetchUnreadCount, 30000);
@@ -149,7 +149,7 @@ export default function StudentSidebar() {
           className={`flex cursor-pointer items-center gap-3 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium ${isCollapsed ? 'w-10 h-10 justify-center' : 'w-full px-3'}`}
         >
           <LogOut className="w-5 h-5" />
-          {/* {!isCollapsed && <span>{t('dashboard.logout')}</span>} */}
+          {}
         </button>
       </div>
     </aside>

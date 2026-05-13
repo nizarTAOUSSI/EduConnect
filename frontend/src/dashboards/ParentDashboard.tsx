@@ -50,7 +50,7 @@ export default function ParentDashboard() {
       setNotifications(prev => prev.map(notif =>
         notif.id === notificationId ? { ...notif, is_read: true } : notif
       ));
-      // Dispatch event to update sidebar counts
+
       window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la notification', error);
@@ -85,7 +85,7 @@ export default function ParentDashboard() {
           return pUserId === user?.id;
         });
 
-        // Normalize notifications for field transition
+      
         const rawNotifs = notifsRes.data.results || notifsRes.data;
         const normalizedNotifs = Array.isArray(rawNotifs) ? rawNotifs.map((n: DashboardNotification) => ({
           ...n,
@@ -97,7 +97,7 @@ export default function ParentDashboard() {
 
         if (myProfile && myProfile.enfants) {
           const enfantIds = myProfile.enfants;
-          // Get User IDs of children for reclamations
+        
           const enfantUserIds = myProfile.enfants_details?.map((e: { utilisateur: number }) => e.utilisateur) || [];
           
           const myChildrenAbsences = (absencesRes.data.results || absencesRes.data).filter(

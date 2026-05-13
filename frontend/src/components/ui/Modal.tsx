@@ -51,13 +51,13 @@ export default function Modal({
 
   return createPortal(
     <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
-      {/* Backdrop */}
+      {}
       <div 
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" 
         onClick={closeOnOutsideClick ? onClose : undefined} 
       />
       
-      {/* Modal Dialog */}
+      {}
       <div 
         ref={modalRef}
         className={`bg-white rounded-3xl shadow-2xl w-full ${maxWidthClasses[maxWidth]} relative z-10 animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300 border border-slate-200/50`}

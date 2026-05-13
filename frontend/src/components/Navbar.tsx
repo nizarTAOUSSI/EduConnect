@@ -188,14 +188,7 @@ export default function Navbar() {
         }}
       />
 
-      {/* <SignupModal
-        isOpen={showSignup}
-        onClose={() => setShowSignup(false)}
-        onSwitchToLogin={() => {
-          setShowSignup(false);
-          setShowLogin(true);
-        }}
-      /> */}
+      {}
     </>
   );
 }

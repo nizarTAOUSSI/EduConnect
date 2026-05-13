@@ -26,7 +26,7 @@ import TimetableManager from './dashboards/admin/TimetableManager';
 import EvaluationsManager from './dashboards/admin/EvaluationsManager';
 import Notifications from './components/Notifications';
 
-// Teacher Dashboards
+
 import TeacherLayout from './dashboards/teacher/TeacherLayout';
 import TeacherClasses from './dashboards/teacher/TeacherClasses';
 import TeacherNotes from './dashboards/teacher/TeacherNotes';
@@ -34,14 +34,14 @@ import TeacherAbsences from './dashboards/teacher/TeacherAbsences';
 import TeacherReclamations from './dashboards/teacher/TeacherReclamations';
 import TeacherTimetable from './dashboards/teacher/TeacherTimetable';
 
-// Student Dashboards
+
 import StudentLayout from './dashboards/student/StudentLayout';
 import StudentNotes from './dashboards/student/StudentNotes';
 import StudentAbsences from './dashboards/student/StudentAbsences';
 import StudentReclamations from './dashboards/student/StudentReclamations';
 import StudentTimetable from './dashboards/student/StudentTimetable';
 
-// Parent Dashboards
+
 import ParentLayout from './dashboards/parent/ParentLayout';
 import ParentChildren from './dashboards/parent/ParentChildren';
 import ParentNotes from './dashboards/parent/ParentNotes';

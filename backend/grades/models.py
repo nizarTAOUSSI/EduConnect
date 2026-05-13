@@ -60,7 +60,7 @@ class Evaluation(models.Model):
         from academics.models import Seance, EnseignantMatiere, AnneeScolaire, Periode
         
         if self.date:
-            # Check date is in an AnneeScolaire
+            
             annee = AnneeScolaire.objects.filter(
                 date_debut__lte=self.date,
                 date_fin__gte=self.date
@@ -70,7 +70,7 @@ class Evaluation(models.Model):
                     f"La date {self.date} n'appartient à aucune année scolaire."
                 )
             
-            # Check date is in a Periode that belongs to the same AnneeScolaire
+           
             periode_exists = Periode.objects.filter(
                 annee_scolaire=annee,
                 date_debut__lte=self.date,

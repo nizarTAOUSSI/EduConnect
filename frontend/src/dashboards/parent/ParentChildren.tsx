@@ -19,7 +19,7 @@ export default function ParentChildren() {
         const parentsRes = await api.get('/accounts/parents/');
         const parentsData = Array.isArray(parentsRes.data) ? parentsRes.data : (parentsRes.data.results || [parentsRes.data]);
         
-        // Find the specific profile for the current user
+        
         const myProfile = parentsData.find((p: any) => 
           p.utilisateur === user?.id || 
           (p.utilisateur && p.utilisateur.id === user?.id)

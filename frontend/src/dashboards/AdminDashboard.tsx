@@ -26,7 +26,7 @@ export default function AdminDashboard() {
       setRecentNotifications(prev => prev.map(notif =>
         notif.id === notificationId ? { ...notif, is_read: true } : notif
       ));
-      // Dispatch event to update sidebar counts
+      
       window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
       console.error(t('admin_dashboard.errors.update_notif'), error);
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
           newUsersThisWeek
         });
 
-        // Normalize notifications for field transition
+       
         const rawNotifs = notifsRes.data.results || notifsRes.data;
         const normalizedNotifs = Array.isArray(rawNotifs) ? rawNotifs.map((n: any) => ({
           ...n,

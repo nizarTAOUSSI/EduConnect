@@ -103,8 +103,7 @@ export default function ParentReclamations() {
     const child = children.find(c => c.id === parseInt(childId));
     if (child) {
       setSelectedChild(child);
-      // Logic to filter reclamations for specific child if API supports it
-      // For now we just reload all
+     
       await loadChildReclamations();
     }
   };
