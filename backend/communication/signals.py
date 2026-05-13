@@ -8,26 +8,38 @@ from grades.models import Note, Evaluation
 def notify_teacher_on_reclamation(sender, instance, created, **kwargs):
     """Notify teacher when a student submits a reclamation."""
     if created and instance.destinataire:
-        Notification.objects.create(
-            destinataire=instance.destinataire,
-            from_user=instance.expediteur,
-            type=Notification.TypeNotification.RECLAMATION,
-            content_object=instance,
-            title="Nouvelle réclamation",
-            message=f"Nouvelle réclamation de {instance.expediteur.get_full_name()}: {instance.message[:50]}...",
-        )
+        try:
+            Notification.objects.create(
+                destinataire=instance.destinataire,
+                from_user=instance.expediteur,
+                type=Notification.TypeNotification.RECLAMATION,
+                content_object=instance,
+                title="Nouvelle réclamation",
+                message=f"Nouvelle réclamation de {instance.expediteur.get_full_name()}: {instance.message[:50]}...",
+            )
+            print(f"Notification sent to teacher {instance.destinataire.id} for reclamation {instance.id}")
+        except Exception as e:
+            print(f"Error sending notification for new reclamation: {e}")
+            import traceback
+            traceback.print_exc()
 @receiver(post_save, sender=Reclamation)
 def notify_student_on_reclamation_response(sender, instance, created, **kwargs):
     """Notify student when teacher responds to reclamation."""
     if not created and instance.reponse and instance.expediteur:
-        Notification.objects.create(
-            destinataire=instance.expediteur,
-            from_user=instance.destinataire,
-            type=Notification.TypeNotification.RECLAMATION,
-            content_object=instance,
-            title="Réponse à votre réclamation",
-            message=f"Réponse à votre réclamation: {instance.reponse[:50]}...",
-        )
+        try:
+            Notification.objects.create(
+                destinataire=instance.expediteur,
+                from_user=instance.destinataire,
+                type=Notification.TypeNotification.RECLAMATION,
+                content_object=instance,
+                title="Réponse à votre réclamation",
+                message=f"Réponse à votre réclamation: {instance.reponse[:50]}...",
+            )
+            print(f"Notification sent to student {instance.expediteur.id} for reclamation {instance.id}")
+        except Exception as e:
+            print(f"Error sending notification for reclamation response: {e}")
+            import traceback
+            traceback.print_exc()
 @receiver(post_save, sender=Absence)
 def notify_on_absence(sender, instance, created, **kwargs):
     """Notify student and parents when absence is recorded or modified."""
