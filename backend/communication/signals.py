@@ -8,38 +8,26 @@ from grades.models import Note, Evaluation
 def notify_teacher_on_reclamation(sender, instance, created, **kwargs):
     """Notify teacher when a student submits a reclamation."""
     if created and instance.destinataire:
-        try:
-            Notification.objects.create(
-                destinataire=instance.destinataire,
-                from_user=instance.expediteur,
-                type=Notification.TypeNotification.RECLAMATION,
-                content_object=instance,
-                title="Nouvelle réclamation",
-                message=f"Nouvelle réclamation de {instance.expediteur.get_full_name()}: {instance.message[:50]}...",
-            )
-            print(f"Notification sent to teacher {instance.destinataire.id} for reclamation {instance.id}")
-        except Exception as e:
-            print(f"Error sending notification for new reclamation: {e}")
-            import traceback
-            traceback.print_exc()
+        Notification.objects.create(
+            destinataire=instance.destinataire,
+            from_user=instance.expediteur,
+            type=Notification.TypeNotification.RECLAMATION,
+            content_object=instance,
+            title="Nouvelle réclamation",
+            message=f"Nouvelle réclamation de {instance.expediteur.get_full_name()}: {instance.message[:50]}...",
+        )
 @receiver(post_save, sender=Reclamation)
 def notify_student_on_reclamation_response(sender, instance, created, **kwargs):
     """Notify student when teacher responds to reclamation."""
     if not created and instance.reponse and instance.expediteur:
-        try:
-            Notification.objects.create(
-                destinataire=instance.expediteur,
-                from_user=instance.destinataire,
-                type=Notification.TypeNotification.RECLAMATION,
-                content_object=instance,
-                title="Réponse à votre réclamation",
-                message=f"Réponse à votre réclamation: {instance.reponse[:50]}...",
-            )
-            print(f"Notification sent to student {instance.expediteur.id} for reclamation {instance.id}")
-        except Exception as e:
-            print(f"Error sending notification for reclamation response: {e}")
-            import traceback
-            traceback.print_exc()
+        Notification.objects.create(
+            destinataire=instance.expediteur,
+            from_user=instance.destinataire,
+            type=Notification.TypeNotification.RECLAMATION,
+            content_object=instance,
+            title="Réponse à votre réclamation",
+            message=f"Réponse à votre réclamation: {instance.reponse[:50]}...",
+        )
 @receiver(post_save, sender=Absence)
 def notify_on_absence(sender, instance, created, **kwargs):
     """Notify student and parents when absence is recorded or modified."""
@@ -66,7 +54,7 @@ def notify_on_absence(sender, instance, created, **kwargs):
                     message=f"Absence de {student_user.get_full_name()} pour {instance.enseignant_matiere.matiere.nom} le {instance.date}",
                 )
         except Exception as e:
-            print(f"Error notifying parents: {e}")
+            pass
     else:
         Notification.objects.filter(
             content_type=content_type, 
@@ -79,40 +67,31 @@ def notify_on_absence(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Note)
 def notify_on_note(sender, instance, created, **kwargs):
     """Notify student and parents when grade is added or modified."""
-    content_type = ContentType.objects.get_for_model(instance)
     grade_text = f"Note: {instance.valeur_note}/20" if instance.valeur_note is not None else "Absent"
-    message = f"Nouvelle note pour {instance.evaluation.matiere.nom}: {grade_text}"
+    message = f"Nouvelle note pour {instance.evaluation.matiere.nom}: {grade_text}" if created else f"Note modifiée pour {instance.evaluation.matiere.nom}: {grade_text}"
     title = "Nouvelle note disponible" if created else "Note modifiée"
-    if created:
-        student_user = instance.etudiant.utilisateur
-        Notification.objects.create(
-            destinataire=student_user,
-            type=Notification.TypeNotification.NOTE,
-            content_object=instance,
-            title=title,
-            message=message,
-        )
-        try:
-            parents = instance.etudiant.parents.all()
-            for parent in parents:
-                Notification.objects.create(
-                    destinataire=parent.utilisateur,
-                    type=Notification.TypeNotification.NOTE,
-                    content_object=instance,
-                    title=f"Nouvelle note de votre enfant",
-                    message=f"Note de {student_user.get_full_name()} pour {instance.evaluation.matiere.nom}: {grade_text}",
-                )
-        except Exception as e:
-            print(f"Error notifying parents: {e}")
-    else:
-        Notification.objects.filter(
-            content_type=content_type, 
-            object_id=instance.id
-        ).update(
-            message=message,
-            title=title,
-            is_read=False  
-        )
+    
+    student_user = instance.etudiant.utilisateur
+    Notification.objects.create(
+        destinataire=student_user,
+        type=Notification.TypeNotification.NOTE,
+        content_object=instance,
+        title=title,
+        message=message,
+    )
+    
+    try:
+        parents = instance.etudiant.parents.all()
+        for parent in parents:
+            Notification.objects.create(
+                destinataire=parent.utilisateur,
+                type=Notification.TypeNotification.NOTE,
+                content_object=instance,
+                title=f"Nouvelle note de votre enfant" if created else f"Note modifiée de votre enfant",
+                message=f"Note de {student_user.get_full_name()} pour {instance.evaluation.matiere.nom}: {grade_text}",
+            )
+    except Exception as e:
+        pass
 @receiver(post_delete, sender=Note)
 @receiver(post_delete, sender=Reclamation)
 @receiver(post_delete, sender=Absence)
