@@ -83,7 +83,6 @@ export default function TimetableGrid({
   classeId, 
   isTeacherGlobal,
   isAdmin, 
-  currentTeacherId, 
   onDelete, 
   onEdit 
 }: TimetableGridProps) {
