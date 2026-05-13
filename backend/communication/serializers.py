@@ -13,7 +13,7 @@ class ReclamationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reclamation
         fields = '__all__'
-        read_only_fields = ['expediteur', 'statut', 'date_creation', 'reponse']
+        read_only_fields = ['expediteur', 'date_creation']
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
