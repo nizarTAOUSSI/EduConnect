@@ -9,6 +9,10 @@ class ReclamationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['expediteur', 'destinataire', 'statut']
+    
+    def perform_create(self, serializer):
+        serializer.save(expediteur=self.request.user)
+    
     def get_queryset(self):
         user = self.request.user
         if user.is_enseignant():
