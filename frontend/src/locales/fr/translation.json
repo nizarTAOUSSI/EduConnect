@@ -190,6 +190,16 @@
     "errors": {
       "load_stats": "Erreur lors du chargement des statistiques",
       "update_notif": "Erreur lors de la mise à jour de la notification"
+    },
+    "charts": {
+      "students_by_class": "Étudiants par classe",
+      "users_by_role": "Utilisateurs par type",
+      "no_data": "Aucune donnée",
+      "label_students": "Étudiants",
+      "role_etudiant": "Étudiant",
+      "role_enseignant": "Enseignant",
+      "role_parent": "Parent",
+      "role_admin": "Admin"
     }
   },
   "common": {
@@ -623,6 +633,7 @@
     "notes_section": {
       "title": "Mes Notes",
       "subtitle": "Cliquez sur une note pour faire une réclamation",
+      "no_notes": "Aucune note disponible.",
       "table": {
         "evaluation": "Évaluation",
         "type": "Type",

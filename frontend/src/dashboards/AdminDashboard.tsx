@@ -5,6 +5,19 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import Spinner from '../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+} from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -19,6 +32,8 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
+  const [usersByRole, setUsersByRole] = useState<Record<string, number>>({});
+  const [studentsByClass, setStudentsByClass] = useState<Record<string, number>>({});
 
   const markAsRead = async (notificationId: number) => {
     try {
@@ -36,14 +51,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [usersRes, classesRes, matieresRes, absencesRes, reclamationsRes, teachersRes, notifsRes] = await Promise.all([
+        const [usersRes, classesRes, matieresRes, absencesRes, reclamationsRes, teachersRes, notifsRes, etudiantsRes] = await Promise.all([
           api.get('/accounts/utilisateurs/'),
           api.get('/academics/classes/'),
           api.get('/academics/matieres/'),
           api.get('/academics/absences/'),
           api.get('/communication/reclamations/'),
           api.get('/accounts/enseignants/'),
-          api.get('/communication/notifications/')
+          api.get('/communication/notifications/'),
+          api.get('/accounts/etudiants/'),
         ]);
         
         const usersCount = usersRes.data.count ?? usersRes.data.length ?? 0;
@@ -84,6 +100,24 @@ export default function AdminDashboard() {
 
         setRecentNotifications(normalizedNotifs.slice(0, 5));
 
+        // Users by role
+        const allUsers: any[] = usersRes.data.results || usersRes.data;
+        const roleCount: Record<string, number> = {};
+        allUsers.forEach((u: any) => {
+          const r = u.role || 'inconnu';
+          roleCount[r] = (roleCount[r] || 0) + 1;
+        });
+        setUsersByRole(roleCount);
+
+        // Students by class
+        const allEtudiants: any[] = etudiantsRes.data.results || etudiantsRes.data;
+        const classeCount: Record<string, number> = {};
+        allEtudiants.forEach((e: any) => {
+          const nom = e.classe_name || e.classe || 'Sans classe';
+          classeCount[nom] = (classeCount[nom] || 0) + 1;
+        });
+        setStudentsByClass(classeCount);
+
       } catch (error) {
         toast.error(t('admin_dashboard.errors.load_stats'));
       } finally {
@@ -118,6 +152,97 @@ export default function AdminDashboard() {
         <StatCard title={t('admin_dashboard.stats.pending_reclamations')} value={stats.pendingReclamations} icon={MessageSquare} color="bg-amber-600" />
       </div>
 
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        {/* Bar chart – students per class */}
+        <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+              <GraduationCap className="w-5 h-5" />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900">{t('admin_dashboard.charts.students_by_class')}</h2>
+          </div>
+          {Object.keys(studentsByClass).length > 0 ? (
+            <Bar
+              data={{
+                labels: Object.keys(studentsByClass),
+                datasets: [{
+                  label: t('admin_dashboard.charts.label_students'),
+                  data: Object.values(studentsByClass),
+                  backgroundColor: 'rgba(99,102,241,0.7)',
+                  borderColor: 'rgba(99,102,241,1)',
+                  borderWidth: 2,
+                  borderRadius: 8,
+                }],
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: false },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                  },
+                  x: {
+                    grid: { display: false },
+                  },
+                },
+              }}
+            />
+          ) : (
+            <div className="flex h-48 items-center justify-center text-slate-400 italic text-sm">{t('admin_dashboard.charts.no_data')}</div>
+          )}
+        </div>
+
+        {/* Doughnut chart – users by role */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+              <Users className="w-5 h-5" />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900">{t('admin_dashboard.charts.users_by_role')}</h2>
+          </div>
+          {Object.keys(usersByRole).length > 0 ? (
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-56 h-56">
+                <Doughnut
+                  data={{
+                    labels: Object.keys(usersByRole).map(r =>
+                      r === 'etudiant' ? t('admin_dashboard.charts.role_etudiant') :
+                      r === 'enseignant' ? t('admin_dashboard.charts.role_enseignant') :
+                      r === 'parent' ? t('admin_dashboard.charts.role_parent') :
+                      r === 'admin' ? t('admin_dashboard.charts.role_admin') : r
+                    ),
+                    datasets: [{
+                      data: Object.values(usersByRole),
+                      backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444'],
+                      borderColor: '#fff',
+                      borderWidth: 3,
+                    }],
+                  }}
+                  options={{
+                    responsive: true,
+                    cutout: '65%',
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                        labels: { padding: 16, font: { size: 12, weight: 'bold' } },
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-48 items-center justify-center text-slate-400 italic text-sm">{t('admin_dashboard.charts.no_data')}</div>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm">
           <div className="flex items-center justify-between mb-8">
@@ -127,8 +252,7 @@ export default function AdminDashboard() {
               </div>
               <h2 className="text-xl font-bold text-slate-900">{t('admin_dashboard.notifications.title')}</h2>
             </div>
-          </div>
-          
+          </div>          
           <div className="space-y-4">
             {recentNotifications.length > 0 ? recentNotifications.map((notif, idx) => (
               <div 

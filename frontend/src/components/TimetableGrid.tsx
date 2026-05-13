@@ -33,16 +33,44 @@ interface TimetableGridProps {
   onEdit?: (seance: any) => void;
 }
 
-const getProgression = (heureDebut: string, heureFin: string) => {
+const getProgression = (heureDebut: string, heureFin: string, dateStr?: string, dayKey?: string) => {
   const now = new Date();
+  
+   if (dateStr) {
+     const parts = dateStr.split(/[-/]/).map(Number);
+     let year, month, day;
+     
+     if (parts[0] > 1000) { // YYYY-MM-DD
+       [year, month, day] = parts;
+     } else { // DD-MM-YYYY or DD/MM/YYYY
+       [day, month, year] = parts;
+     }
+
+     if (
+       now.getFullYear() !== year ||
+       now.getMonth() !== month - 1 ||
+       now.getDate() !== day
+     ) {
+       return null;
+     }
+   } 
+  else if (dayKey) {
+    const daysMap: { [key: string]: number } = {
+      'dimanche': 0, 'lundi': 1, 'mardi': 2, 'mercredi': 3, 'jeudi': 4, 'vendredi': 5, 'samedi': 6
+    };
+    if (now.getDay() !== daysMap[dayKey]) {
+      return null;
+    }
+  }
+
   const [hStart, mStart] = heureDebut.split(':').map(Number);
   const [hEnd, mEnd] = heureFin.split(':').map(Number);
 
-  const start = new Date();
-  start.setHours(hStart, mStart, 0);
+  const start = new Date(now);
+  start.setHours(hStart, mStart, 0, 0);
 
-  const end = new Date();
-  end.setHours(hEnd, mEnd, 0);
+  const end = new Date(now);
+  end.setHours(hEnd, mEnd, 0, 0);
 
   if (now < start || now > end) return null;
 
@@ -144,7 +172,7 @@ export default function TimetableGrid({
                 {seances.length > 0 ? (
                   seances.sort((a, b) => a.heure_debut.localeCompare(b.heure_debut)).map((seance, idx) => {
                     const isEval = seance.type === 'evaluation';
-                    const progression = getProgression(seance.heure_debut, seance.heure_fin);
+                    const progression = getProgression(seance.heure_debut, seance.heure_fin, seance.date, day.key);
                     const isActive = progression !== null;
 
                     return (
@@ -175,7 +203,7 @@ export default function TimetableGrid({
                           }`}>
                             {isEval ? t('timetable_grid.evaluation') : t('timetable_grid.course')}
                           </span>
-                          {(isAdmin || (isTeacherGlobal && seance.enseignant_id === currentTeacherId)) && (
+                          {isAdmin && (
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button 
                                 onClick={(e) => { e.stopPropagation(); onEdit?.(seance); }}

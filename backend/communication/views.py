@@ -37,4 +37,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
-        return Notification.objects.filter(destinataire=self.request.user)
+        user = self.request.user
+        if user.is_admin():
+            return Notification.objects.all()
+        return Notification.objects.filter(destinataire=user)

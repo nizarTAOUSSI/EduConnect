@@ -191,6 +191,16 @@
     "errors": {
       "load_stats": "Error loading statistics",
       "update_notif": "Error updating notification"
+    },
+    "charts": {
+      "students_by_class": "Students by class",
+      "users_by_role": "Users by type",
+      "no_data": "No data",
+      "label_students": "Students",
+      "role_etudiant": "Student",
+      "role_enseignant": "Teacher",
+      "role_parent": "Parent",
+      "role_admin": "Admin"
     }
   },
   "common": {
@@ -624,6 +634,7 @@
     "notes_section": {
       "title": "My Grades",
       "subtitle": "Click on a grade to make a complaint",
+      "no_notes": "No grades available.",
       "table": {
         "evaluation": "Evaluation",
         "type": "Type",
