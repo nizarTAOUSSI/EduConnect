@@ -67,7 +67,7 @@ export default function EtudiantDashboard() {
       try {
         if (!user) return;
         
-        const [notesRes, absencesRes, matieresRes, notificationsRes, bulletinsRes, periodsRes, anneeRes] = await Promise.all([
+        const [notesRes, absencesRes, matieresRes, notificationsRes, _bulletinsRes, periodsRes, anneeRes] = await Promise.all([
           api.get('/grades/notes/'),
           api.get('/academics/absences/'),
           api.get('/academics/matieres/'),
@@ -79,7 +79,7 @@ export default function EtudiantDashboard() {
 
         const allPeriods = periodsRes.data.results || periodsRes.data;
         const allNotes = notesRes.data.results || notesRes.data;
-        const allBulletins = bulletinsRes.data.results || bulletinsRes.data;
+        //const allBulletins = bulletinsRes.data.results || bulletinsRes.data;
         const allAnnees = anneeRes.data.results || anneeRes.data;
         
        
@@ -114,13 +114,13 @@ export default function EtudiantDashboard() {
         const allAbsences = absencesRes.data.results || absencesRes.data;
         const myAbsences = allAbsences.filter((a: { etudiant_user: number }) => a.etudiant_user === user.id);
 
-        const myBulletins = allBulletins;
-        const latestBulletin = selectedPeriode 
+        /*const myBulletins = allBulletins;
+        const _latestBulletin = selectedPeriode 
           ? myBulletins.find((b: { periode: number | { id: number } }) => {
               const bPeriodId = typeof b.periode === 'object' ? b.periode.id : b.periode;
               return bPeriodId?.toString() === selectedPeriode;
             })
-          : myBulletins[0];
+          : myBulletins[0];*/
 
         const rawNotifs = notificationsRes.data.results || notificationsRes.data;
         const normalizedNotifs = Array.isArray(rawNotifs) ? rawNotifs.map((n: DashboardNotification) => ({
